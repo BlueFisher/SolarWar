@@ -1,5 +1,5 @@
 module.exports = {
-	entry: ['./bin/scripts/main.js'],
+	entry: ['./bin/web_scripts/main.js'],
 	output: {
 		path: 'public/scripts',
 		filename: 'bundle.js'

@@ -5,7 +5,6 @@ module.exports = {
 		filename: 'bundle.js'
 	},
 	externals: {
-		jquery: 'window.$',
-		Dragdealer: 'Dragdealer'
+		jquery: 'window.$'
 	},
 }

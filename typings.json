@@ -1,0 +1,8 @@
+{
+  "name": "solarwar",
+  "dependencies": {},
+  "globalDependencies": {
+    "express": "registry:dt/express#4.0.0+20160708185218",
+    "jquery": "registry:dt/jquery#1.10.0+20160908203239"
+  }
+}

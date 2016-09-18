@@ -153,12 +153,17 @@ export default class GameStage extends events.EventEmitter {
 				});
 			}
 
-			if (planet.occupyingStatus != null) {
+			if ((planet.allShips.length == 1 || planet.allShips.length == 0)
+				&& planet.occupyingStatus != null && planet.occupyingStatus.percent != 100) {
 				ctx.save();
-				ctx.textAlign = 'center';
 				let player = status.players.filter(player => player.id == planet.occupyingStatus.playerId)[0];
-				ctx.fillStyle = player.color;
-				ctx.fillText(`${player.name} ${planet.occupyingStatus.percent}%`, planet.position.x, planet.position.y - planet.size / 2 - 10);
+				ctx.beginPath();
+				let angle = Math.PI * 2 * planet.occupyingStatus.percent / 100;
+				ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 5, 0, angle);
+
+				ctx.strokeStyle = player.color;
+				ctx.lineWidth = 5;
+				ctx.stroke();
 				ctx.restore();
 			}
 		});

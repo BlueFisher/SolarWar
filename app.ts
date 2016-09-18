@@ -9,7 +9,6 @@ let gameManager = httpServer.getGameServer().getGameManager();
 gameManager.on('statusChange', (status: GameStatusProtocol) => {
 	displayStatus(status);
 });
-gameManager.addPlayer('fisher');
 
 import readline = require('readline');
 const rl = readline.createInterface({
@@ -44,9 +43,8 @@ function displayStatus(status: GameStatusProtocol) {
 
 	log += '\n';
 	status.planets.forEach(p => {
-		log += `Planet ${p.id} (${p.status})\n`;
+		log += `Planet ${p.id}\n`;
 		log += `occupiedPlayerId: ${p.occupiedPlayerId}\n`;
-		log += `occupyingPlayerId: ${p.occupyingPlayerId}\n`;
 		if (p.occupyingStatus != null) {
 			log += `occupyingStatus: ${p.occupyingStatus.playerId} ${p.occupyingStatus.percent}\n`;
 		}

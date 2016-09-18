@@ -122,7 +122,7 @@ class GameManager extends events.EventEmitter {
 			if (player.currShipsCount == 0) {
 				let isGameOver = true;
 				this._planets.forEach((planet, index) => {
-					if (planet.occupiedPlayer == player || planet.occupyingPlayer == player) {
+					if (planet.occupiedPlayer == player) {
 						isGameOver = false;
 						return;
 					}

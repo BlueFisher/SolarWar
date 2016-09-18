@@ -21,11 +21,7 @@ class Planet {
 	position: Point;
 
 	allShips: ShipsOnThePlanet[] = [];
-
-	// 已占领的玩家
 	occupiedPlayer: player;
-	// 正在占领中的玩家
-	occupyingPlayer: player;
 	occupyingStatus: occupyingStatus;
 
 	constructor(id: number, size: number, position: Point, onStatusChange: () => void, occupiedPlayer: player = null) {
@@ -47,6 +43,7 @@ class Planet {
 			}
 			occupiedPlayer.currShipsCount += this.size;
 			occupiedPlayer.maxShipsCount += this.size;
+
 			this.occupiedPlayer = occupiedPlayer;
 		}
 	}
@@ -56,7 +53,7 @@ class Planet {
 			id: this.id,
 			size: this.size,
 			position: this.position,
-			status: this._getStatus(),
+			// status: this._getStatus(),
 			allShips: this.allShips.map(elem => {
 				return {
 					playerId: elem.player.id,
@@ -64,7 +61,6 @@ class Planet {
 				}
 			}),
 			occupiedPlayerId: this.occupiedPlayer == null ? null : this.occupiedPlayer.id,
-			occupyingPlayerId: this.occupyingPlayer == null ? null : this.occupyingPlayer.id,
 			occupyingStatus: this.occupyingStatus == null ? null : {
 				playerId: this.occupyingStatus.player.id,
 				percent: this.occupyingStatus.percent
@@ -87,17 +83,6 @@ class Planet {
 			existedShips.count += count;
 		}
 
-		if (this.occupiedPlayer == null && this.occupyingPlayer == null) {
-			this.occupyingPlayer = player;
-
-			this.occupyingStatus = this.occupyingStatus != null ? this.occupyingStatus : {
-				percent: 0,
-				player: player
-			}
-		} else if (this.occupiedPlayer != null && this.allShips.filter(p => p.player == this.occupiedPlayer)[0] == undefined) {
-			this.occupyingPlayer = player;
-		}
-
 		this._startOccupying();
 		this._startCombat();
 	}
@@ -117,9 +102,6 @@ class Planet {
 		let count = parseInt((this.allShips[existedShipsIndex].count * countRatio).toFixed());
 		this.allShips[existedShipsIndex].count -= count;
 		if (this.allShips[existedShipsIndex].count == 0) {
-			if (this.allShips[existedShipsIndex].player == this.occupyingPlayer) {
-				this.occupyingPlayer = null;
-			}
 			if (this.allShips[existedShipsIndex].player != this.occupiedPlayer) {
 				this.allShips.splice(existedShipsIndex, 1);
 			}
@@ -128,25 +110,21 @@ class Planet {
 		return count;
 	}
 
-	private _getStatus(): PlanetStatus {
-		if (this.occupiedPlayer == null && this.occupyingPlayer == null) {
-			return PlanetStatus.none;
-		}
-		if (this.occupyingPlayer != null) {
-			return PlanetStatus.occupying;
-		}
-		if (this.occupiedPlayer != null && this.occupiedPlayer == this.occupyingStatus.player && this.occupyingStatus.percent == 100) {
-			return PlanetStatus.occupied;
-		}
-	}
-
 	private _isOccupying = false;
 	private _startOccupying() {
 		if (!this._isOccupying)
 			this._occupy();
 	}
 	private _occupy() {
-		if (this.occupyingPlayer == null || this.allShips.length > 1) {
+		if (this.allShips.length != 1) {
+			this._isOccupying = false;
+			return;
+		}
+		if (this.occupiedPlayer != null &&
+			this.allShips[0].player == this.occupiedPlayer &&
+			this.occupiedPlayer == this.occupyingStatus.player &&
+			this.occupyingStatus.percent == 100) {
+
 			this._isOccupying = false;
 			return;
 		}
@@ -157,14 +135,20 @@ class Planet {
 		}, 50);
 	}
 	private _occupyingHandler() {
-		if (this.occupyingPlayer == this.occupyingStatus.player) {
+		let occupyingPlayer = this.allShips[0].player;
+
+		if (this.occupyingStatus == null) {
+			this.occupyingStatus = {
+				player: occupyingPlayer,
+				percent: 0
+			};
+		}
+		if (occupyingPlayer == this.occupyingStatus.player) {
 			if (++this.occupyingStatus.percent == 100) {
-				if (this.occupiedPlayer != this.occupyingPlayer) {
-					this.occupiedPlayer = this.occupyingPlayer;
+				if (this.occupiedPlayer != occupyingPlayer) {
+					this.occupiedPlayer = occupyingPlayer;
 					this.occupiedPlayer.maxShipsCount += this.size;
 				}
-
-				this.occupyingPlayer = null;
 			}
 		} else {
 			if (--this.occupyingStatus.percent == 0) {
@@ -173,7 +157,7 @@ class Planet {
 					this.occupiedPlayer = null;
 				}
 
-				this.occupyingStatus.player = this.occupyingPlayer;
+				this.occupyingStatus.player = occupyingPlayer;
 			}
 		}
 
@@ -207,20 +191,6 @@ class Planet {
 			}
 		});
 
-		if (this.allShips.length == 1) {
-			if (this.occupiedPlayer != this.allShips[0].player) {
-				this.occupyingPlayer = this.allShips[0].player;
-			}
-		}
-		else if (this.allShips.length == 0) {
-			if (this.occupiedPlayer != null) {
-				this.allShips.push({
-					player: this.occupiedPlayer,
-					count: 0,
-				});
-			}
-		}
-
 		this._onStatusChange();
 		this._combat();
 	}
@@ -232,16 +202,23 @@ class Planet {
 		}, interval);
 	}
 	private _buildShips() {
-		if (this.occupiedPlayer == null || this.occupyingStatus.percent != 100) {
+		if (this.occupiedPlayer == null || this.occupiedPlayer != this.occupyingStatus.player || this.occupyingStatus.percent != 100) {
 			return;
 		}
-		let shipsOnThePlanet = this.allShips.filter(p => p.player == this.occupiedPlayer)[0];
-		if (shipsOnThePlanet == undefined) {
+		if (this.allShips.length == 0) {
+			this.allShips.push({
+				player: this.occupiedPlayer,
+				count: 0
+			});
+		}
+
+		let occupiedShipsOnThePlanet = this.allShips.filter(p => p.player == this.occupiedPlayer)[0];
+		if (occupiedShipsOnThePlanet == undefined) {
 			return;
 		}
 		if (this.occupiedPlayer.currShipsCount < this.occupiedPlayer.maxShipsCount) {
 			this.occupiedPlayer.currShipsCount++;
-			shipsOnThePlanet.count++;
+			occupiedShipsOnThePlanet.count++;
 
 			this._onStatusChange();
 		}

@@ -117,9 +117,6 @@ class GameManager extends events.EventEmitter {
 		this._moveShips();
 	}
 
-	requestImmediateStatus() {
-		this._onStatusChange();
-	}
 	private _onStatusChange(): GameStatusProtocol {
 		this._players.forEach((player, index) => {
 			if (player.currShipsCount == 0) {

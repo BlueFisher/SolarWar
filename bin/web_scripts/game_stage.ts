@@ -8,16 +8,20 @@ export default class GameStage extends events.EventEmitter {
 	private _currPlayerId: number;
 	private _$countRatio: JQuery;
 
-	constructor($canvas: JQuery, $countRatio: JQuery, currPlayerId: number) {
+	constructor($canvas: JQuery, $countRatio: JQuery) {
 		super();
 
 		this._canvas = <HTMLCanvasElement>$canvas[0];
 		this._ctx = this._canvas.getContext("2d");
 		this._$countRatio = $countRatio;
-		this._currPlayerId = currPlayerId;
 
 		this._handleMovingShips(this._canvas);
 	}
+
+	refreshCurrPlayerId(id: number) {
+		this._currPlayerId = id;
+	}
+
 	private _handleMovingShips(canvas: HTMLCanvasElement) {
 		let $canvas = $(canvas);
 
@@ -47,7 +51,7 @@ export default class GameStage extends events.EventEmitter {
 					x: e.pageX - $canvas.offset().left,
 					y: e.pageY - $canvas.offset().top
 				}
-				
+
 				let planetFrom = this._getPointedPlanet(startPoint.x, startPoint.y);
 				let planetTo = this._getPointedPlanet(endPoint.x, endPoint.y);
 

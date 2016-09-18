@@ -32,25 +32,33 @@ class GameServer {
 			let protocol: GameProtocols.GameOverProtocol = {
 				type: GameProtocols.GameProtocolType.gameOver
 			}
-			this._socketPlayerMap.filter(p => p.playerId == playerId)[0].socket.send(JSON.stringify(protocol));
+			let socketPlayer = this._socketPlayerMap.filter(p => p.playerId == playerId)[0];
+			if (socketPlayer != undefined) {
+				socketPlayer.socket.send(JSON.stringify(protocol));
+			}
 		});
 	}
 
-	addNewPlayerName(name: string): number {
-		let id = this._gameManager.addPlayer(name);
-		this._socketPlayerMap.push({
-			socket: null,
-			playerId: id
-		})
-		return id;
-	}
+	// addNewPlayerName(name: string): number {
+	// 	let id = this._gameManager.addPlayer(name);
+	// 	this._socketPlayerMap.push({
+	// 		socket: null,
+	// 		playerId: id
+	// 	})
+	// 	return id;
+	// }
 
 	private _onWebSocketConnection(socket: WebSocketServer) {
+		this._socketPlayerMap.push({
+			socket: socket,
+			playerId: null
+		});
+
 		socket.on('message', message => {
 			let protocol: GameProtocols.GameBaseProtocol = JSON.parse(message);
 			switch (protocol.type) {
-				case GameProtocols.GameProtocolType.newPlayerConnected:
-					this._onNewPlayerConnected(<GameProtocols.NewPlayerConnectedProtocol>protocol, socket);
+				case GameProtocols.GameProtocolType.requestAddPlayer:
+					this._onRequestAddPlayer(<GameProtocols.RequestAddPlayerProtocol>protocol, socket);
 					break;
 				case GameProtocols.GameProtocolType.movingShips:
 					this._onMovePlayerShips(<GameProtocols.MovingShips>protocol, socket);
@@ -75,11 +83,17 @@ class GameServer {
 		});
 	}
 
-	private _onNewPlayerConnected(protocol: GameProtocols.NewPlayerConnectedProtocol, socket: WebSocketServer) {
-		let socketPlayer = this._socketPlayerMap.filter(p => p.playerId == protocol.id)[0];
+	private _onRequestAddPlayer(protocol: GameProtocols.RequestAddPlayerProtocol, socket: WebSocketServer) {
+		let socketPlayer = this._socketPlayerMap.filter(p => p.socket == socket)[0];
 		if (socketPlayer != undefined) {
-			socketPlayer.socket = socket;
-			this._gameManager.requestImmediateStatus();
+			let id = this._gameManager.addPlayer(protocol.name);
+			socketPlayer.playerId = id;
+
+			let responseProtocol: GameProtocols.ResponseAddPlayerProtocol = {
+				type: GameProtocols.GameProtocolType.responseAddPlayer,
+				id: id
+			}
+			socket.send(JSON.stringify(responseProtocol));
 		}
 	}
 	private _onMovePlayerShips(protocol: GameProtocols.MovingShips, socket: WebSocketServer) {

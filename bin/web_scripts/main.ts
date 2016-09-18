@@ -5,28 +5,12 @@ import * as GameProtocols from '../protocols/game_protocols';
 import GameStage from './game_stage';
 
 class Main {
-	private _playerId: number;
 	private _gameStage: GameStage;
 	private _ws: WebSocket;
 
 	constructor() {
 		let $countRatio = this._initializeCountRatio();
-		let playerName = prompt("请输入名字", "Default Player");
-
-		$.ajax({
-			url: "/addNewPlayer",
-			method: "post",
-			dataType: "json",
-			contentType: "application/json",
-			data: JSON.stringify({
-				name: playerName
-			}),
-		}).then((data: HttpProtocols.AddNewPlayerResProtocol) => {
-			this._playerId = data.id;
-			this._initializeGameStage($countRatio);
-		}, () => {
-			alert('连接服务器失败');
-		});
+		this._initializeGameStage($countRatio);
 	}
 
 	private _initializeCountRatio(): JQuery {
@@ -50,9 +34,9 @@ class Main {
 		gameStageCanvas.height = $(window).innerHeight();
 		gameStageCanvas.width = $(window).innerWidth();
 
-		this._gameStage = new GameStage($gameStageCanvas, $countRatio, this._playerId);
+		this._gameStage = new GameStage($gameStageCanvas, $countRatio);
 		this._gameStage.on('protocolSend', (protocol: GameProtocols.GameBaseProtocol) => {
-			this._onProtocolSend(protocol);
+			this._ws.send(JSON.stringify(protocol));
 		})
 
 		$(window).on('resize', () => {
@@ -69,12 +53,22 @@ class Main {
 		this._ws = new WebSocket('ws://localhost:8080');
 
 		this._ws.onopen = () => {
-			this._onOpen();
+			console.log("WebSocket Connected");
+			let playerName = prompt("请输入名字", "Default Player");
+
+			let protocol: GameProtocols.RequestAddPlayerProtocol = {
+				type: GameProtocols.GameProtocolType.requestAddPlayer,
+				name: playerName,
+			};
+			this._ws.send(JSON.stringify(protocol));
 		}
 
 		this._ws.onmessage = (e) => {
 			let protocol = JSON.parse(e.data);
 			switch (protocol.type) {
+				case GameProtocols.GameProtocolType.responseAddPlayer:
+					this._onResponseAddPlayer(<GameProtocols.ResponseAddPlayerProtocol>protocol);
+					break;
 				case GameProtocols.GameProtocolType.gameStatus:
 					this._onGameStatusChange(<GameProtocols.GameStatusProtocol>protocol);
 					break;
@@ -85,37 +79,25 @@ class Main {
 		}
 
 		this._ws.onclose = e => {
-			this._onClose();
+			onClose();
 		}
 		this._ws.onerror = e => {
-			this._onClose();
+			onClose();
+		}
+
+		function onClose() {
+			console.log('WebSocket Disconnected');
 		}
 	}
 
-	private _onOpen() {
-		console.log("WebSocket Connected");
-
-		let newPlayerConnectedProtocol: GameProtocols.NewPlayerConnectedProtocol = {
-			type: GameProtocols.GameProtocolType.newPlayerConnected,
-			id: this._playerId,
-		};
-		this._ws.send(JSON.stringify(newPlayerConnectedProtocol));
+	private _onResponseAddPlayer(protocol: GameProtocols.ResponseAddPlayerProtocol) {
+		this._gameStage.refreshCurrPlayerId(protocol.id);
 	}
-
-	private _onClose() {
-		console.log('WebSocket Disconnected');
-	}
-
-
 	private _onGameStatusChange(protocol: GameProtocols.GameStatusProtocol) {
 		this._gameStage.stageChange(protocol);
 	}
 	private _onGameOver(protocol: GameProtocols.GameOverProtocol) {
 		alert('Game Over');
-	}
-
-	private _onProtocolSend(protocol: GameProtocols.GameBaseProtocol) {
-		this._ws.send(JSON.stringify(protocol));
 	}
 }
 

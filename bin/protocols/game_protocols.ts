@@ -1,6 +1,8 @@
 export enum GameProtocolType {
-	newPlayerConnected = 0,
+	requestAddPlayer = 0,
+	responseAddPlayer,
 	movingShips,
+
 	gameStatus,
 	gameOver
 }
@@ -8,7 +10,10 @@ export interface GameBaseProtocol {
 	type: GameProtocolType
 }
 
-export interface NewPlayerConnectedProtocol extends GameBaseProtocol {
+export interface RequestAddPlayerProtocol extends GameBaseProtocol {
+	name: string
+}
+export interface ResponseAddPlayerProtocol extends GameBaseProtocol {
 	id: number
 }
 
@@ -65,6 +70,6 @@ export interface GameStatusProtocol extends GameBaseProtocol {
 		distanceLeft: number
 	}[]
 }
-export interface GameOverProtocol extends GameBaseProtocol { 
+export interface GameOverProtocol extends GameBaseProtocol {
 
 }

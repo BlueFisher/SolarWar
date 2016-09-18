@@ -63,23 +63,8 @@
 	var game_stage_1 = __webpack_require__(/*! ./game_stage */ 4);
 	var Main = (function () {
 	    function Main() {
-	        var _this = this;
 	        var $countRatio = this._initializeCountRatio();
-	        var playerName = prompt("请输入名字", "Default Player");
-	        $.ajax({
-	            url: "/addNewPlayer",
-	            method: "post",
-	            dataType: "json",
-	            contentType: "application/json",
-	            data: JSON.stringify({
-	                name: playerName
-	            }),
-	        }).then(function (data) {
-	            _this._playerId = data.id;
-	            _this._initializeGameStage($countRatio);
-	        }, function () {
-	            alert('连接服务器失败');
-	        });
+	        this._initializeGameStage($countRatio);
 	    }
 	    Main.prototype._initializeCountRatio = function () {
 	        var $countRatio = $('#count-ratio input[type="range"]');
@@ -99,9 +84,9 @@
 	        var gameStageCanvas = $gameStageCanvas[0];
 	        gameStageCanvas.height = $(window).innerHeight();
 	        gameStageCanvas.width = $(window).innerWidth();
-	        this._gameStage = new game_stage_1.default($gameStageCanvas, $countRatio, this._playerId);
+	        this._gameStage = new game_stage_1.default($gameStageCanvas, $countRatio);
 	        this._gameStage.on('protocolSend', function (protocol) {
-	            _this._onProtocolSend(protocol);
+	            _this._ws.send(JSON.stringify(protocol));
 	        });
 	        $(window).on('resize', function () {
 	            gameStageCanvas.height = $(window).innerHeight();
@@ -114,11 +99,20 @@
 	        var _this = this;
 	        this._ws = new WebSocket('ws://localhost:8080');
 	        this._ws.onopen = function () {
-	            _this._onOpen();
+	            console.log("WebSocket Connected");
+	            var playerName = prompt("请输入名字", "Default Player");
+	            var protocol = {
+	                type: GameProtocols.GameProtocolType.requestAddPlayer,
+	                name: playerName,
+	            };
+	            _this._ws.send(JSON.stringify(protocol));
 	        };
 	        this._ws.onmessage = function (e) {
 	            var protocol = JSON.parse(e.data);
 	            switch (protocol.type) {
+	                case GameProtocols.GameProtocolType.responseAddPlayer:
+	                    _this._onResponseAddPlayer(protocol);
+	                    break;
 	                case GameProtocols.GameProtocolType.gameStatus:
 	                    _this._onGameStatusChange(protocol);
 	                    break;
@@ -128,31 +122,23 @@
 	            }
 	        };
 	        this._ws.onclose = function (e) {
-	            _this._onClose();
+	            onClose();
 	        };
 	        this._ws.onerror = function (e) {
-	            _this._onClose();
+	            onClose();
 	        };
+	        function onClose() {
+	            console.log('WebSocket Disconnected');
+	        }
 	    };
-	    Main.prototype._onOpen = function () {
-	        console.log("WebSocket Connected");
-	        var newPlayerConnectedProtocol = {
-	            type: GameProtocols.GameProtocolType.newPlayerConnected,
-	            id: this._playerId,
-	        };
-	        this._ws.send(JSON.stringify(newPlayerConnectedProtocol));
-	    };
-	    Main.prototype._onClose = function () {
-	        console.log('WebSocket Disconnected');
+	    Main.prototype._onResponseAddPlayer = function (protocol) {
+	        this._gameStage.refreshCurrPlayerId(protocol.id);
 	    };
 	    Main.prototype._onGameStatusChange = function (protocol) {
 	        this._gameStage.stageChange(protocol);
 	    };
 	    Main.prototype._onGameOver = function (protocol) {
 	        alert('Game Over');
-	    };
-	    Main.prototype._onProtocolSend = function (protocol) {
-	        this._ws.send(JSON.stringify(protocol));
 	    };
 	    return Main;
 	}());
@@ -179,10 +165,11 @@
 
 	"use strict";
 	(function (GameProtocolType) {
-	    GameProtocolType[GameProtocolType["newPlayerConnected"] = 0] = "newPlayerConnected";
-	    GameProtocolType[GameProtocolType["movingShips"] = 1] = "movingShips";
-	    GameProtocolType[GameProtocolType["gameStatus"] = 2] = "gameStatus";
-	    GameProtocolType[GameProtocolType["gameOver"] = 3] = "gameOver";
+	    GameProtocolType[GameProtocolType["requestAddPlayer"] = 0] = "requestAddPlayer";
+	    GameProtocolType[GameProtocolType["responseAddPlayer"] = 1] = "responseAddPlayer";
+	    GameProtocolType[GameProtocolType["movingShips"] = 2] = "movingShips";
+	    GameProtocolType[GameProtocolType["gameStatus"] = 3] = "gameStatus";
+	    GameProtocolType[GameProtocolType["gameOver"] = 4] = "gameOver";
 	})(exports.GameProtocolType || (exports.GameProtocolType = {}));
 	var GameProtocolType = exports.GameProtocolType;
 	(function (PlanetStatus) {
@@ -211,14 +198,16 @@
 	var GameProtocols = __webpack_require__(/*! ../protocols/game_protocols */ 3);
 	var GameStage = (function (_super) {
 	    __extends(GameStage, _super);
-	    function GameStage($canvas, $countRatio, currPlayerId) {
+	    function GameStage($canvas, $countRatio) {
 	        _super.call(this);
 	        this._canvas = $canvas[0];
 	        this._ctx = this._canvas.getContext("2d");
 	        this._$countRatio = $countRatio;
-	        this._currPlayerId = currPlayerId;
 	        this._handleMovingShips(this._canvas);
 	    }
+	    GameStage.prototype.refreshCurrPlayerId = function (id) {
+	        this._currPlayerId = id;
+	    };
 	    GameStage.prototype._handleMovingShips = function (canvas) {
 	        var _this = this;
 	        var $canvas = $(canvas);

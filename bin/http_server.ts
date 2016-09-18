@@ -28,15 +28,6 @@ class HttpServer {
 		app.get('/', (req, res) => {
 			res.sendFile(path.join(__dirname, '../views', 'index.html'));
 		});
-		app.post('/addNewPlayer', (req, res) => {
-			let json: httpProtocols.AddNewPlayerReqProtocol = req.body;
-			let id = gameServer.addNewPlayerName(json.name);
-
-			let result: httpProtocols.AddNewPlayerResProtocol = {
-				id: id
-			};
-			res.json(result);
-		})
 
 		app.use('/static', express.static('public'));
 	}

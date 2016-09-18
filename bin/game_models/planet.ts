@@ -112,57 +112,62 @@ class Planet {
 
 	private _isOccupying = false;
 	private _startOccupying() {
-		if (!this._isOccupying)
+		if (!this._isOccupying) {
 			this._occupy();
+		}
 	}
 	private _occupy() {
-		if (this.allShips.length != 1) {
-			this._isOccupying = false;
+		let canOccupy = (): boolean => {
+			if (this.allShips.length != 1) {
+				return this._isOccupying = false;
+			}
+			if (this.occupiedPlayer != null &&
+				this.allShips[0].player == this.occupiedPlayer &&
+				this.occupiedPlayer == this.occupyingStatus.player &&
+				this.occupyingStatus.percent == 100) {
+				return this._isOccupying = false;
+			}
+			return this._isOccupying = true;
+		}
+
+		if (!canOccupy()) {
 			return;
 		}
-		if (this.occupiedPlayer != null &&
-			this.allShips[0].player == this.occupiedPlayer &&
-			this.occupiedPlayer == this.occupyingStatus.player &&
-			this.occupyingStatus.percent == 100) {
 
-			this._isOccupying = false;
-			return;
-		}
-
-		this._isOccupying = true;
 		setTimeout(() => {
-			this._occupyingHandler();
+			if (!canOccupy()) {
+				return;
+			}
+
+			let occupyingPlayer = this.allShips[0].player;
+
+			if (this.occupyingStatus == null) {
+				this.occupyingStatus = {
+					player: occupyingPlayer,
+					percent: 0
+				};
+			}
+			if (occupyingPlayer == this.occupyingStatus.player) {
+				if (++this.occupyingStatus.percent == 100) {
+					if (this.occupiedPlayer != occupyingPlayer) {
+						this.occupiedPlayer = occupyingPlayer;
+						this.occupiedPlayer.maxShipsCount += this.size;
+					}
+				}
+			} else {
+				if (--this.occupyingStatus.percent == 0) {
+					if (this.occupiedPlayer == this.occupyingStatus.player) {
+						this.occupiedPlayer.maxShipsCount -= this.size;
+						this.occupiedPlayer = null;
+					}
+
+					this.occupyingStatus.player = occupyingPlayer;
+				}
+			}
+
+			this._onStatusChange();
+			this._occupy();
 		}, 50);
-	}
-	private _occupyingHandler() {
-		let occupyingPlayer = this.allShips[0].player;
-
-		if (this.occupyingStatus == null) {
-			this.occupyingStatus = {
-				player: occupyingPlayer,
-				percent: 0
-			};
-		}
-		if (occupyingPlayer == this.occupyingStatus.player) {
-			if (++this.occupyingStatus.percent == 100) {
-				if (this.occupiedPlayer != occupyingPlayer) {
-					this.occupiedPlayer = occupyingPlayer;
-					this.occupiedPlayer.maxShipsCount += this.size;
-				}
-			}
-		} else {
-			if (--this.occupyingStatus.percent == 0) {
-				if (this.occupiedPlayer == this.occupyingStatus.player) {
-					this.occupiedPlayer.maxShipsCount -= this.size;
-					this.occupiedPlayer = null;
-				}
-
-				this.occupyingStatus.player = occupyingPlayer;
-			}
-		}
-
-		this._onStatusChange();
-		this._occupy();
 	}
 
 	private _isCombatting = false;
@@ -171,29 +176,35 @@ class Planet {
 			this._combat();
 	}
 	private _combat() {
-		if (this.allShips.length < 2) {
-			this._isCombatting = false;
-			this._startOccupying();
-			return;
+		let canCombat = () => {
+			if (this.allShips.length < 2) {
+				this._isCombatting = false;
+				this._startOccupying();
+				return this._isCombatting = false;
+			}
+			return this._isCombatting = true;
 		}
 
-		this._isCombatting = true;
+		if (!canCombat())
+			return;
+
 		setTimeout(() => {
-			this._combattingHandler();
+			if (!canCombat())
+				return;
+
+			this.allShips.forEach((elem, index) => {
+				elem.player.currShipsCount--;
+				elem.count--;
+				if (elem.count <= 0) {
+					this.allShips.splice(index, 1);
+				}
+			});
+
+			this._onStatusChange();
+			this._combat();
 		}, 50);
 	}
-	private _combattingHandler() {
-		this.allShips.forEach((elem, index) => {
-			elem.player.currShipsCount--;
-			elem.count--;
-			if (elem.count <= 0) {
-				this.allShips.splice(index, 1);
-			}
-		});
 
-		this._onStatusChange();
-		this._combat();
-	}
 
 	private _startbuildingShips() {
 		let interval = 800;

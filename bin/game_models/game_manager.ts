@@ -123,8 +123,17 @@ class GameManager extends events.EventEmitter {
 	private _onStatusChange(): GameStatusProtocol {
 		this._players.forEach((player, index) => {
 			if (player.currShipsCount == 0) {
-				this._players.splice(index, 1);
-				this.emit('gameOver', player.id);
+				let isGameOver = true;
+				this._planets.forEach((planet, index) => {
+					if (planet.occupiedPlayer == player || planet.occupyingPlayer == player) {
+						isGameOver = false;
+						return;
+					}
+				});
+				if (isGameOver) {
+					this._players.splice(index, 1);
+					this.emit('gameOver', player.id);
+				}
 			}
 		});
 

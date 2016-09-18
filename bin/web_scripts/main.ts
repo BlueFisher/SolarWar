@@ -78,6 +78,9 @@ class Main {
 				case GameProtocols.GameProtocolType.gameStatus:
 					this._onGameStatusChange(<GameProtocols.GameStatusProtocol>protocol);
 					break;
+				case GameProtocols.GameProtocolType.gameOver:
+					this._onGameOver(<GameProtocols.GameOverProtocol>protocol);
+					break;
 			}
 		}
 
@@ -103,8 +106,12 @@ class Main {
 		console.log('WebSocket Disconnected');
 	}
 
+
 	private _onGameStatusChange(protocol: GameProtocols.GameStatusProtocol) {
 		this._gameStage.stageChange(protocol);
+	}
+	private _onGameOver(protocol: GameProtocols.GameOverProtocol) {
+		alert('Game Over');
 	}
 
 	private _onProtocolSend(protocol: GameProtocols.GameBaseProtocol) {

@@ -1,5 +1,5 @@
 *.js
-!/public/**/*.js
+!/public/scripts/*.js
 *.js.map
 
 # Logs

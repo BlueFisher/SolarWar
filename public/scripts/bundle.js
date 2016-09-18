@@ -42,25 +42,19 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/*!******************!*\
-  !*** multi main ***!
-  \******************/
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(/*! ./bin/web_scripts/main.js */1);
+	module.exports = __webpack_require__(1);
 
 
 /***/ },
 /* 1 */
-/*!*********************************!*\
-  !*** ./bin/web_scripts/main.js ***!
-  \*********************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var $ = __webpack_require__(/*! jquery */ 2);
-	var GameProtocols = __webpack_require__(/*! ../protocols/game_protocols */ 3);
-	var game_stage_1 = __webpack_require__(/*! ./game_stage */ 4);
+	var $ = __webpack_require__(2);
+	var GameProtocols = __webpack_require__(3);
+	var game_stage_1 = __webpack_require__(4);
 	var Main = (function () {
 	    function Main() {
 	        var $countRatio = this._initializeCountRatio();
@@ -145,22 +139,16 @@
 	$(document).ready(function () {
 	    new Main();
 	});
-	//# sourceMappingURL=main.js.map
+
 
 /***/ },
 /* 2 */
-/*!***************************!*\
-  !*** external "window.$" ***!
-  \***************************/
 /***/ function(module, exports) {
 
 	module.exports = window.$;
 
 /***/ },
 /* 3 */
-/*!*****************************************!*\
-  !*** ./bin/protocols/game_protocols.js ***!
-  \*****************************************/
 /***/ function(module, exports) {
 
 	"use strict";
@@ -178,13 +166,10 @@
 	    PlanetStatus[PlanetStatus["occupied"] = 2] = "occupied";
 	})(exports.PlanetStatus || (exports.PlanetStatus = {}));
 	var PlanetStatus = exports.PlanetStatus;
-	//# sourceMappingURL=game_protocols.js.map
+
 
 /***/ },
 /* 4 */
-/*!***************************************!*\
-  !*** ./bin/web_scripts/game_stage.js ***!
-  \***************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -193,9 +178,9 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var events = __webpack_require__(/*! events */ 5);
-	var $ = __webpack_require__(/*! jquery */ 2);
-	var GameProtocols = __webpack_require__(/*! ../protocols/game_protocols */ 3);
+	var events = __webpack_require__(5);
+	var $ = __webpack_require__(2);
+	var GameProtocols = __webpack_require__(3);
 	var GameStage = (function (_super) {
 	    __extends(GameStage, _super);
 	    function GameStage($canvas, $countRatio) {
@@ -212,6 +197,7 @@
 	        var _this = this;
 	        var $canvas = $(canvas);
 	        $canvas.on('mousedown', function (e) {
+	            throw '1';
 	            var startPoint, endPoint;
 	            startPoint = {
 	                x: e.pageX - $canvas.offset().left,
@@ -313,13 +299,10 @@
 	}(events.EventEmitter));
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = GameStage;
-	//# sourceMappingURL=game_stage.js.map
+
 
 /***/ },
 /* 5 */
-/*!****************************!*\
-  !*** ./~/events/events.js ***!
-  \****************************/
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.

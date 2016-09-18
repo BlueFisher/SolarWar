@@ -43,6 +43,11 @@ export default class GameStage extends events.EventEmitter {
 			});
 
 			$canvas.one('mouseup', e => {
+				endPoint = {
+					x: e.pageX - $canvas.offset().left,
+					y: e.pageY - $canvas.offset().top
+				}
+				
 				let planetFrom = this._getPointedPlanet(startPoint.x, startPoint.y);
 				let planetTo = this._getPointedPlanet(endPoint.x, endPoint.y);
 

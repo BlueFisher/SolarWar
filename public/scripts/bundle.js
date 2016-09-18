@@ -122,6 +122,9 @@
 	                case GameProtocols.GameProtocolType.gameStatus:
 	                    _this._onGameStatusChange(protocol);
 	                    break;
+	                case GameProtocols.GameProtocolType.gameOver:
+	                    _this._onGameOver(protocol);
+	                    break;
 	            }
 	        };
 	        this._ws.onclose = function (e) {
@@ -144,6 +147,9 @@
 	    };
 	    Main.prototype._onGameStatusChange = function (protocol) {
 	        this._gameStage.stageChange(protocol);
+	    };
+	    Main.prototype._onGameOver = function (protocol) {
+	        alert('Game Over');
 	    };
 	    Main.prototype._onProtocolSend = function (protocol) {
 	        this._ws.send(JSON.stringify(protocol));

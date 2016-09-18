@@ -24,7 +24,6 @@ rl.on('line', (input) => {
 		case 'add':
 			let id = gameManager.addPlayer(cmd[1]);
 			console.log(`${id} added\n`);
-			displayStatus(gameManager.requestImmediateStatus());
 			break;
 		case 'move':
 			gameManager.movePlayerShips(

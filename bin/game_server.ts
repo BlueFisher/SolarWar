@@ -28,6 +28,12 @@ class GameServer {
 				}
 			})
 		});
+		this._gameManager.on('gameOver', (playerId: number) => {
+			let protocol: GameProtocols.GameOverProtocol = {
+				type: GameProtocols.GameProtocolType.gameOver
+			}
+			this._socketPlayerMap.filter(p => p.playerId == playerId)[0].socket.send(JSON.stringify(protocol));
+		});
 	}
 
 	addNewPlayerName(name: string): number {
@@ -61,12 +67,12 @@ class GameServer {
 	}
 
 	private _onSocketClose(socket: WebSocketServer) {
-		for (let i in this._socketPlayerMap) {
-			if (this._socketPlayerMap[i].socket == socket) {
-				this._socketPlayerMap.splice(parseInt(i), 1);
-				break;
+		this._socketPlayerMap.forEach((elem, index) => {
+			if (elem.socket == socket) {
+				this._socketPlayerMap.splice(index, 1);
+				return;
 			}
-		}
+		});
 	}
 
 	private _onNewPlayerConnected(protocol: GameProtocols.NewPlayerConnectedProtocol, socket: WebSocketServer) {

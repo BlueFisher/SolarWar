@@ -46,13 +46,12 @@ export interface PlanetProtocol {
 		x: number,
 		y: number
 	},
-	status: PlanetStatus,
+	// status: PlanetStatus,
 	allShips: {
 		playerId: number,
 		count: number
 	}[],
 	occupiedPlayerId: number,
-	occupyingPlayerId: number,
 	occupyingStatus: {
 		playerId: number,
 		percent: number

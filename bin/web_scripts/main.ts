@@ -2,10 +2,10 @@ import * as $ from 'jquery';
 import * as HttpProtocols from '../protocols/http_protocols';
 import * as GameProtocols from '../protocols/game_protocols';
 
-import GameStage from './game_stage';
+import StageManager from './stage_manager';
 
 class Main {
-	private _gameStage: GameStage;
+	private _stageManager: StageManager;
 	private _ws: WebSocket;
 
 	constructor() {
@@ -29,21 +29,29 @@ class Main {
 	}
 
 	private _initializeGameStage($countRatio: JQuery) {
-		let $gameStageCanvas = $('#game-stage');
-		let gameStageCanvas = <HTMLCanvasElement>$gameStageCanvas[0];
-		gameStageCanvas.height = $(window).innerHeight();
-		gameStageCanvas.width = $(window).innerWidth();
+		let $window = $(window);
+		let $gameStage = $('#game-stage');
+		let gameStageCanvas = <HTMLCanvasElement>$gameStage[0];
+		gameStageCanvas.height = $window.innerHeight();
+		gameStageCanvas.width = $window.innerWidth();
 
-		this._gameStage = new GameStage($gameStageCanvas, $countRatio);
-		this._gameStage.on('protocolSend', (protocol: GameProtocols.GameBaseProtocol) => {
+		let $uiStage = $('#ui-stage');
+		let uiStageCanvas = <HTMLCanvasElement>$uiStage[0];
+		uiStageCanvas.height = $window.innerHeight();
+		uiStageCanvas.width = $window.innerWidth();
+
+		this._stageManager = new StageManager(gameStageCanvas, uiStageCanvas, $countRatio);
+		this._stageManager.on('protocolSend', (protocol: GameProtocols.GameBaseProtocol) => {
 			this._ws.send(JSON.stringify(protocol));
 		})
 
 		$(window).on('resize', () => {
-			gameStageCanvas.height = $(window).innerHeight();
-			gameStageCanvas.width = $(window).innerWidth();
+			gameStageCanvas.height = $window.innerHeight();
+			gameStageCanvas.width = $window.innerWidth();
+			uiStageCanvas.height = $window.innerHeight();
+			uiStageCanvas.width = $window.innerWidth();
 
-			this._gameStage.redrawStage();
+			this._stageManager.redrawStage();
 		});
 
 		this._connect();
@@ -91,10 +99,10 @@ class Main {
 	}
 
 	private _onResponseAddPlayer(protocol: GameProtocols.ResponseAddPlayerProtocol) {
-		this._gameStage.refreshCurrPlayerId(protocol.id);
+		this._stageManager.refreshCurrPlayerId(protocol.id);
 	}
 	private _onGameStatusChange(protocol: GameProtocols.GameStatusProtocol) {
-		this._gameStage.stageChange(protocol);
+		this._stageManager.stageChange(protocol);
 	}
 	private _onGameOver(protocol: GameProtocols.GameOverProtocol) {
 		alert('Game Over');

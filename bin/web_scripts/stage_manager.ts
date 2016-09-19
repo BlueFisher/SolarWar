@@ -2,28 +2,29 @@ import * as events from 'events';
 import * as $ from 'jquery';
 import * as GameProtocols from '../protocols/game_protocols';
 
-export default class GameStage extends events.EventEmitter {
-	private _canvas: HTMLCanvasElement;
-	private _ctx: CanvasRenderingContext2D;
+export default class StageManager extends events.EventEmitter {
+	private _gameStageCanvas: HTMLCanvasElement;
+	private _uiStageCanvas: HTMLCanvasElement;
 	private _currPlayerId: number;
 	private _$countRatio: JQuery;
 
-	constructor($canvas: JQuery, $countRatio: JQuery) {
+	constructor(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement, $countRatio: JQuery) {
 		super();
 
-		this._canvas = <HTMLCanvasElement>$canvas[0];
-		this._ctx = this._canvas.getContext("2d");
+		this._gameStageCanvas = gameStageCanvas;
+		this._uiStageCanvas = uiStageCanvas;
 		this._$countRatio = $countRatio;
 
-		this._handleMovingShips(this._canvas);
+		this._handleMovingShips();
 	}
 
 	refreshCurrPlayerId(id: number) {
 		this._currPlayerId = id;
 	}
 
-	private _handleMovingShips(canvas: HTMLCanvasElement) {
-		let $canvas = $(canvas);
+	private _handleMovingShips() {
+		let $canvas = $(this._uiStageCanvas);
+		let ctx = this._uiStageCanvas.getContext('2d');
 
 		$canvas.on('mousedown', e => {
 			let startPoint: GameProtocols.Point, endPoint: GameProtocols.Point;
@@ -38,13 +39,13 @@ export default class GameStage extends events.EventEmitter {
 					y: e.pageY - $canvas.offset().top
 				}
 
-				this.redrawStage();
-				this._ctx.save();
-				this._ctx.beginPath();
-				this._ctx.moveTo(startPoint.x, startPoint.y);
-				this._ctx.lineTo(endPoint.x, endPoint.y);
-				this._ctx.stroke();
-				this._ctx.restore();
+				ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
+				ctx.save();
+				ctx.beginPath();
+				ctx.moveTo(startPoint.x, startPoint.y);
+				ctx.lineTo(endPoint.x, endPoint.y);
+				ctx.stroke();
+				ctx.restore();
 			});
 
 			$canvas.one('mouseup', e => {
@@ -66,7 +67,7 @@ export default class GameStage extends events.EventEmitter {
 					this.emit('protocolSend', protocol);
 				}
 
-				this.redrawStage();
+				ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
 				$canvas.off('mousemove');
 			});
 		});
@@ -88,9 +89,11 @@ export default class GameStage extends events.EventEmitter {
 	}
 	stageChange(status: GameProtocols.GameStatusProtocol) {
 		this._lastGameStatusProtocol = status;
-		let ctx = this._ctx;
-
-		ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+		let ctx = this._gameStageCanvas.getContext('2d');
+		// ctx.setTransform(1, 0, 0, 1, 0, 0);
+		// 绘制飞船移动
+		ctx.save();
+		ctx.clearRect(0, 0, this._gameStageCanvas.width, this._gameStageCanvas.height);
 		ctx.font = '14px Arial,Microsoft YaHei';
 
 		status.movingShipsQueue.forEach(movingShips => {
@@ -102,7 +105,8 @@ export default class GameStage extends events.EventEmitter {
 
 			ctx.fillStyle = color;
 			ctx.fillText(movingShips.count.toString(), x, y);
-		})
+		});
+		ctx.restore();
 
 		status.planets.forEach(planet => {
 			// 绘制星球

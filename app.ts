@@ -6,9 +6,9 @@ let httpServer = new HttpServer(80, 8080, () => {
 });
 
 let gameManager = httpServer.getGameServer().getGameManager();
-gameManager.on('statusChange', (status: GameStatusProtocol) => {
-	displayStatus(status);
-});
+// gameManager.on('statusChange', (status: GameStatusProtocol) => {
+// 	displayStatus(status);
+// });
 
 import readline = require('readline');
 const rl = readline.createInterface({

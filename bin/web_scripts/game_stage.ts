@@ -39,11 +39,12 @@ export default class GameStage extends events.EventEmitter {
 				}
 
 				this.redrawStage();
+				this._ctx.save();
 				this._ctx.beginPath();
 				this._ctx.moveTo(startPoint.x, startPoint.y);
 				this._ctx.lineTo(endPoint.x, endPoint.y);
 				this._ctx.stroke();
-				this._ctx.closePath();
+				this._ctx.restore();
 			});
 
 			$canvas.one('mouseup', e => {
@@ -104,9 +105,9 @@ export default class GameStage extends events.EventEmitter {
 		})
 
 		status.planets.forEach(planet => {
+			ctx.save();
 			ctx.beginPath();
 			ctx.arc(planet.position.x, planet.position.y, planet.size / 2, 0, Math.PI * 2);
-			ctx.closePath();
 			if (planet.occupiedPlayerId != null) {
 				let color = status.players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
 				ctx.fillStyle = color;
@@ -116,24 +117,54 @@ export default class GameStage extends events.EventEmitter {
 			ctx.fill();
 
 			ctx.fillStyle = 'black';
+			ctx.textAlign = 'center';
 			ctx.textBaseline = 'middle';
 			ctx.fillText(planet.id.toString(), planet.position.x, planet.position.y);
+			ctx.restore();
 
-
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'alphabetic';
-			let currY = 0;
-			planet.allShips.forEach(s => {
-				let player = status.players.filter(player => player.id == s.playerId)[0];
+			if (planet.allShips.length == 1) {
+				ctx.save();
+				ctx.textAlign = 'center';
+				let player = status.players.filter(player => player.id == planet.allShips[0].playerId)[0];
 				ctx.fillStyle = player.color;
-				ctx.fillText(`${player.name} ${s.count}`, planet.position.x, planet.position.y + planet.size / 2 + 15 + currY);
-				currY += 20;
-			});
+				ctx.fillText(`${player.name} ${planet.allShips[0].count}`, planet.position.x, planet.position.y + planet.size / 2 + 15);
+				ctx.restore();
+			} else if (planet.allShips.length > 1) {
+				let sum = 0;
+				planet.allShips.forEach(p => sum += p.count);
 
-			if (planet.occupyingStatus != null) {
+				let currAngle = 0;
+				planet.allShips.forEach(ship => {
+					ctx.save();
+					ctx.beginPath();
+					let nextAngle = currAngle + Math.PI * 2 * ship.count / sum;
+					ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 5, currAngle, nextAngle);
+
+					let player = status.players.filter(player => player.id == ship.playerId)[0];
+					ctx.strokeStyle = ctx.fillStyle = player.color;
+					let x = planet.position.x + Math.cos((currAngle + nextAngle) / 2) * (planet.size + 10);
+					let y = planet.position.y + Math.sin((currAngle + nextAngle) / 2) * (planet.size + 10);
+					ctx.fillText(`${player.name} ${ship.count}`, x, y);
+					currAngle = nextAngle;
+
+					ctx.lineWidth = 5;
+					ctx.stroke();
+					ctx.restore();
+				});
+			}
+
+			if ((planet.allShips.length == 1 || planet.allShips.length == 0)
+				&& planet.occupyingStatus != null && planet.occupyingStatus.percent != 100) {
+				ctx.save();
 				let player = status.players.filter(player => player.id == planet.occupyingStatus.playerId)[0];
-				ctx.fillStyle = player.color;
-				ctx.fillText(`${player.name} ${planet.occupyingStatus.percent}%`, planet.position.x, planet.position.y - planet.size / 2 - 10);
+				ctx.beginPath();
+				let angle = Math.PI * 2 * planet.occupyingStatus.percent / 100;
+				ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 5, 0, angle);
+
+				ctx.strokeStyle = player.color;
+				ctx.lineWidth = 5;
+				ctx.stroke();
+				ctx.restore();
 			}
 		});
 	}

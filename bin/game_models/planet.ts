@@ -24,6 +24,15 @@ class Planet {
 	occupiedPlayer: player;
 	occupyingStatus: occupyingStatus;
 
+	/**
+	 * 星球
+	 * 
+	 * @param id 星球id
+	 * @param size 星球直径大小
+	 * @param position 星球所在坐标
+	 * @param onStatusChange 星球状态改变回调函数
+	 * @param occupiedPlayer 星球初始化时就占领的玩家
+	 */
 	constructor(id: number, size: number, position: Point, onStatusChange: () => void, occupiedPlayer: player = null) {
 		this.id = id;
 		this.size = size;
@@ -53,7 +62,6 @@ class Planet {
 			id: this.id,
 			size: this.size,
 			position: this.position,
-			// status: this._getStatus(),
 			allShips: this.allShips.map(elem => {
 				return {
 					playerId: elem.player.id,
@@ -68,6 +76,7 @@ class Planet {
 		}
 	}
 
+	/**飞船到达 */
 	shipsArrived(player: player, count: number) {
 		if (count == 0) {
 			return;
@@ -86,6 +95,7 @@ class Planet {
 		this._startOccupying();
 		this._startCombat();
 	}
+	/**飞船离开 */
 	shipsLeft(player: player, countRatio: number): number {
 		let existedShipsIndex = -1;
 		for (let i in this.allShips) {

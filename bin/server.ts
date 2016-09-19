@@ -5,16 +5,26 @@ import * as path from 'path';
 import GameServer from './game_server';
 import * as httpProtocols from './protocols/http_protocols';
 
-class HttpServer {
+class Server {
 	private _gameServer: GameServer;
-	constructor(httpPort, webSocketPort, callBack: () => void) {
+	/**
+	 * 主服务，管理HTTP服务与游戏服务
+	 * 
+	 * @param httpPort HTTP端口号
+	 * @param webSocketPort WebSocket端口号
+	 * @param callback 监听成功回调函数 isHttp: 是否为HTTP服务器 port: 端口号
+	 */
+	constructor(httpPort: number, webSocketPort: number, callback: (isHttp: boolean, port: number) => void) {
 		let app = express();
-		this._gameServer = new GameServer(webSocketPort);
 
 		this._configExpress(app, this._gameServer);
 
 		app.listen(httpPort, () => {
-			callBack();
+			callback(true, httpPort);
+		});
+
+		this._gameServer = new GameServer(webSocketPort, () => {
+			callback(false, webSocketPort);
 		});
 	}
 	private _configExpress(app: express.Express, gameServer: GameServer) {
@@ -32,9 +42,10 @@ class HttpServer {
 		app.use('/static', express.static('public'));
 	}
 
+	/**获取游戏服务器实例 */
 	getGameServer(): GameServer {
 		return this._gameServer;
 	}
 }
 
-export default HttpServer;
+export default Server;

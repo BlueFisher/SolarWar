@@ -105,6 +105,7 @@ export default class GameStage extends events.EventEmitter {
 		})
 
 		status.planets.forEach(planet => {
+			// 绘制星球
 			ctx.save();
 			ctx.beginPath();
 			ctx.arc(planet.position.x, planet.position.y, planet.size / 2, 0, Math.PI * 2);
@@ -116,12 +117,14 @@ export default class GameStage extends events.EventEmitter {
 			}
 			ctx.fill();
 
+			// 绘制星球id
 			ctx.fillStyle = 'black';
 			ctx.textAlign = 'center';
 			ctx.textBaseline = 'middle';
 			ctx.fillText(planet.id.toString(), planet.position.x, planet.position.y);
 			ctx.restore();
 
+			// 绘制星球争夺或平静状态
 			if (planet.allShips.length == 1) {
 				ctx.save();
 				ctx.textAlign = 'center';
@@ -153,6 +156,7 @@ export default class GameStage extends events.EventEmitter {
 				});
 			}
 
+			//绘制星球占领中状态
 			if ((planet.allShips.length == 1 || planet.allShips.length == 0)
 				&& planet.occupyingStatus != null && planet.occupyingStatus.percent != 100) {
 				ctx.save();

@@ -1,11 +1,23 @@
-import {GameStatusProtocol} from'./bin/protocols/game_protocols'
-import HttpServer from './bin/http_server';
+/**
+ * SolarWar入口文件
+ */
 
-let httpServer = new HttpServer(80, 8080, () => {
-	console.log(`Http Server listening, WebSocket Server listening`);
+import {GameStatusProtocol} from'./bin/protocols/game_protocols'
+import Server from './bin/server';
+
+
+// 初始化HTTP服务器WebSocket服务器
+let httpServer = new Server(80, 8080, (isHttp, port) => {
+	if (isHttp) {
+		console.log(`Http Server is listening on port ${port}`);
+	} else {
+		console.log(`WebSocket Server is listening on port ${port}`);
+	}
 });
 
+// DEBUG
 let gameManager = httpServer.getGameServer().getGameManager();
+// 立即显示游戏状态
 // gameManager.on('statusChange', (status: GameStatusProtocol) => {
 // 	displayStatus(status);
 // });
@@ -20,10 +32,11 @@ rl.on('line', (input) => {
 	let cmd = (<string>input).split(' ');
 
 	switch (cmd[0]) {
+		// 增加玩家
 		case 'add':
-			let id = gameManager.addPlayer(cmd[1]);
-			console.log(`${id} added\n`);
+			gameManager.addPlayer(cmd[1]);
 			break;
+		// 移动飞船
 		case 'move':
 			gameManager.movePlayerShips(
 				parseInt(cmd[1]),
@@ -33,7 +46,6 @@ rl.on('line', (input) => {
 			break;
 	}
 });
-
 
 function displayStatus(status: GameStatusProtocol) {
 	let log = '';

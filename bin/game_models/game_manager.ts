@@ -17,6 +17,9 @@ class GameManager extends events.EventEmitter {
 	private _planets: Planet[] = [];
 	private _movingShipsQueue: _movingShipsQueue[] = [];
 
+	/**
+	 * 游戏逻辑管理
+	 */
 	constructor() {
 		super();
 
@@ -34,6 +37,7 @@ class GameManager extends events.EventEmitter {
 		this._onStatusChange();
 	}
 
+	/**增加玩家 */
 	addPlayer(name: string): number {
 		let player = new Player(this._getNextPlayerId(), name, 0);
 		this._players.push(player);
@@ -56,6 +60,13 @@ class GameManager extends events.EventEmitter {
 		return ++this._currPlayerId;
 	}
 
+	/**
+	 * 移动玩家飞船
+	 * @param id 玩家id
+	 * @param planetFromId 源星球id
+	 * @param planetToId 目的星球id
+	 * @param countRatio 从源星球移动的飞船比例
+	 */
 	movePlayerShips(id: number, planetFromId: number, planetToId: number, countRatio: number) {
 		if (planetFromId == planetToId) {
 			return;
@@ -71,6 +82,7 @@ class GameManager extends events.EventEmitter {
 		}
 		let count = planetFrom.shipsLeft(player, countRatio);
 		if (count > 0) {
+			// 计算连个星球之间距离，加入到飞行队列中，开始飞船移动计时器
 			let distance = this._getTwoPlanetsDistance(planetFrom, planetTo);
 			this._movingShipsQueue.push({
 				planetFrom: planetFrom,
@@ -111,6 +123,7 @@ class GameManager extends events.EventEmitter {
 
 			for (let i in this._movingShipsQueue) {
 				let movingShip = this._movingShipsQueue[i];
+				// 如果已到目的星球，则调用shipsArrived，并从飞行队列中移除
 				if ((movingShip.distanceLeft -= 10) <= 0) {
 					movingShip.planetTo.shipsArrived(movingShip.player, movingShip.count);
 					this._movingShipsQueue.splice(parseInt(i), 1);

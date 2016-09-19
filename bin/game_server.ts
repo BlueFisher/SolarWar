@@ -9,11 +9,20 @@ interface SocketPlayerIdMap {
 
 class GameServer {
 	private _gameManager: GameManager;
+	/**用户Socket键值对 */
 	private _socketPlayerMap: SocketPlayerIdMap[] = [];
 
-	constructor(webSocketPort: number) {
+	/**
+	 * 发送和接收WebSocket信息，提交和处理后台游戏逻辑
+	 * 
+	 * @param webSocketPort WebSocket端口号
+	 * @param callback 监听成功回调函数
+	 */
+	constructor(webSocketPort: number, callback?: () => void) {
 		let wss = new WebSocketServer.Server({
 			port: webSocketPort
+		}, () => {
+			if (callback != null) callback();
 		});
 
 		wss.on('connection', socket => {
@@ -38,15 +47,6 @@ class GameServer {
 			}
 		});
 	}
-
-	// addNewPlayerName(name: string): number {
-	// 	let id = this._gameManager.addPlayer(name);
-	// 	this._socketPlayerMap.push({
-	// 		socket: null,
-	// 		playerId: id
-	// 	})
-	// 	return id;
-	// }
 
 	private _onWebSocketConnection(socket: WebSocketServer) {
 		this._socketPlayerMap.push({
@@ -103,6 +103,7 @@ class GameServer {
 		}
 	}
 
+	/**获取游戏逻辑管理实例 */
 	getGameManager(): GameManager {
 		return this._gameManager;
 	}

@@ -95,26 +95,30 @@ class GameManager extends events.EventEmitter {
 		}
 	}
 	private _moveShips() {
-		if (this._movingShipsQueue.length == 0) {
-			this._isMovingShips = false;
-			return;
+		let canMoveShips = (): boolean => {
+			if (this._movingShipsQueue.length == 0) {
+				return this._isMovingShips = false;
+			}
+			return this._isMovingShips = true;
 		}
 
-		this._isMovingShips = true;
+		if (!canMoveShips())
+			return;
+
 		setTimeout(() => {
-			this._movingShipsHandler();
-		}, 16);
-	}
-	private _movingShipsHandler() {
-		for (let i in this._movingShipsQueue) {
-			let movingShip = this._movingShipsQueue[i];
-			if ((movingShip.distanceLeft -= 10) <= 0) {
-				movingShip.planetTo.shipsArrived(movingShip.player, movingShip.count);
-				this._movingShipsQueue.splice(parseInt(i), 1);
+			if (!canMoveShips())
+				return;
+
+			for (let i in this._movingShipsQueue) {
+				let movingShip = this._movingShipsQueue[i];
+				if ((movingShip.distanceLeft -= 10) <= 0) {
+					movingShip.planetTo.shipsArrived(movingShip.player, movingShip.count);
+					this._movingShipsQueue.splice(parseInt(i), 1);
+				}
 			}
-		}
-		this._onStatusChange();
-		this._moveShips();
+			this._onStatusChange();
+			this._moveShips();
+		}, 16);
 	}
 
 	private _onStatusChange(): GameStatusProtocol {

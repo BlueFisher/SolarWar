@@ -176,7 +176,7 @@ class Planet {
 			this._combat();
 	}
 	private _combat() {
-		let canCombat = () => {
+		let canCombat = (): boolean => {
 			if (this.allShips.length < 2) {
 				this._isCombatting = false;
 				this._startOccupying();

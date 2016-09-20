@@ -58,6 +58,10 @@ export interface PlanetProtocol {
 	}
 }
 export interface GameStatusProtocol extends GameBaseProtocol {
+	size: {
+		width: number,
+		height: number
+	}
 	players: PlayerProtocol[],
 	planets: PlanetProtocol[],
 	movingShipsQueue: {

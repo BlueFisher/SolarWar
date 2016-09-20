@@ -18,9 +18,9 @@ let httpServer = new Server(80, 8080, (isHttp, port) => {
 // DEBUG
 let gameManager = httpServer.getGameServer().getGameManager();
 // 立即显示游戏状态
-// gameManager.on('statusChange', (status: GameStatusProtocol) => {
-// 	displayStatus(status);
-// });
+gameManager.on('statusChange', (status: GameStatusProtocol) => {
+	displayStatus(status);
+});
 
 import readline = require('readline');
 const rl = readline.createInterface({

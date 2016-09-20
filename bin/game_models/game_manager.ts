@@ -1,5 +1,5 @@
 import * as events from 'events';
-import {PlanetType, MapPlanet, MapLoader} from './map_loader'
+import {PlanetType, Map, MapLoader} from './map_loader'
 import Player from './player';
 import Planet from './planet';
 import {GameProtocolType, GameStatusProtocol} from '../protocols/game_protocols';
@@ -17,7 +17,7 @@ class GameManager extends events.EventEmitter {
 	private _players: Player[] = [];
 	private _planets: Planet[] = [];
 	private _movingShipsQueue: _movingShipsQueue[] = [];
-	private _mapPlanets: MapPlanet[] = [];
+	private _map: Map
 
 	/**
 	 * 游戏逻辑管理
@@ -29,13 +29,17 @@ class GameManager extends events.EventEmitter {
 
 	private _initializeMap() {
 		let map = MapLoader.getMap();
-		map.forEach(p => {
+		this._map = {
+			size: map.size,
+			planets: []
+		};
+		map.planets.forEach(p => {
 			if (p.type == PlanetType.None) {
 				this._planets.push(new Planet(this._getNextPlanetId(), p.size, p.position, () => {
 					this._statusChange();
 				}));
 			} else if (p.type == PlanetType.Occupied) {
-				this._mapPlanets.push(p);
+				this._map.planets.push(p);
 			}
 		});
 
@@ -46,7 +50,7 @@ class GameManager extends events.EventEmitter {
 	addPlayer(name: string): number {
 		let player = new Player(this._getNextPlayerId(), name, 0);
 		this._players.push(player);
-		let mapPlanet = this._mapPlanets.pop();
+		let mapPlanet = this._map.planets.pop();
 		if (mapPlanet != undefined) {
 			this._planets.push(new Planet(this._getNextPlanetId(), mapPlanet.size, mapPlanet.position, () => {
 				this._statusChange();
@@ -164,6 +168,7 @@ class GameManager extends events.EventEmitter {
 		});
 
 		let status: GameStatusProtocol = {
+			size: this._map.size,
 			type: GameProtocolType.gameStatus,
 			players: this._players.map(p => {
 				return p.getPlayerProtocol();

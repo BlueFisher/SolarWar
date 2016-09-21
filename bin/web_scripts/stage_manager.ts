@@ -13,6 +13,12 @@ export default class StageManager extends events.EventEmitter {
 	private _currPlayerId: number;
 	private _$countRatio: JQuery;
 
+	/**
+	 * 舞台管理类
+	 * @param gameStageCanvas 游戏舞台
+	 * @param uiStageCanvas 用户界面舞台
+	 * @param $countRatio 移动星球数量比例的元素
+	 */
 	constructor(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement, $countRatio: JQuery) {
 		super();
 
@@ -37,23 +43,24 @@ export default class StageManager extends events.EventEmitter {
 			let deltaScaling = e.deltaY / e.deltaFactor * 2;
 
 			let planet = this._getPointedPlanet(point.x, point.y);
-
-			if (!planet) {
-				this._transformation.horizontalMoving -= deltaScaling * (point.x - this._transformation.horizontalMoving) / this._transformation.scaling;
-				this._transformation.verticalMoving -= deltaScaling * (point.y - this._transformation.verticalMoving) / this._transformation.scaling;
-			} else {
+			if (planet) { // 如果滚轮滑动时在星球上则缩放中心为该星球中心
 				this._transformation.horizontalMoving -= deltaScaling * planet.position.x;
 				this._transformation.verticalMoving -= deltaScaling * planet.position.y;
+			} else {
+				this._transformation.horizontalMoving -= deltaScaling * (point.x - this._transformation.horizontalMoving) / this._transformation.scaling;
+				this._transformation.verticalMoving -= deltaScaling * (point.y - this._transformation.verticalMoving) / this._transformation.scaling;
 			}
 			this._transformation.scaling += deltaScaling;
-			let mousemoveEvent = new $.Event('mousemove', {
+
+			// 触发鼠标移动事件来重绘星球激活效果
+			$canvas.trigger(new $.Event('mousemove', {
 				pageX: e.pageX,
 				pageY: e.pageY
-			});
-			$canvas.trigger(mousemoveEvent);
+			}));
 			this.redrawStage();
 		});
 
+		/**绘制星球激活特效 */
 		let drawActivePlanet = (planet: GameProtocols.PlanetProtocol) => {
 			ctx.save();
 			ctx.setTransform(this._transformation.scaling, 0, 0, this._transformation.scaling, this._transformation.horizontalMoving, this._transformation.verticalMoving);
@@ -74,23 +81,34 @@ export default class StageManager extends events.EventEmitter {
 			};
 
 			if (isMouseDown) {
-				if (mousedownPlanet && mouseWhich == 1) {
+				if (mousedownPlanet && mouseWhich == 1) { // 如果鼠标左键点击在星球上
 					ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
-
+					// 绘制点击星球的选中效果
 					drawActivePlanet(mousedownPlanet);
 
+					mouseupPlanet = this._getPointedPlanet(point.x, point.y);
 					ctx.save();
 					ctx.beginPath();
+					ctx.setTransform(this._transformation.scaling, 0, 0, this._transformation.scaling, this._transformation.horizontalMoving, this._transformation.verticalMoving);
+					// 路径线从点击的星球开始绘制
 					ctx.moveTo(mousedownPlanet.position.x, mousedownPlanet.position.y);
-					ctx.lineTo(point.x, point.y);
+					if (mouseupPlanet) { // 如果鼠标移动到星球上
+						// 路径线绘制到移动到的星球上
+						ctx.lineTo(mouseupPlanet.position.x, mouseupPlanet.position.y);
+					} else {
+						// 路径线绘制到鼠标位置
+						ctx.setTransform(1, 0, 0, 1, 0, 0);
+						ctx.lineTo(point.x, point.y);
+					}
 					ctx.stroke();
 					ctx.restore();
 
-					mouseupPlanet = this._getPointedPlanet(point.x, point.y);
 					if (mouseupPlanet) {
+						// 绘制鼠标移动到的星球选中效果
 						drawActivePlanet(mouseupPlanet);
 					}
 				} else {
+					// 移动画布
 					if (mousedownPlanet) {
 						ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
 						drawActivePlanet(mousedownPlanet);
@@ -102,6 +120,7 @@ export default class StageManager extends events.EventEmitter {
 					mousedownPoint = point;
 				}
 			} else {
+				// 根据是否移动在星球上绘制移动特效和变换鼠标指针
 				let planet = this._getPointedPlanet(point.x, point.y);
 				if (planet) {
 					$canvas.css({ cursor: 'pointer' });

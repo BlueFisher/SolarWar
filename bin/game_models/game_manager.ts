@@ -1,4 +1,5 @@
 import * as events from 'events';
+import {PlanetType, Map, MapLoader} from './map_loader'
 import Player from './player';
 import Planet from './planet';
 import {GameProtocolType, GameStatusProtocol} from '../protocols/game_protocols';
@@ -16,37 +17,52 @@ class GameManager extends events.EventEmitter {
 	private _players: Player[] = [];
 	private _planets: Planet[] = [];
 	private _movingShipsQueue: _movingShipsQueue[] = [];
+	private _map: Map
 
 	/**
 	 * 游戏逻辑管理
 	 */
 	constructor() {
 		super();
-
 		this._initializeMap();
 	}
 
 	private _initializeMap() {
-		this._planets.push(new Planet(this._getNextPlanetId(), 50, {
-			x: 50,
-			y: 50
-		}, () => {
-			this._onStatusChange();
-		}));
+		let map = MapLoader.getMap();
+		this._map = {
+			size: map.size,
+			planets: []
+		};
+		map.planets.forEach(p => {
+			if (p.type == PlanetType.None) {
+				this._planets.push(new Planet(this._getNextPlanetId(), p.size, p.position, () => {
+					this._statusChange();
+				}));
+			} else if (p.type == PlanetType.Occupied) {
+				this._map.planets.push(p);
+			}
+		});
 
-		this._onStatusChange();
+		this._statusChange();
 	}
 
 	/**增加玩家 */
 	addPlayer(name: string): number {
 		let player = new Player(this._getNextPlayerId(), name, 0);
 		this._players.push(player);
-		this._planets.push(new Planet(this._getNextPlanetId(), 50, {
-			x: Math.random() * 1500,
-			y: Math.random() * 900
-		}, this._onStatusChange.bind(this), player))
+		let mapPlanet = this._map.planets.pop();
+		if (mapPlanet != undefined) {
+			this._planets.push(new Planet(this._getNextPlanetId(), mapPlanet.size, mapPlanet.position, () => {
+				this._statusChange();
+			}, player));
+		} else {
+			this._planets.push(new Planet(this._getNextPlanetId(), 50, {
+				x: Math.random() * 1500,
+				y: Math.random() * 900
+			}, this._statusChange.bind(this), player));
+		}
 
-		this._onStatusChange();
+		this._statusChange();
 
 		return player.id;
 	}
@@ -129,12 +145,12 @@ class GameManager extends events.EventEmitter {
 					this._movingShipsQueue.splice(parseInt(i), 1);
 				}
 			}
-			this._onStatusChange();
+			this._statusChange();
 			this._moveShips();
 		}, 16);
 	}
 
-	private _onStatusChange(): GameStatusProtocol {
+	private _statusChange(): GameStatusProtocol {
 		this._players.forEach((player, index) => {
 			if (player.currShipsCount == 0) {
 				let isGameOver = true;
@@ -152,6 +168,7 @@ class GameManager extends events.EventEmitter {
 		});
 
 		let status: GameStatusProtocol = {
+			size: this._map.size,
 			type: GameProtocolType.gameStatus,
 			players: this._players.map(p => {
 				return p.getPlayerProtocol();

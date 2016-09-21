@@ -9,7 +9,13 @@ body {
 	position: absolute;
 	top: 0;
 	left: 0;
-	z-index: 100;
+	z-index: 1;
+}
+#ui-stage {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 2;
 }
 
 #count-ratio{
@@ -17,7 +23,7 @@ body {
 	bottom:20px;
 	left:35%;
 	width:30%;
-	z-index: 999;
+	z-index: 3;
 }
 
 .rangeslider,

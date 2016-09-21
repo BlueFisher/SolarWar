@@ -25,65 +25,104 @@ export default class StageManager extends events.EventEmitter {
 
 	refreshCurrPlayerId(id: number) {
 		this._currPlayerId = id;
+		let [minPosition, maxPosition] = this._getMapMainRange(this._lastGameStatusProtocol.planets);
+		this._setStageTransformation(minPosition, maxPosition);
 		this.redrawStage();
 	}
 
 	private _handleMovingShips() {
 		let $canvas = $(this._uiStageCanvas);
 		let ctx = this._uiStageCanvas.getContext('2d');
+		$canvas.on('contextmenu', function (e) {
+			return false;
+		});
+		$canvas.mousewheel(e => {
+			let point = {
+				x: e.pageX - $canvas.offset().left,
+				y: e.pageY - $canvas.offset().top
+			};
+			let deltaScaling = e.deltaY / 50;
 
+			let planet = this._getPointedPlanet(point.x, point.y);
+
+			if (!planet) {
+				this._transformation.horizontalMoving -= deltaScaling * (point.x - this._transformation.horizontalMoving) / this._transformation.scaling;
+				this._transformation.verticalMoving -= deltaScaling * (point.y - this._transformation.verticalMoving) / this._transformation.scaling;
+			} else {
+				this._transformation.horizontalMoving -= deltaScaling * planet.position.x;
+				this._transformation.verticalMoving -= deltaScaling * planet.position.y;
+			}
+			this._transformation.scaling += deltaScaling;
+			this.redrawStage();
+		})
 		$canvas.on('mousedown', e => {
+
 			let startPoint: GameProtocols.Point, endPoint: GameProtocols.Point;
 			startPoint = {
 				x: e.pageX - $canvas.offset().left,
 				y: e.pageY - $canvas.offset().top
 			}
 
-			$canvas.on('mousemove', (e) => {
-				endPoint = {
-					x: e.pageX - $canvas.offset().left,
-					y: e.pageY - $canvas.offset().top
-				}
-
-				ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
-				ctx.save();
-				ctx.beginPath();
-				ctx.moveTo(startPoint.x, startPoint.y);
-				ctx.lineTo(endPoint.x, endPoint.y);
-				ctx.stroke();
-				ctx.restore();
-			});
-
-			$canvas.one('mouseup', e => {
-				endPoint = {
-					x: e.pageX - $canvas.offset().left,
-					y: e.pageY - $canvas.offset().top
-				}
-
-				let planetFrom = this._getPointedPlanet(startPoint.x, startPoint.y);
-				let planetTo = this._getPointedPlanet(endPoint.x, endPoint.y);
-
-				if (planetFrom != null && planetTo != null) {
-					let protocol: GameProtocols.MovingShips = {
-						type: GameProtocols.GameProtocolType.movingShips,
-						planetFromId: planetFrom.id,
-						planetToId: planetTo.id,
-						countRatio: this._$countRatio.val() / 100,
+			if (e.which == 1) {
+				$canvas.on('mousemove', (e) => {
+					endPoint = {
+						x: e.pageX - $canvas.offset().left,
+						y: e.pageY - $canvas.offset().top
 					}
-					this.emit('protocolSend', protocol);
-				}
 
-				ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
-				$canvas.off('mousemove');
-			});
+					ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
+					ctx.save();
+					ctx.beginPath();
+					ctx.moveTo(startPoint.x, startPoint.y);
+					ctx.lineTo(endPoint.x, endPoint.y);
+					ctx.stroke();
+					ctx.restore();
+				});
+
+				$canvas.one('mouseup', e => {
+					endPoint = {
+						x: e.pageX - $canvas.offset().left,
+						y: e.pageY - $canvas.offset().top
+					}
+
+					let planetFrom = this._getPointedPlanet(startPoint.x, startPoint.y);
+					let planetTo = this._getPointedPlanet(endPoint.x, endPoint.y);
+
+					if (planetFrom != null && planetTo != null) {
+						let protocol: GameProtocols.MovingShips = {
+							type: GameProtocols.GameProtocolType.movingShips,
+							planetFromId: planetFrom.id,
+							planetToId: planetTo.id,
+							countRatio: this._$countRatio.val() / 100,
+						}
+						this.emit('protocolSend', protocol);
+					}
+
+					ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
+					$canvas.off('mousemove');
+				});
+			} else {
+				$canvas.on('mousemove', (e) => {
+					endPoint = {
+						x: e.pageX - $canvas.offset().left,
+						y: e.pageY - $canvas.offset().top
+					}
+					this._transformation.horizontalMoving += endPoint.x - startPoint.x;
+					this._transformation.verticalMoving += endPoint.y - startPoint.y;
+					this.redrawStage();
+
+					startPoint = endPoint;
+				});
+				$canvas.one('mouseup', e => {
+					$canvas.off('mousemove');
+				});
+			}
 		});
 	}
 	private _getPointedPlanet(x: number, y: number): GameProtocols.PlanetProtocol {
 		x = (x - this._transformation.horizontalMoving) / this._transformation.scaling;
 		y = (y - this._transformation.verticalMoving) / this._transformation.scaling;
-		console.log(x, y)
 		for (let planet of this._lastGameStatusProtocol.planets) {
-
 			if (Math.sqrt(Math.pow(x - planet.position.x, 2) + Math.pow(y - planet.position.y, 2)) < planet.size / 2 + 20) {
 				return planet;
 			}
@@ -97,16 +136,17 @@ export default class StageManager extends events.EventEmitter {
 			this.stageChange(this._lastGameStatusProtocol);
 		}
 	}
-	private _getMapMainRange([width, height]: [number, number], planets: GameProtocols.PlanetProtocol[]): [GameProtocols.Point, GameProtocols.Point] {
+	private _getMapMainRange(planets: GameProtocols.PlanetProtocol[]): [GameProtocols.Point, GameProtocols.Point] {
 		let range = 200;
-		let minPosition: GameProtocols.Point = { x: width, y: height };
-		let maxPosition: GameProtocols.Point = { x: 0, y: 0 };
+		let minPosition: GameProtocols.Point = { x: Infinity, y: Infinity };
+		let maxPosition: GameProtocols.Point = { x: -Infinity, y: -Infinity };
 		if (planets.length == 0 || this._currPlayerId == null) {
 			return [maxPosition, minPosition];
 		}
 
 		planets.forEach(p => {
-			if (p.occupiedPlayerId == this._currPlayerId || p.allShips.filter(s => s.playerId == this._currPlayerId).length == 1) {
+			if (p.occupiedPlayerId == this._currPlayerId || p.allShips.filter(s => s.playerId == this._currPlayerId).length == 1 ||
+				(p.occupyingStatus != null && p.occupyingStatus.playerId == this._currPlayerId)) {
 				let temp;
 				if ((temp = p.position.x - p.size - range) < minPosition.x) {
 					minPosition.x = temp;
@@ -125,12 +165,15 @@ export default class StageManager extends events.EventEmitter {
 
 		return [minPosition, maxPosition];
 	}
-	private _getStageTransformation([width, height]: [number, number], planets: GameProtocols.PlanetProtocol[]): [number, number, number] {
-		let [minPosition, maxPosition] = this._getMapMainRange([width, height], planets);
+	private _setStageTransformation(minPosition: GameProtocols.Point, maxPosition: GameProtocols.Point) {
 		let scaling = Math.sqrt((this._gameStageCanvas.width * this._gameStageCanvas.height) / ((maxPosition.x - minPosition.x) * (maxPosition.y - minPosition.y)));
 		let horizontalMoving = -(minPosition.x * scaling - (this._gameStageCanvas.width - (maxPosition.x - minPosition.x) * scaling) / 2);
 		let verticalMoving = -(minPosition.y * scaling - (this._gameStageCanvas.height - (maxPosition.y - minPosition.y) * scaling) / 2);
-		return [scaling, horizontalMoving, verticalMoving];
+		this._transformation = {
+			scaling: scaling,
+			horizontalMoving: horizontalMoving,
+			verticalMoving: verticalMoving
+		};
 	}
 	stageChange(status: GameProtocols.GameStatusProtocol) {
 		this._lastGameStatusProtocol = status;
@@ -138,13 +181,7 @@ export default class StageManager extends events.EventEmitter {
 		ctx.clearRect(0, 0, this._gameStageCanvas.width, this._gameStageCanvas.height);
 
 		ctx.save();
-		let [scaling, horizontalMoving, verticalMoving] = this._getStageTransformation([status.size.width, status.size.height], status.planets);
-		this._transformation = {
-			scaling: scaling,
-			horizontalMoving: horizontalMoving,
-			verticalMoving: verticalMoving
-		};
-		ctx.setTransform(scaling, 0, 0, scaling, horizontalMoving, verticalMoving);
+		ctx.setTransform(this._transformation.scaling, 0, 0, this._transformation.scaling, this._transformation.horizontalMoving, this._transformation.verticalMoving);
 		// 绘制飞船移动
 		ctx.save();
 
@@ -179,24 +216,24 @@ export default class StageManager extends events.EventEmitter {
 			ctx.fillStyle = 'black';
 			ctx.textAlign = 'center';
 			ctx.textBaseline = 'middle';
+			ctx.font = '14px Arial,Microsoft YaHei';
 			ctx.fillText(planet.id.toString(), planet.position.x, planet.position.y);
 			ctx.restore();
 
 			// 绘制星球争夺或平静状态
+			ctx.save();
+			ctx.font = '14px Arial,Microsoft YaHei';
 			if (planet.allShips.length == 1) {
-				ctx.save();
 				ctx.textAlign = 'center';
 				let player = status.players.filter(player => player.id == planet.allShips[0].playerId)[0];
 				ctx.fillStyle = player.color;
 				ctx.fillText(`${player.name} ${planet.allShips[0].count}`, planet.position.x, planet.position.y + planet.size / 2 + 15);
-				ctx.restore();
 			} else if (planet.allShips.length > 1) {
 				let sum = 0;
 				planet.allShips.forEach(p => sum += p.count);
 
 				let currAngle = 0;
 				planet.allShips.forEach(ship => {
-					ctx.save();
 					ctx.beginPath();
 					let nextAngle = currAngle + Math.PI * 2 * ship.count / sum;
 					ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 5, currAngle, nextAngle);
@@ -210,10 +247,9 @@ export default class StageManager extends events.EventEmitter {
 
 					ctx.lineWidth = 5;
 					ctx.stroke();
-					ctx.restore();
 				});
 			}
-
+			ctx.restore();
 			//绘制星球占领中状态
 			if ((planet.allShips.length == 1 || planet.allShips.length == 0)
 				&& planet.occupyingStatus != null && planet.occupyingStatus.percent != 100) {

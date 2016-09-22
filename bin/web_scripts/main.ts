@@ -10,7 +10,7 @@ class Main {
 
 	constructor() {
 		let $countRatio = this._initializeCountRatio();
-		this._initializeGameStage($countRatio);
+		this._initializeStageManager($countRatio);
 	}
 
 	private _initializeCountRatio(): JQuery {
@@ -28,7 +28,7 @@ class Main {
 		return $countRatio;
 	}
 
-	private _initializeGameStage($countRatio: JQuery) {
+	private _initializeStageManager($countRatio: JQuery) {
 		let $window = $(window);
 		let $gameStage = $('#game-stage');
 		let gameStageCanvas = <HTMLCanvasElement>$gameStage[0];
@@ -51,7 +51,7 @@ class Main {
 			uiStageCanvas.height = $window.innerHeight();
 			uiStageCanvas.width = $window.innerWidth();
 
-			this._stageManager.redrawStage();
+			this._stageManager.redrawGameStage();
 		});
 
 		this._connect();

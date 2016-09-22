@@ -113,7 +113,7 @@ class GameManager extends events.EventEmitter {
 	}
 
 	private _getTwoPlanetsDistance(planet1: Planet, planet2: Planet) {
-		return Math.sqrt(Math.pow(planet1.position.x - planet2.position.x, 2) + Math.pow(planet1.position.y - planet2.position.y, 2))
+		return Math.sqrt(Math.pow(planet1.position.x - planet2.position.x, 2) + Math.pow(planet1.position.y - planet2.position.y, 2)) - planet1.size / 2 - planet2.size / 2;
 	}
 
 	private _isMovingShips = false;
@@ -140,7 +140,7 @@ class GameManager extends events.EventEmitter {
 			for (let i in this._movingShipsQueue) {
 				let movingShip = this._movingShipsQueue[i];
 				// 如果已到目的星球，则调用shipsArrived，并从飞行队列中移除
-				if ((movingShip.distanceLeft -= 10) <= 0) {
+				if ((movingShip.distanceLeft -= 1.25) <= 0) {
 					movingShip.planetTo.shipsArrived(movingShip.player, movingShip.count);
 					this._movingShipsQueue.splice(parseInt(i), 1);
 				}
@@ -155,9 +155,11 @@ class GameManager extends events.EventEmitter {
 			if (player.currShipsCount == 0) {
 				let isGameOver = true;
 				this._planets.forEach((planet, index) => {
-					if (planet.occupiedPlayer == player) {
-						isGameOver = false;
-						return;
+					if (planet.occupyingStatus != null) {
+						if (planet.occupiedPlayer == player || planet.occupyingStatus.player == player) {
+							isGameOver = false;
+							return;
+						}
 					}
 				});
 				if (isGameOver) {

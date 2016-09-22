@@ -139,8 +139,18 @@ class GameManager extends events.EventEmitter {
 
 			for (let i in this._movingShipsQueue) {
 				let movingShip = this._movingShipsQueue[i];
+
+				let deltaDistance: number;
+				if (movingShip.count < 9) {
+					deltaDistance = 2.5
+				} else if (movingShip.count > 9) {
+					deltaDistance = 1.25;
+				} else {
+					deltaDistance = -75 / 14 / Math.sqrt(movingShip.count) + 85 / 28;
+				}
+
 				// 如果已到目的星球，则调用shipsArrived，并从飞行队列中移除
-				if ((movingShip.distanceLeft -= 1.25) <= 0) {
+				if ((movingShip.distanceLeft -= deltaDistance) <= 0) {
 					movingShip.planetTo.shipsArrived(movingShip.player, movingShip.count);
 					this._movingShipsQueue.splice(parseInt(i), 1);
 				}

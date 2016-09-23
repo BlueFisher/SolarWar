@@ -2,7 +2,7 @@ import * as events from 'events';
 import {PlanetType, Map, MapLoader} from './map_loader'
 import Player from './player';
 import Planet from './planet';
-import {GameProtocolType, GameStatusProtocol} from '../protocols/game_protocols';
+import {Type as GameProtocolType, GameStatus as GameStatusProtocol} from '../protocols/game_protocols';
 
 interface _movingShipsQueue {
 	planetFrom: Planet,

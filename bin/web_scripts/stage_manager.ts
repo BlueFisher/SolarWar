@@ -31,7 +31,7 @@ export default class StageManager extends events.EventEmitter {
 	refreshCurrPlayerId(id: number) {
 		this._gameStage.refreshCurrPlayerId(id);
 	}
-	stageChange(status: GameProtocols.GameStatusProtocol) {
+	stageChange(status: GameProtocols.GameStatus) {
 		this._gameStage.stageChange(status);
 	}
 }

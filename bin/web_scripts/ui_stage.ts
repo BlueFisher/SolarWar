@@ -50,7 +50,7 @@ export default class UiStage extends events.EventEmitter {
 		});
 
 		/**绘制星球激活特效 */
-		let drawActivePlanet = (planet: GameProtocols.PlanetProtocol) => {
+		let drawActivePlanet = (planet: GameProtocols.Planet) => {
 			ctx.save();
 			ctx.setTransform(this._gameStage.transformation.scaling, 0, 0, this._gameStage.transformation.scaling, this._gameStage.transformation.horizontalMoving, this._gameStage.transformation.verticalMoving);
 			ctx.beginPath();
@@ -59,8 +59,8 @@ export default class UiStage extends events.EventEmitter {
 			ctx.restore();
 		}
 		let mousedownPoint: GameProtocols.Point;
-		let mousedownPlanet: GameProtocols.PlanetProtocol;
-		let mouseupPlanet: GameProtocols.PlanetProtocol;
+		let mousedownPlanet: GameProtocols.Planet;
+		let mouseupPlanet: GameProtocols.Planet;
 		let isMouseDown = false;
 		let mouseWhich = 1;
 		$canvas.on('mousemove', e => {
@@ -139,7 +139,7 @@ export default class UiStage extends events.EventEmitter {
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {
 				let protocol: GameProtocols.MovingShips = {
-					type: GameProtocols.GameProtocolType.movingShips,
+					type: GameProtocols.Type.movingShips,
 					planetFromId: mousedownPlanet.id,
 					planetToId: mouseupPlanet.id,
 					countRatio: this._$countRatio.val() / 100,
@@ -153,7 +153,7 @@ export default class UiStage extends events.EventEmitter {
 		});
 	}
 
-	private _getPointedPlanet(x: number, y: number): GameProtocols.PlanetProtocol {
+	private _getPointedPlanet(x: number, y: number): GameProtocols.Planet {
 		x = (x - this._gameStage.transformation.horizontalMoving) / this._gameStage.transformation.scaling;
 		y = (y - this._gameStage.transformation.verticalMoving) / this._gameStage.transformation.scaling;
 		return this._gameStage.getPointedPlanet(x, y);

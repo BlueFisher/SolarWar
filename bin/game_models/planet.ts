@@ -1,5 +1,5 @@
 import player from './player';
-import {Point, PlanetStatus, PlanetProtocol} from '../protocols/game_protocols'
+import {Point, PlanetStatus, Planet as PlanetProtocol} from '../protocols/game_protocols'
 
 
 interface ShipsOnThePlanet {

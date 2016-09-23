@@ -1,4 +1,4 @@
-import {PlayerProtocol} from '../protocols/game_protocols'
+import {Player as PlayerProtocol} from '../protocols/game_protocols'
 
 class Player {
 	id: number;

@@ -41,7 +41,7 @@ class Main {
 		uiStageCanvas.width = $window.innerWidth();
 
 		this._stageManager = new StageManager(gameStageCanvas, uiStageCanvas, $countRatio);
-		this._stageManager.on('protocolSend', (protocol: GameProtocols.GameBaseProtocol) => {
+		this._stageManager.on('protocolSend', (protocol: GameProtocols.BaseProtocol) => {
 			this._ws.send(JSON.stringify(protocol));
 		})
 
@@ -64,8 +64,8 @@ class Main {
 			console.log("WebSocket Connected");
 			let playerName = prompt("请输入名字", "Default Player");
 
-			let protocol: GameProtocols.RequestAddPlayerProtocol = {
-				type: GameProtocols.GameProtocolType.requestAddPlayer,
+			let protocol: GameProtocols.RequestAddPlayer = {
+				type: GameProtocols.Type.requestAddPlayer,
 				name: playerName,
 			};
 			this._ws.send(JSON.stringify(protocol));
@@ -74,14 +74,14 @@ class Main {
 		this._ws.onmessage = (e) => {
 			let protocol = JSON.parse(e.data);
 			switch (protocol.type) {
-				case GameProtocols.GameProtocolType.responseAddPlayer:
-					this._onResponseAddPlayer(<GameProtocols.ResponseAddPlayerProtocol>protocol);
+				case GameProtocols.Type.responseAddPlayer:
+					this._onResponseAddPlayer(<GameProtocols.ResponseAddPlayer>protocol);
 					break;
-				case GameProtocols.GameProtocolType.gameStatus:
-					this._onGameStatusChange(<GameProtocols.GameStatusProtocol>protocol);
+				case GameProtocols.Type.gameStatus:
+					this._onGameStatusChange(<GameProtocols.GameStatus>protocol);
 					break;
-				case GameProtocols.GameProtocolType.gameOver:
-					this._onGameOver(<GameProtocols.GameOverProtocol>protocol);
+				case GameProtocols.Type.gameOver:
+					this._onGameOver(<GameProtocols.GameOver>protocol);
 					break;
 			}
 		}
@@ -98,13 +98,13 @@ class Main {
 		}
 	}
 
-	private _onResponseAddPlayer(protocol: GameProtocols.ResponseAddPlayerProtocol) {
+	private _onResponseAddPlayer(protocol: GameProtocols.ResponseAddPlayer) {
 		this._stageManager.refreshCurrPlayerId(protocol.id);
 	}
-	private _onGameStatusChange(protocol: GameProtocols.GameStatusProtocol) {
+	private _onGameStatusChange(protocol: GameProtocols.GameStatus) {
 		this._stageManager.stageChange(protocol);
 	}
-	private _onGameOver(protocol: GameProtocols.GameOverProtocol) {
+	private _onGameOver(protocol: GameProtocols.GameOver) {
 		alert('Game Over');
 	}
 }

@@ -14,7 +14,7 @@ export default class GameStage {
 		this._gameStageCanvas = gameStageCanvas;
 	}
 
-	private _getMapMainRange(planets: GameProtocols.PlanetProtocol[]): [GameProtocols.Point, GameProtocols.Point] {
+	private _getMapMainRange(planets: GameProtocols.Planet[]): [GameProtocols.Point, GameProtocols.Point] {
 		let range = 200;
 		let minPosition: GameProtocols.Point = { x: Infinity, y: Infinity };
 		let maxPosition: GameProtocols.Point = { x: -Infinity, y: -Infinity };
@@ -55,7 +55,7 @@ export default class GameStage {
 	}
 
 
-	getPointedPlanet(x: number, y: number): GameProtocols.PlanetProtocol {
+	getPointedPlanet(x: number, y: number): GameProtocols.Planet {
 		if (this._lastGameStatusProtocol != undefined) {
 			for (let planet of this._lastGameStatusProtocol.planets) {
 				if (Math.sqrt(Math.pow(x - planet.position.x, 2) + Math.pow(y - planet.position.y, 2)) < planet.size / 2 + 20) {
@@ -72,14 +72,14 @@ export default class GameStage {
 		this.redrawStage();
 	}
 
-	private _lastGameStatusProtocol: GameProtocols.GameStatusProtocol;
+	private _lastGameStatusProtocol: GameProtocols.GameStatus;
 	redrawStage() {
 		if (this._lastGameStatusProtocol != undefined) {
 			this.stageChange(this._lastGameStatusProtocol);
 		}
 	}
 
-	stageChange(status: GameProtocols.GameStatusProtocol) {
+	stageChange(status: GameProtocols.GameStatus) {
 		this._lastGameStatusProtocol = status;
 		let ctx = this._gameStageCanvas.getContext('2d');
 		ctx.clearRect(0, 0, this._gameStageCanvas.width, this._gameStageCanvas.height);

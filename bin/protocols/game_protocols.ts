@@ -1,4 +1,4 @@
-export enum GameProtocolType {
+export enum Type {
 	requestAddPlayer = 0,
 	responseAddPlayer,
 	movingShips,
@@ -6,18 +6,18 @@ export enum GameProtocolType {
 	gameStatus,
 	gameOver
 }
-export interface GameBaseProtocol {
-	type: GameProtocolType
+export interface BaseProtocol {
+	type: Type
 }
 
-export interface RequestAddPlayerProtocol extends GameBaseProtocol {
+export interface RequestAddPlayer extends BaseProtocol {
 	name: string
 }
-export interface ResponseAddPlayerProtocol extends GameBaseProtocol {
+export interface ResponseAddPlayer extends BaseProtocol {
 	id: number
 }
 
-export interface MovingShips extends GameBaseProtocol {
+export interface MovingShips extends BaseProtocol {
 	planetFromId: number,
 	planetToId: number,
 	countRatio: number
@@ -27,7 +27,7 @@ export interface Point {
 	x: number,
 	y: number
 }
-export interface PlayerProtocol {
+export interface Player {
 	id: number,
 	name: string,
 	color: string,
@@ -39,14 +39,13 @@ export enum PlanetStatus {
 	occupying,
 	occupied
 }
-export interface PlanetProtocol {
+export interface Planet {
 	id: number,
 	size: number,
 	position: {
 		x: number,
 		y: number
 	},
-	// status: PlanetStatus,
 	allShips: {
 		playerId: number,
 		count: number
@@ -57,13 +56,13 @@ export interface PlanetProtocol {
 		percent: number
 	}
 }
-export interface GameStatusProtocol extends GameBaseProtocol {
+export interface GameStatus extends BaseProtocol {
 	size: {
 		width: number,
 		height: number
 	}
-	players: PlayerProtocol[],
-	planets: PlanetProtocol[],
+	players: Player[],
+	planets: Planet[],
 	movingShipsQueue: {
 		planetFromId: number,
 		planetToId: number,
@@ -73,6 +72,6 @@ export interface GameStatusProtocol extends GameBaseProtocol {
 		distanceLeft: number
 	}[]
 }
-export interface GameOverProtocol extends GameBaseProtocol {
+export interface GameOver extends BaseProtocol {
 
 }

@@ -2,7 +2,7 @@
  * SolarWar入口文件
  */
 
-import {GameStatusProtocol} from'./bin/protocols/game_protocols'
+import {GameStatus as GameStatusProtocol} from'./bin/protocols/game_protocols'
 import Server from './bin/server';
 
 

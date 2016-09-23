@@ -30,7 +30,7 @@ class GameServer {
 		});
 
 		this._gameManager = new GameManager();
-		this._gameManager.on('statusChange', (status: GameProtocols.GameStatusProtocol) => {
+		this._gameManager.on('statusChange', (status: GameProtocols.GameStatus) => {
 			this._socketPlayerMap.forEach(p => {
 				if (p.socket != null) {
 					p.socket.send(JSON.stringify(status));
@@ -38,8 +38,8 @@ class GameServer {
 			})
 		});
 		this._gameManager.on('gameOver', (playerId: number) => {
-			let protocol: GameProtocols.GameOverProtocol = {
-				type: GameProtocols.GameProtocolType.gameOver
+			let protocol: GameProtocols.GameOver = {
+				type: GameProtocols.Type.gameOver
 			}
 			let socketPlayer = this._socketPlayerMap.filter(p => p.playerId == playerId)[0];
 			if (socketPlayer != undefined) {
@@ -55,12 +55,12 @@ class GameServer {
 		});
 
 		socket.on('message', message => {
-			let protocol: GameProtocols.GameBaseProtocol = JSON.parse(message);
+			let protocol: GameProtocols.BaseProtocol = JSON.parse(message);
 			switch (protocol.type) {
-				case GameProtocols.GameProtocolType.requestAddPlayer:
-					this._onRequestAddPlayer(<GameProtocols.RequestAddPlayerProtocol>protocol, socket);
+				case GameProtocols.Type.requestAddPlayer:
+					this._onRequestAddPlayer(<GameProtocols.RequestAddPlayer>protocol, socket);
 					break;
-				case GameProtocols.GameProtocolType.movingShips:
+				case GameProtocols.Type.movingShips:
 					this._onMovePlayerShips(<GameProtocols.MovingShips>protocol, socket);
 					break;
 			}
@@ -83,14 +83,14 @@ class GameServer {
 		});
 	}
 
-	private _onRequestAddPlayer(protocol: GameProtocols.RequestAddPlayerProtocol, socket: WebSocketServer) {
+	private _onRequestAddPlayer(protocol: GameProtocols.RequestAddPlayer, socket: WebSocketServer) {
 		let socketPlayer = this._socketPlayerMap.filter(p => p.socket == socket)[0];
 		if (socketPlayer != undefined) {
 			let id = this._gameManager.addPlayer(protocol.name);
 			socketPlayer.playerId = id;
 
-			let responseProtocol: GameProtocols.ResponseAddPlayerProtocol = {
-				type: GameProtocols.GameProtocolType.responseAddPlayer,
+			let responseProtocol: GameProtocols.ResponseAddPlayer = {
+				type: GameProtocols.Type.responseAddPlayer,
 				id: id
 			}
 			socket.send(JSON.stringify(responseProtocol));

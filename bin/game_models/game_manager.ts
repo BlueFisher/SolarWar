@@ -160,7 +160,14 @@ class GameManager extends events.EventEmitter {
 		}, 16);
 	}
 
+	private _lastStatusTime = new Date();
 	private _statusChange(): GameStatusProtocol {
+		let now = new Date();
+		if (now.valueOf() - this._lastStatusTime.valueOf() < 16) {
+			console.log('return')
+			return;
+		}
+		this._lastStatusTime = now;
 		this._players.forEach((player, index) => {
 			if (player.currShipsCount == 0) {
 				let isGameOver = true;

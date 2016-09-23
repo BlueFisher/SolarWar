@@ -135,7 +135,6 @@ export default class UiStage extends events.EventEmitter {
 			}
 		});
 		$canvas.on('mouseup', e => {
-			isMouseDown = false;
 			$canvas.css({ cursor: 'default' });
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {
@@ -147,6 +146,10 @@ export default class UiStage extends events.EventEmitter {
 				}
 				this.emit('protocolSend', protocol);
 			}
+
+			isMouseDown = false;
+			mousedownPlanet = null;
+			mouseupPlanet = null;
 		});
 	}
 

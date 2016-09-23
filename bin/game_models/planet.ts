@@ -144,6 +144,7 @@ class Planet {
 			return;
 		}
 
+
 		setTimeout(() => {
 			if (!canOccupy()) {
 				return;
@@ -177,7 +178,7 @@ class Planet {
 
 			this._onStatusChange();
 			this._occupy();
-		}, 50);
+		}, (3 * Math.pow(this.size / this.allShips[0].count, 0.25) + 2) * 1000 / 100);
 	}
 
 	private _isCombatting = false;
@@ -217,7 +218,7 @@ class Planet {
 
 
 	private _startbuildingShips() {
-		let interval = 800;
+		let interval = (-0.005 * this.size + 1) * 1000;
 		setInterval(() => {
 			this._buildShips();
 		}, interval);
@@ -246,4 +247,4 @@ class Planet {
 	}
 }
 
-export default Planet; 
+export default Planet;

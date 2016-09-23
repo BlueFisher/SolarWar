@@ -164,7 +164,6 @@ class GameManager extends events.EventEmitter {
 	private _statusChange(): GameStatusProtocol {
 		let now = new Date();
 		if (now.valueOf() - this._lastStatusTime.valueOf() < 16) {
-			console.log('return')
 			return;
 		}
 		this._lastStatusTime = now;

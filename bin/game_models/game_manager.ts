@@ -186,7 +186,6 @@ class GameManager extends events.EventEmitter {
 		});
 
 		let status: GameStatusProtocol = {
-			size: this._map.size,
 			type: GameProtocolType.gameStatus,
 			players: this._players.map(p => {
 				return p.getPlayerProtocol();

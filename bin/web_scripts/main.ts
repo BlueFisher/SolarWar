@@ -64,8 +64,8 @@ class Main {
 			console.log("WebSocket Connected");
 			let playerName = prompt("请输入名字", "Default Player");
 
-			let protocol: GameProtocols.RequestAddPlayer = {
-				type: GameProtocols.Type.requestAddPlayer,
+			let protocol: GameProtocols.RequestAddingPlayer = {
+				type: GameProtocols.Type.requestAddingPlayer,
 				name: playerName,
 			};
 			this._ws.send(JSON.stringify(protocol));
@@ -74,8 +74,8 @@ class Main {
 		this._ws.onmessage = (e) => {
 			let protocol = JSON.parse(e.data);
 			switch (protocol.type) {
-				case GameProtocols.Type.responseAddPlayer:
-					this._onResponseAddPlayer(<GameProtocols.ResponseAddPlayer>protocol);
+				case GameProtocols.Type.responseAddingPlayer:
+					this._onResponseAddPlayer(<GameProtocols.ResponseAddingPlayer>protocol);
 					break;
 				case GameProtocols.Type.gameStatus:
 					this._onGameStatusChange(<GameProtocols.GameStatus>protocol);
@@ -98,7 +98,7 @@ class Main {
 		}
 	}
 
-	private _onResponseAddPlayer(protocol: GameProtocols.ResponseAddPlayer) {
+	private _onResponseAddPlayer(protocol: GameProtocols.ResponseAddingPlayer) {
 		this._stageManager.refreshCurrPlayerId(protocol.id);
 	}
 	private _onGameStatusChange(protocol: GameProtocols.GameStatus) {

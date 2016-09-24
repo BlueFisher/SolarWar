@@ -1,7 +1,7 @@
 export enum Type {
-	requestAddPlayer = 0,
-	responseAddPlayer,
-	movingShips,
+	requestAddingPlayer = 0,
+	responseAddingPlayer,
+	moveShips,
 
 	gameStatus,
 	gameOver
@@ -10,10 +10,10 @@ export interface BaseProtocol {
 	type: Type
 }
 
-export interface RequestAddPlayer extends BaseProtocol {
+export interface RequestAddingPlayer extends BaseProtocol {
 	name: string
 }
-export interface ResponseAddPlayer extends BaseProtocol {
+export interface ResponseAddingPlayer extends BaseProtocol {
 	id: number
 }
 
@@ -57,10 +57,6 @@ export interface Planet {
 	}
 }
 export interface GameStatus extends BaseProtocol {
-	size: {
-		width: number,
-		height: number
-	}
 	players: Player[],
 	planets: Planet[],
 	movingShipsQueue: {

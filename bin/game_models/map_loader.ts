@@ -4,7 +4,6 @@ export enum PlanetType {
 }
 
 export interface Map {
-	size: { width: number, height: number },
 	planets: {
 		type: PlanetType,
 		position: {
@@ -18,10 +17,6 @@ export interface Map {
 export class MapLoader {
 	static getMap(): Map {
 		return {
-			size: {
-				width: 725,
-				height: 725
-			},
 			planets: [
 				{
 					type: PlanetType.None,

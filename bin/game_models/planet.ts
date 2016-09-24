@@ -143,7 +143,7 @@ class Planet {
 		if (!canOccupy()) {
 			return;
 		}
-
+		
 
 		setTimeout(() => {
 			if (!canOccupy()) {

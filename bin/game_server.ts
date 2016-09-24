@@ -57,10 +57,10 @@ class GameServer {
 		socket.on('message', message => {
 			let protocol: GameProtocols.BaseProtocol = JSON.parse(message);
 			switch (protocol.type) {
-				case GameProtocols.Type.requestAddPlayer:
-					this._onRequestAddPlayer(<GameProtocols.RequestAddPlayer>protocol, socket);
+				case GameProtocols.Type.requestAddingPlayer:
+					this._onRequestAddPlayer(<GameProtocols.RequestAddingPlayer>protocol, socket);
 					break;
-				case GameProtocols.Type.movingShips:
+				case GameProtocols.Type.moveShips:
 					this._onMovePlayerShips(<GameProtocols.MovingShips>protocol, socket);
 					break;
 			}
@@ -83,14 +83,14 @@ class GameServer {
 		});
 	}
 
-	private _onRequestAddPlayer(protocol: GameProtocols.RequestAddPlayer, socket: WebSocketServer) {
+	private _onRequestAddPlayer(protocol: GameProtocols.RequestAddingPlayer, socket: WebSocketServer) {
 		let socketPlayer = this._socketPlayerMap.filter(p => p.socket == socket)[0];
 		if (socketPlayer != undefined) {
 			let id = this._gameManager.addPlayer(protocol.name);
 			socketPlayer.playerId = id;
 
-			let responseProtocol: GameProtocols.ResponseAddPlayer = {
-				type: GameProtocols.Type.responseAddPlayer,
+			let responseProtocol: GameProtocols.ResponseAddingPlayer = {
+				type: GameProtocols.Type.responseAddingPlayer,
 				id: id
 			}
 			socket.send(JSON.stringify(responseProtocol));

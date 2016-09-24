@@ -139,7 +139,7 @@ export default class UiStage extends events.EventEmitter {
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {
 				let protocol: GameProtocols.MovingShips = {
-					type: GameProtocols.Type.movingShips,
+					type: GameProtocols.Type.moveShips,
 					planetFromId: mousedownPlanet.id,
 					planetToId: mouseupPlanet.id,
 					countRatio: this._$countRatio.val() / 100,

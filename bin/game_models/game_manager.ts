@@ -2,7 +2,7 @@ import * as events from 'events';
 import {PlanetType, Map, MapLoader} from './map_loader'
 import Player from './player';
 import Planet from './planet';
-import {Type as GameProtocolType, GameStatus as GameStatusProtocol} from '../protocols/game_protocols';
+import * as GameProtocols from '../protocols/game_protocols';
 
 interface _movingShipsQueue {
 	planetFrom: Planet,
@@ -30,7 +30,6 @@ class GameManager extends events.EventEmitter {
 	private _initializeMap() {
 		let map = MapLoader.getMap();
 		this._map = {
-			size: map.size,
 			planets: []
 		};
 		map.planets.forEach(p => {
@@ -161,7 +160,7 @@ class GameManager extends events.EventEmitter {
 	}
 
 	private _lastStatusTime = new Date();
-	private _statusChange(): GameStatusProtocol {
+	private _statusChange(): GameProtocols.GameStatus {
 		let now = new Date();
 		if (now.valueOf() - this._lastStatusTime.valueOf() < 16) {
 			return;
@@ -185,8 +184,8 @@ class GameManager extends events.EventEmitter {
 			}
 		});
 
-		let status: GameStatusProtocol = {
-			type: GameProtocolType.gameStatus,
+		let status: GameProtocols.GameStatus = {
+			type: GameProtocols.Type.gameStatus,
 			players: this._players.map(p => {
 				return p.getPlayerProtocol();
 			}),

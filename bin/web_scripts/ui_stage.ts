@@ -138,7 +138,7 @@ export default class UiStage extends events.EventEmitter {
 			$canvas.css({ cursor: 'default' });
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {
-				let protocol: GameProtocols.MovingShips = {
+				let protocol: GameProtocols.RequestMovingShips = {
 					type: GameProtocols.Type.moveShips,
 					planetFromId: mousedownPlanet.id,
 					planetToId: mouseupPlanet.id,

@@ -1,5 +1,5 @@
 import player from './player';
-import {Point, PlanetStatus, Planet as PlanetProtocol} from '../protocols/game_protocols'
+import * as GameProtocols from '../protocols/game_protocols'
 
 
 interface ShipsOnThePlanet {
@@ -18,7 +18,7 @@ class Planet {
 
 	id: number;
 	size: number;
-	position: Point;
+	position: GameProtocols.Point;
 
 	allShips: ShipsOnThePlanet[] = [];
 	occupiedPlayer: player;
@@ -33,11 +33,13 @@ class Planet {
 	 * @param onStatusChange 星球状态改变回调函数
 	 * @param occupiedPlayer 星球初始化时就占领的玩家
 	 */
-	constructor(id: number, size: number, position: Point, onStatusChange: () => void, occupiedPlayer: player = null) {
+	constructor(id: number, size: number, position: GameProtocols.Point,
+		_onStatusChange: () => void,
+		occupiedPlayer: player = null) {
 		this.id = id;
 		this.size = size;
 		this.position = position;
-		this._onStatusChange = onStatusChange;
+		this._onStatusChange = _onStatusChange;
 
 		this._startbuildingShips();
 
@@ -57,7 +59,7 @@ class Planet {
 		}
 	}
 
-	getPlanetProtocol(): PlanetProtocol {
+	getPlanetProtocol(): GameProtocols.Planet {
 		return {
 			id: this.id,
 			size: this.size,
@@ -143,7 +145,8 @@ class Planet {
 		if (!canOccupy()) {
 			return;
 		}
-		
+
+		let interval = (3 * Math.pow(this.size / this.allShips[0].count, 0.25) + 2) * 1000 / 100;
 
 		setTimeout(() => {
 			if (!canOccupy()) {
@@ -178,7 +181,7 @@ class Planet {
 
 			this._onStatusChange();
 			this._occupy();
-		}, (3 * Math.pow(this.size / this.allShips[0].count, 0.25) + 2) * 1000 / 100);
+		}, interval);
 	}
 
 	private _isCombatting = false;

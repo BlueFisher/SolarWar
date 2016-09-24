@@ -61,7 +61,7 @@ class GameServer {
 					this._onRequestAddPlayer(<GameProtocols.RequestAddingPlayer>protocol, socket);
 					break;
 				case GameProtocols.Type.moveShips:
-					this._onMovePlayerShips(<GameProtocols.MovingShips>protocol, socket);
+					this._onMovePlayerShips(<GameProtocols.RequestMovingShips>protocol, socket);
 					break;
 			}
 		});
@@ -96,7 +96,7 @@ class GameServer {
 			socket.send(JSON.stringify(responseProtocol));
 		}
 	}
-	private _onMovePlayerShips(protocol: GameProtocols.MovingShips, socket: WebSocketServer) {
+	private _onMovePlayerShips(protocol: GameProtocols.RequestMovingShips, socket: WebSocketServer) {
 		let socketPlayer = this._socketPlayerMap.filter(p => p.socket == socket)[0];
 		if (socketPlayer != undefined) {
 			this._gameManager.movePlayerShips(socketPlayer.playerId, protocol.planetFromId, protocol.planetToId, protocol.countRatio);

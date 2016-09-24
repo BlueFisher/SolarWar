@@ -1,4 +1,4 @@
-import {Player as PlayerProtocol} from '../protocols/game_protocols'
+import * as GameProtocols from '../protocols/game_protocols'
 
 class Player {
 	id: number;
@@ -22,11 +22,11 @@ class Player {
 		for (let i = 0; i < 6; i++) {
 			color += getNextNum();
 		}
-		
+
 		return color;
 	}
 
-	getPlayerProtocol(): PlayerProtocol {
+	getPlayerProtocol(): GameProtocols.Player {
 		return {
 			id: this.id,
 			name: this.name,

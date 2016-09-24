@@ -1,3 +1,8 @@
+export interface Point {
+	x: number,
+	y: number
+}
+
 export enum Type {
 	requestAddingPlayer = 0,
 	responseAddingPlayer,
@@ -17,27 +22,18 @@ export interface ResponseAddingPlayer extends BaseProtocol {
 	id: number
 }
 
-export interface MovingShips extends BaseProtocol {
+export interface RequestMovingShips extends BaseProtocol {
 	planetFromId: number,
 	planetToId: number,
 	countRatio: number
 }
 
-export interface Point {
-	x: number,
-	y: number
-}
 export interface Player {
 	id: number,
 	name: string,
 	color: string,
 	maxShipsCount: number,
 	currShipsCount: number
-}
-export enum PlanetStatus {
-	none = 0,
-	occupying,
-	occupied
 }
 export interface Planet {
 	id: number,

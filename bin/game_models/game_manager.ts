@@ -14,6 +14,7 @@ interface _movingShipsQueue {
 }
 
 class GameManager extends events.EventEmitter {
+	private _gameTime = 60 * 16;
 	private _players: Player[] = [];
 	private _planets: Planet[] = [];
 	private _movingShipsQueue: _movingShipsQueue[] = [];
@@ -25,6 +26,7 @@ class GameManager extends events.EventEmitter {
 	constructor() {
 		super();
 		this._initializeMap();
+		this._gameTimeChange();
 	}
 
 	private _initializeMap() {
@@ -159,8 +161,12 @@ class GameManager extends events.EventEmitter {
 		}, 16);
 	}
 
+	private _isGameOver = false;
 	private _lastStatusTime = new Date();
-	private _statusChange(): GameProtocols.GameStatus {
+	private _statusChange() {
+		if (this._isGameOver) {
+			return;
+		}
 		let now = new Date();
 		if (now.valueOf() - this._lastStatusTime.valueOf() < 16) {
 			return;
@@ -205,7 +211,19 @@ class GameManager extends events.EventEmitter {
 		}
 
 		this.emit('statusChange', status);
-		return status;
+	}
+
+	private _gameTimeChange() {
+		if (this._gameTime == 0) {
+			this._isGameOver = true;
+			this.emit('gameOver', this._gameTime);
+			return;
+		}
+		this._gameTime--;
+		this.emit('gameTimeChange', this._gameTime);
+		setTimeout(() => {
+			this._gameTimeChange();
+		}, 1000);
 	}
 }
 

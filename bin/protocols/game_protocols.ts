@@ -9,6 +9,7 @@ export enum Type {
 	moveShips,
 
 	gameStatus,
+	time,
 	gameOver
 }
 export interface BaseProtocol {
@@ -64,6 +65,11 @@ export interface GameStatus extends BaseProtocol {
 		distanceLeft: number
 	}[]
 }
+
+export interface Time extends BaseProtocol {
+	time: number
+}
+
 export interface GameOver extends BaseProtocol {
 
 }

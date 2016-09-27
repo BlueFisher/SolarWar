@@ -25,6 +25,8 @@ export default class UiStage extends events.EventEmitter {
 			return false;
 		});
 		$canvas.mousewheel(e => {
+			e.preventDefault();
+
 			let point = {
 				x: e.pageX - $canvas.offset().left,
 				y: e.pageY - $canvas.offset().top
@@ -64,6 +66,8 @@ export default class UiStage extends events.EventEmitter {
 		let isMouseDown = false;
 		let mouseWhich = 1;
 		$canvas.on('mousemove', e => {
+			e.preventDefault();
+
 			let point = {
 				x: e.pageX - $canvas.offset().left,
 				y: e.pageY - $canvas.offset().top
@@ -102,7 +106,7 @@ export default class UiStage extends events.EventEmitter {
 						ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
 						drawActivePlanet(mousedownPlanet);
 					}
-
+					
 					this._gameStage.transformation.horizontalMoving += point.x - mousedownPoint.x;
 					this._gameStage.transformation.verticalMoving += point.y - mousedownPoint.y;
 					this._gameStage.redrawStage();
@@ -122,6 +126,8 @@ export default class UiStage extends events.EventEmitter {
 			}
 		});
 		$canvas.on('mousedown', e => {
+			e.preventDefault();
+
 			mousedownPoint = {
 				x: e.pageX - $canvas.offset().left,
 				y: e.pageY - $canvas.offset().top
@@ -135,6 +141,8 @@ export default class UiStage extends events.EventEmitter {
 			}
 		});
 		$canvas.on('mouseup', e => {
+			e.preventDefault();
+
 			$canvas.css({ cursor: 'default' });
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {

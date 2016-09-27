@@ -2,15 +2,13 @@ import * as WebSocketServer from 'ws';
 import GameManager from './game_models/game_manager';
 import * as GameProtocols from './protocols/game_protocols';
 
-interface SocketPlayerIdMap {
-	socket: WebSocketServer,
-	playerId: number
-}
-
 class GameServer {
 	private _gameManager: GameManager;
 	/**用户Socket键值对 */
-	private _socketPlayerMap: SocketPlayerIdMap[] = [];
+	private _socketPlayerMap: {
+		socket: WebSocketServer,
+		playerId: number
+	}[] = [];
 
 	/**
 	 * 发送和接收WebSocket信息，提交和处理后台游戏逻辑
@@ -31,21 +29,43 @@ class GameServer {
 
 		this._gameManager = new GameManager();
 		this._gameManager.on('statusChange', (status: GameProtocols.GameStatus) => {
+			let json = JSON.stringify(status);
 			this._socketPlayerMap.forEach(p => {
 				if (p.socket != null) {
-					p.socket.send(JSON.stringify(status));
+					p.socket.send(json);
 				}
 			})
 		});
 		this._gameManager.on('gameOver', (playerId: number) => {
-			let protocol: GameProtocols.GameOver = {
-				type: GameProtocols.Type.gameOver
-			}
-			let socketPlayer = this._socketPlayerMap.filter(p => p.playerId == playerId)[0];
-			if (socketPlayer != undefined) {
-				socketPlayer.socket.send(JSON.stringify(protocol));
+			if (playerId) {
+				let protocol: GameProtocols.GameOver = {
+					type: GameProtocols.Type.gameOver
+				}
+				let socketPlayer = this._socketPlayerMap.filter(p => p.playerId == playerId)[0];
+				if (socketPlayer != undefined) {
+					socketPlayer.socket.send(JSON.stringify(protocol));
+				}
+			} else {
+				let protocol: GameProtocols.GameOver = {
+					type: GameProtocols.Type.gameOver
+				}
+				let json = JSON.stringify(protocol);
+				this._socketPlayerMap.forEach(p => {
+					p.socket.send(json);
+				});
 			}
 		});
+
+		this._gameManager.on('gameTimeChange', (time: number) => {
+			let protocol: GameProtocols.Time = {
+				type: GameProtocols.Type.time,
+				time: time
+			}
+			let json = JSON.stringify(protocol);
+			this._socketPlayerMap.forEach(p => {
+				p.socket.send(json);
+			});
+		})
 	}
 
 	private _onWebSocketConnection(socket: WebSocketServer) {

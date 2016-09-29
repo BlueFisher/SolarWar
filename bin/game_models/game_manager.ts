@@ -26,7 +26,7 @@ class GameManager extends events.EventEmitter {
 	constructor() {
 		super();
 		this._initializeMap();
-		this._gameTimeChange();
+		this._gameTimeElapse();
 	}
 
 	private _initializeMap() {
@@ -36,36 +36,72 @@ class GameManager extends events.EventEmitter {
 		};
 		map.planets.forEach(p => {
 			if (p.type == PlanetType.None) {
-				this._planets.push(new Planet(this._getNextPlanetId(), p.size, p.position, () => {
-					this._statusChange();
+				this._planets.push(new Planet(this._getNextPlanetId(), p.size, p.position, (planetProtocol) => {
+					this._planetChange(planetProtocol);
 				}));
 			} else if (p.type == PlanetType.Occupied) {
 				this._map.planets.push(p);
 			}
 		});
-
-		this._statusChange();
 	}
 
-	/**增加玩家 */
-	addPlayer(name: string): number {
+	private _getMovingShipsQueue(): GameProtocols.BaseMovingShips[] {
+		return this._movingShipsQueue.map(elem => {
+			return {
+				planetFromId: elem.planetFrom.id,
+				planetToId: elem.planetTo.id,
+				playerId: elem.player.id,
+				count: elem.count,
+				distance: elem.distance,
+				distanceLeft: elem.distanceLeft
+			}
+		})
+	}
+
+	/**获取当前完整的地图信息 */
+	getMap(): GameProtocols.Map {
+		let map: GameProtocols.Map = {
+			players: this._players.map(p => {
+				return p.getBasePlayerProtocol();
+			}),
+			planets: this._planets.map(p => {
+				return p.getBasePlanetProtocol();
+			}),
+			movingShipsQueue: this._getMovingShipsQueue()
+		}
+
+		return map;
+	}
+
+	/**增加玩家
+	 * @param name 玩家昵称
+	 */
+	addPlayer(name: string): [number, GameProtocols.Planet[]] {
 		let player = new Player(this._getNextPlayerId(), name, 0);
 		this._players.push(player);
 		let mapPlanet = this._map.planets.pop();
+
+		let newPlanets: Planet[] = [];
 		if (mapPlanet != undefined) {
-			this._planets.push(new Planet(this._getNextPlanetId(), mapPlanet.size, mapPlanet.position, () => {
-				this._statusChange();
+			newPlanets.push(new Planet(this._getNextPlanetId(), mapPlanet.size, mapPlanet.position, (planet) => {
+				this._planetChange(planet);
 			}, player));
 		} else {
-			this._planets.push(new Planet(this._getNextPlanetId(), 50, {
+			newPlanets.push(new Planet(this._getNextPlanetId(), 50, {
 				x: Math.random() * 1500,
 				y: Math.random() * 900
-			}, this._statusChange.bind(this), player));
+			}, (planet) => {
+				this._planetChange(planet);
+			}, player));
 		}
 
-		this._statusChange();
+		let newPlanetProtocols: GameProtocols.Planet[] = newPlanets.map(p => {
+			this._planets.push(p);
 
-		return player.id;
+			return new GameProtocols.Planet(p.getBasePlanetProtocol(), [player.getBasePlayerProtocol()]);
+		})
+
+		return [player.id, newPlanetProtocols];
 	}
 
 	private _currPlanetId = 0;
@@ -156,26 +192,17 @@ class GameManager extends events.EventEmitter {
 					this._movingShipsQueue.splice(parseInt(i), 1);
 				}
 			}
-			this._statusChange();
+
+			this._movingShipsQueueChange();
 			this._moveShips();
 		}, 16);
 	}
 
-	private _isGameOver = false;
-	private _lastStatusTime = new Date();
-	private _statusChange() {
-		if (this._isGameOver) {
-			return;
-		}
-		let now = new Date();
-		if (now.valueOf() - this._lastStatusTime.valueOf() < 16) {
-			return;
-		}
-		this._lastStatusTime = now;
-		this._players.forEach((player, index) => {
+	private _planetChange(planetProtocol: GameProtocols.Planet) {
+		planetProtocol.players.forEach((player) => {
 			if (player.currShipsCount == 0) {
 				let isGameOver = true;
-				this._planets.forEach((planet, index) => {
+				this._planets.forEach((planet) => {
 					if (planet.occupyingStatus != null) {
 						if (planet.occupiedPlayer == player || planet.occupyingStatus.player == player) {
 							isGameOver = false;
@@ -184,45 +211,35 @@ class GameManager extends events.EventEmitter {
 					}
 				});
 				if (isGameOver) {
+					let index: number;
+					this._players.forEach((p, i) => {
+						if (p == player) {
+							index = i;
+							return;
+						}
+					});
 					this._players.splice(index, 1);
 					this.emit('gameOver', player.id);
 				}
 			}
 		});
-
-		let status: GameProtocols.GameStatus = {
-			type: GameProtocols.Type.gameStatus,
-			players: this._players.map(p => {
-				return p.getPlayerProtocol();
-			}),
-			planets: this._planets.map(p => {
-				return p.getPlanetProtocol();
-			}),
-			movingShipsQueue: this._movingShipsQueue.map(elem => {
-				return {
-					planetFromId: elem.planetFrom.id,
-					planetToId: elem.planetTo.id,
-					playerId: elem.player.id,
-					count: elem.count,
-					distance: elem.distance,
-					distanceLeft: elem.distanceLeft
-				}
-			})
-		}
-
-		this.emit('statusChange', status);
+		this.emit('planetChange', planetProtocol);
 	}
 
-	private _gameTimeChange() {
+	private _movingShipsQueueChange() {
+		let protocol = new GameProtocols.MovingShipsQueue([], this._getMovingShipsQueue());
+		this.emit('movingShipsQueueChange', protocol);
+	}
+
+	private _gameTimeElapse() {
 		if (this._gameTime == 0) {
-			this._isGameOver = true;
-			this.emit('gameOver', this._gameTime);
+			this.emit('gameOver');
 			return;
 		}
 		this._gameTime--;
-		this.emit('gameTimeChange', this._gameTime);
+		this.emit('gameTimeChange', new GameProtocols.Time(this._gameTime));
 		setTimeout(() => {
-			this._gameTimeChange();
+			this._gameTimeElapse();
 		}, 1000);
 	}
 }

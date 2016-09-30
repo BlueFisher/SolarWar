@@ -109,6 +109,66 @@ export default class GameStage {
 		this.redrawStage();
 	}
 
+	private _occupyingTimers: {
+		planetId: number,
+		timer: NodeJS.Timer
+	}[] = [];
+	private _setOccupyingInterval(planetId: number, timer: NodeJS.Timer) {
+		let occupyingTimer = this._occupyingTimers.filter(p => p.planetId == planetId)[0];
+		if (occupyingTimer == undefined) {
+			this._occupyingTimers.push({
+				planetId: planetId,
+				timer: timer
+			});
+		} else {
+			occupyingTimer.timer = timer;
+		}
+	}
+	private _clearOccupyingInterval(planetId: number) {
+		let occupyingTimer = this._occupyingTimers.filter(p => p.planetId == planetId)[0];
+		if (occupyingTimer != undefined) {
+			clearInterval(occupyingTimer.timer);
+		}
+	}
+	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
+		this.planetChange(protocol);
+		this._clearOccupyingInterval(protocol.planet.id);
+
+		let timer = setInterval(() => {
+			let planet = protocol.planet;
+			if (planet.allShips.length != 1) {
+				this._clearOccupyingInterval(protocol.planet.id);
+				return;
+			}
+
+			let occupyingPlayerId = planet.allShips[0].playerId;
+
+			if (planet.occupyingStatus == null) {
+				planet.occupyingStatus = {
+					playerId: occupyingPlayerId,
+					percent: 0
+				};
+			}
+			if (occupyingPlayerId == planet.occupyingStatus.playerId) {
+				if (++planet.occupyingStatus.percent == 100) {
+					this._clearOccupyingInterval(protocol.planet.id);
+				}
+			} else {
+				if (--planet.occupyingStatus.percent == 0) {
+					if (planet.occupiedPlayerId == planet.occupyingStatus.playerId) {
+						planet.occupiedPlayerId = null;
+					}
+
+					planet.occupyingStatus.playerId = occupyingPlayerId;
+				}
+			}
+
+			this.redrawStage();
+		}, protocol.interval);
+
+		this._setOccupyingInterval(protocol.planet.id, timer);
+	}
+
 	private _lastMap: GameProtocols.Map;
 	redrawStage() {
 		if (this._lastMap) {

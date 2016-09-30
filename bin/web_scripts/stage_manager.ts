@@ -46,6 +46,8 @@ export default class StageManager {
 			case GameProtocols.Type.planet:
 				this._gameStage.planetChange(<GameProtocols.Planet>protocol);
 				break;
+			case GameProtocols.Type.startOccupyingPlanet:
+				this._gameStage.startOccupyingPlanet(<GameProtocols.StartOccupyingPlanet>protocol);
 		}
 	}
 

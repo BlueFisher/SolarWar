@@ -8,6 +8,7 @@ export enum Type {
 	initializeMap,
 	requestMoveShips,
 	planet,
+	startOccupyingPlanet,
 	movingShipsQueue,
 	time,
 	gameOver
@@ -66,6 +67,14 @@ export class Planet extends BaseProtocol {
 	}
 	planet: BasePlanet;
 	players: BasePlayer[];
+}
+export class StartOccupyingPlanet extends Planet {
+	constructor(planet: BasePlanet, interval: number) {
+		super(planet, []);
+		this.type = Type.startOccupyingPlanet;
+		this.interval = interval;
+	}
+	interval: number;
 }
 
 export class MovingShipsQueue extends BaseProtocol {

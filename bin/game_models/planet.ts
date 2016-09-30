@@ -77,8 +77,12 @@ class Planet {
 			}
 		}
 	}
-	planetChange(players: Player[]) {
+	private _changePlanet(players: Player[]) {
 		let protocol = new GameProtocols.Planet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()));
+		this._planetChange(protocol);
+	}
+	private _startOccupyingPlanet(interval: number) {
+		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), interval);
 		this._planetChange(protocol);
 	}
 
@@ -98,7 +102,7 @@ class Planet {
 			existedShips.count += count;
 		}
 
-		this.planetChange([]);
+		this._changePlanet([]);
 
 		this._startOccupying();
 		this._startCombat();
@@ -125,39 +129,45 @@ class Planet {
 			}
 		}
 
-		this.planetChange([]);
+		this._changePlanet([]);
 
 		return count;
 	}
 
+	// Occupying
 	private _isOccupying = false;
+	private _canOccupy(): boolean {
+		if (this.allShips.length != 1) {
+			return false;
+		}
+		if (this.occupiedPlayer != null &&
+			this.allShips[0].player == this.occupiedPlayer &&
+			this.occupiedPlayer == this.occupyingStatus.player &&
+			this.occupyingStatus.percent == 100) {
+			return false;
+		}
+		return true;
+	}
+	private _getOccupyingInterval() {
+		return (3 * Math.pow(this.size / this.allShips[0].count, 0.25) + 2) * 1000 / 100;
+	}
 	private _startOccupying() {
+		if (this._canOccupy()) {
+			this._startOccupyingPlanet(this._getOccupyingInterval());
+		}
 		if (!this._isOccupying) {
 			this._occupy();
 		}
 	}
 	private _occupy() {
-		let canOccupy = (): boolean => {
-			if (this.allShips.length != 1) {
-				return this._isOccupying = false;
-			}
-			if (this.occupiedPlayer != null &&
-				this.allShips[0].player == this.occupiedPlayer &&
-				this.occupiedPlayer == this.occupyingStatus.player &&
-				this.occupyingStatus.percent == 100) {
-				return this._isOccupying = false;
-			}
-			return this._isOccupying = true;
-		}
-
-		if (!canOccupy()) {
+		if (!(this._isOccupying = this._canOccupy())) {
 			return;
 		}
 
-		let interval = (3 * Math.pow(this.size / this.allShips[0].count, 0.25) + 2) * 1000 / 100;
+		let interval = this._getOccupyingInterval();
 
 		setTimeout(() => {
-			if (!canOccupy()) {
+			if (!(this._isOccupying = this._canOccupy())) {
 				return;
 			}
 
@@ -190,31 +200,30 @@ class Planet {
 				}
 			}
 
-			this.planetChange(changedPlayer == null ? [] : [changedPlayer]);
 			this._occupy();
 		}, interval);
 	}
 
+	// Combatting
 	private _isCombatting = false;
+	private _canCombat = (): boolean => {
+		if (this.allShips.length < 2) {
+			this._isCombatting = false;
+			this._startOccupying();
+			return this._isCombatting = false;
+		}
+		return this._isCombatting = true;
+	}
 	private _startCombat() {
 		if (!this._isCombatting)
 			this._combat();
 	}
 	private _combat() {
-		let canCombat = (): boolean => {
-			if (this.allShips.length < 2) {
-				this._isCombatting = false;
-				this._startOccupying();
-				return this._isCombatting = false;
-			}
-			return this._isCombatting = true;
-		}
-
-		if (!canCombat())
+		if (!this._canCombat())
 			return;
 
 		setTimeout(() => {
-			if (!canCombat())
+			if (!this._canCombat())
 				return;
 
 			let changedPlayers: Player[] = this.allShips.map(p => p.player);
@@ -227,12 +236,12 @@ class Planet {
 				}
 			});
 
-			this.planetChange(changedPlayers);
+			this._changePlanet(changedPlayers);
 			this._combat();
 		}, 50);
 	}
 
-
+	// Building
 	private _startbuildingShips() {
 		let interval = (-0.005 * this.size + 1) * 1000;
 		setInterval(() => {
@@ -258,7 +267,7 @@ class Planet {
 			this.occupiedPlayer.currShipsCount++;
 			occupiedShipsOnThePlanet.count++;
 
-			this.planetChange([this.occupiedPlayer]);
+			this._changePlanet([this.occupiedPlayer]);
 		}
 	}
 }

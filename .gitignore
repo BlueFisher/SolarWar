@@ -1,6 +1,8 @@
 *.js
 !/public/scripts/lib/*.js
 *.js.map
+typings
+!/typings/index-custom.d.ts
 
 # Logs
 logs

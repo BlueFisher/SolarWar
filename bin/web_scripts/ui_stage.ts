@@ -52,7 +52,7 @@ export default class UiStage extends events.EventEmitter {
 		});
 
 		/**绘制星球激活特效 */
-		let drawActivePlanet = (planet: GameProtocols.Planet) => {
+		let drawActivePlanet = (planet: GameProtocols.BasePlanet) => {
 			ctx.save();
 			ctx.setTransform(this._gameStage.transformation.scaling, 0, 0, this._gameStage.transformation.scaling, this._gameStage.transformation.horizontalMoving, this._gameStage.transformation.verticalMoving);
 			ctx.beginPath();
@@ -61,8 +61,8 @@ export default class UiStage extends events.EventEmitter {
 			ctx.restore();
 		}
 		let mousedownPoint: GameProtocols.Point;
-		let mousedownPlanet: GameProtocols.Planet;
-		let mouseupPlanet: GameProtocols.Planet;
+		let mousedownPlanet: GameProtocols.BasePlanet;
+		let mouseupPlanet: GameProtocols.BasePlanet;
 		let isMouseDown = false;
 		let mouseWhich = 1;
 		$canvas.on('mousemove', e => {
@@ -106,7 +106,7 @@ export default class UiStage extends events.EventEmitter {
 						ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
 						drawActivePlanet(mousedownPlanet);
 					}
-					
+
 					this._gameStage.transformation.horizontalMoving += point.x - mousedownPoint.x;
 					this._gameStage.transformation.verticalMoving += point.y - mousedownPoint.y;
 					this._gameStage.redrawStage();
@@ -147,12 +147,12 @@ export default class UiStage extends events.EventEmitter {
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {
 				let protocol: GameProtocols.RequestMovingShips = {
-					type: GameProtocols.Type.moveShips,
+					type: GameProtocols.Type.requestMoveShips,
 					planetFromId: mousedownPlanet.id,
 					planetToId: mouseupPlanet.id,
 					countRatio: this._$countRatio.val() / 100,
 				}
-				this.emit('protocolSend', protocol);
+				this.emit('sendProtocol', protocol);
 			}
 
 			isMouseDown = false;
@@ -161,7 +161,7 @@ export default class UiStage extends events.EventEmitter {
 		});
 	}
 
-	private _getPointedPlanet(x: number, y: number): GameProtocols.Planet {
+	private _getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
 		x = (x - this._gameStage.transformation.horizontalMoving) / this._gameStage.transformation.scaling;
 		y = (y - this._gameStage.transformation.verticalMoving) / this._gameStage.transformation.scaling;
 		return this._gameStage.getPointedPlanet(x, y);

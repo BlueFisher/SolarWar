@@ -10,11 +10,12 @@ export default class GameStage {
 		verticalMoving: 0
 	}
 
+	/**游戏舞台 */
 	constructor(gameStageCanvas: HTMLCanvasElement) {
 		this._gameStageCanvas = gameStageCanvas;
 	}
 
-	private _getMapMainRange(planets: GameProtocols.Planet[]): [GameProtocols.Point, GameProtocols.Point] {
+	private _getMapMainRange(planets: GameProtocols.BasePlanet[]): [GameProtocols.Point, GameProtocols.Point] {
 		let range = 200;
 		let minPosition: GameProtocols.Point = { x: Infinity, y: Infinity };
 		let maxPosition: GameProtocols.Point = { x: -Infinity, y: -Infinity };
@@ -54,10 +55,9 @@ export default class GameStage {
 		};
 	}
 
-
-	getPointedPlanet(x: number, y: number): GameProtocols.Planet {
-		if (this._lastGameStatusProtocol != undefined) {
-			for (let planet of this._lastGameStatusProtocol.planets) {
+	getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
+		if (this._lastMap != undefined) {
+			for (let planet of this._lastMap.planets) {
 				if (Math.sqrt(Math.pow(x - planet.position.x, 2) + Math.pow(y - planet.position.y, 2)) < planet.size / 2 + 20) {
 					return planet;
 				}
@@ -65,22 +65,58 @@ export default class GameStage {
 		}
 		return null;
 	}
-	refreshCurrPlayerId(id: number) {
-		this._currPlayerId = id;
-		let [minPosition, maxPosition] = this._getMapMainRange(this._lastGameStatusProtocol.planets);
+	initializeMap(protocol: GameProtocols.InitializeMap) {
+		this._currPlayerId = protocol.playerId;
+		let map: GameProtocols.Map = protocol.map;
+
+		let [minPosition, maxPosition] = this._getMapMainRange(map.planets);
 		this._setStageTransformation(minPosition, maxPosition);
+
+		this.drawStage(map);
+	}
+	movingShipsQueueChange(protocol: GameProtocols.MovingShipsQueue) {
+		this._lastMap.movingShipsQueue = protocol.queue;
+
+		this.redrawStage();
+	}
+	planetChange(protocol: GameProtocols.Planet) {
+		let isExisted = false;
+		this._lastMap.planets.forEach((mapPlanet, mapIndex) => {
+			if (mapPlanet.id == protocol.planet.id) {
+				this._lastMap.planets[mapIndex] = protocol.planet;
+				isExisted = true;
+				return;
+			}
+		});
+		if (!isExisted) {
+			this._lastMap.planets.push(protocol.planet);
+		}
+
+		protocol.players.forEach((player, index) => {
+			isExisted = false;
+			this._lastMap.players.forEach((mapPlayer, mapIndex) => {
+				if (mapPlayer.id == player.id) {
+					this._lastMap.players[mapIndex] = player;
+					isExisted = true;
+					return;
+				}
+			});
+			if (!isExisted) {
+				this._lastMap.players.push(player);
+			}
+		});
+
 		this.redrawStage();
 	}
 
-	private _lastGameStatusProtocol: GameProtocols.GameStatus;
+	private _lastMap: GameProtocols.Map;
 	redrawStage() {
-		if (this._lastGameStatusProtocol != undefined) {
-			this.stageChange(this._lastGameStatusProtocol);
+		if (this._lastMap) {
+			this.drawStage(this._lastMap);
 		}
 	}
-
-	stageChange(status: GameProtocols.GameStatus) {
-		this._lastGameStatusProtocol = status;
+	drawStage(map: GameProtocols.Map) {
+		this._lastMap = map;
 		let ctx = this._gameStageCanvas.getContext('2d');
 		ctx.clearRect(0, 0, this._gameStageCanvas.width, this._gameStageCanvas.height);
 
@@ -91,25 +127,25 @@ export default class GameStage {
 
 		ctx.font = '14px Arial,Microsoft YaHei';
 
-		status.movingShipsQueue.forEach(movingShips => {
-			let planetFrom = status.planets.filter(p => p.id == movingShips.planetFromId)[0];
-			let planetTo = status.planets.filter(p => p.id == movingShips.planetToId)[0];
+		map.movingShipsQueue.forEach(movingShips => {
+			let planetFrom = map.planets.filter(p => p.id == movingShips.planetFromId)[0];
+			let planetTo = map.planets.filter(p => p.id == movingShips.planetToId)[0];
 			let x = planetTo.position.x - movingShips.distanceLeft * (planetTo.position.x - planetFrom.position.x) / movingShips.distance;
 			let y = planetTo.position.y - movingShips.distanceLeft * (planetTo.position.y - planetFrom.position.y) / movingShips.distance;
-			let color = status.players.filter(player => player.id == movingShips.playerId)[0].color;
+			let color = map.players.filter(player => player.id == movingShips.playerId)[0].color;
 
 			ctx.fillStyle = color;
 			ctx.fillText(movingShips.count.toString(), x, y);
 		});
 		ctx.restore();
 
-		status.planets.forEach(planet => {
+		map.planets.forEach(planet => {
 			// 绘制星球
 			ctx.save();
 			ctx.beginPath();
 			ctx.arc(planet.position.x, planet.position.y, planet.size / 2, 0, Math.PI * 2);
 			if (planet.occupiedPlayerId != null) {
-				let color = status.players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
+				let color = map.players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
 				ctx.fillStyle = color;
 			} else {
 				ctx.fillStyle = '#ddd';
@@ -129,7 +165,7 @@ export default class GameStage {
 			ctx.font = '14px Arial,Microsoft YaHei';
 			if (planet.allShips.length == 1) {
 				ctx.textAlign = 'center';
-				let player = status.players.filter(player => player.id == planet.allShips[0].playerId)[0];
+				let player = map.players.filter(player => player.id == planet.allShips[0].playerId)[0];
 				ctx.fillStyle = player.color;
 				ctx.fillText(`${player.name} ${planet.allShips[0].count}`, planet.position.x, planet.position.y + planet.size / 2 + 15);
 			} else if (planet.allShips.length > 1) {
@@ -142,7 +178,7 @@ export default class GameStage {
 					let nextAngle = currAngle + Math.PI * 2 * ship.count / sum;
 					ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 5, currAngle, nextAngle);
 
-					let player = status.players.filter(player => player.id == ship.playerId)[0];
+					let player = map.players.filter(player => player.id == ship.playerId)[0];
 					ctx.strokeStyle = ctx.fillStyle = player.color;
 					let x = planet.position.x + Math.cos((currAngle + nextAngle) / 2) * (planet.size + 10);
 					let y = planet.position.y + Math.sin((currAngle + nextAngle) / 2) * (planet.size + 10);
@@ -154,11 +190,12 @@ export default class GameStage {
 				});
 			}
 			ctx.restore();
+
 			//绘制星球占领中状态
 			if ((planet.allShips.length == 1 || planet.allShips.length == 0)
 				&& planet.occupyingStatus != null && planet.occupyingStatus.percent != 100) {
 				ctx.save();
-				let player = status.players.filter(player => player.id == planet.occupyingStatus.playerId)[0];
+				let player = map.players.filter(player => player.id == planet.occupyingStatus.playerId)[0];
 				ctx.beginPath();
 				let angle = Math.PI * 2 * planet.occupyingStatus.percent / 100;
 				ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 5, 0, angle);

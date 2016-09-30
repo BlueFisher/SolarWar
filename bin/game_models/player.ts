@@ -26,7 +26,7 @@ class Player {
 		return color;
 	}
 
-	getPlayerProtocol(): GameProtocols.Player {
+	getBasePlayerProtocol(): GameProtocols.BasePlayer {
 		return {
 			id: this.id,
 			name: this.name,

@@ -1,27 +1,27 @@
-import player from './player';
+import Player from './player';
 import * as GameProtocols from '../protocols/game_protocols'
 
 
 interface ShipsOnThePlanet {
-	player: player,
+	player: Player,
 	count: number
 }
 interface occupyingStatus {
 	// 占领比率
 	percent: number,
 	// 该占领比率属于的玩家
-	player: player
+	player: Player
 }
 
 class Planet {
-	private _onStatusChange: () => void;
+	private _planetChange: (planet: GameProtocols.Planet) => void;
 
 	id: number;
 	size: number;
 	position: GameProtocols.Point;
 
 	allShips: ShipsOnThePlanet[] = [];
-	occupiedPlayer: player;
+	occupiedPlayer: Player;
 	occupyingStatus: occupyingStatus;
 
 	/**
@@ -34,12 +34,12 @@ class Planet {
 	 * @param occupiedPlayer 星球初始化时就占领的玩家
 	 */
 	constructor(id: number, size: number, position: GameProtocols.Point,
-		_onStatusChange: () => void,
-		occupiedPlayer: player = null) {
+		planetChange: (planet: GameProtocols.Planet) => void,
+		occupiedPlayer: Player = null) {
 		this.id = id;
 		this.size = size;
 		this.position = position;
-		this._onStatusChange = _onStatusChange;
+		this._planetChange = planetChange;
 
 		this._startbuildingShips();
 
@@ -59,7 +59,7 @@ class Planet {
 		}
 	}
 
-	getPlanetProtocol(): GameProtocols.Planet {
+	getBasePlanetProtocol(): GameProtocols.BasePlanet {
 		return {
 			id: this.id,
 			size: this.size,
@@ -77,9 +77,13 @@ class Planet {
 			}
 		}
 	}
+	planetChange(players: Player[]) {
+		let protocol = new GameProtocols.Planet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()));
+		this._planetChange(protocol);
+	}
 
 	/**飞船到达 */
-	shipsArrived(player: player, count: number) {
+	shipsArrived(player: Player, count: number) {
 		if (count == 0) {
 			return;
 		}
@@ -94,11 +98,13 @@ class Planet {
 			existedShips.count += count;
 		}
 
+		this.planetChange([]);
+
 		this._startOccupying();
 		this._startCombat();
 	}
 	/**飞船离开 */
-	shipsLeft(player: player, countRatio: number): number {
+	shipsLeft(player: Player, countRatio: number): number {
 		let existedShipsIndex = -1;
 		for (let i in this.allShips) {
 			if (this.allShips[i].player == player) {
@@ -118,6 +124,8 @@ class Planet {
 				this.allShips.splice(existedShipsIndex, 1);
 			}
 		}
+
+		this.planetChange([]);
 
 		return count;
 	}
@@ -154,6 +162,7 @@ class Planet {
 			}
 
 			let occupyingPlayer = this.allShips[0].player;
+			let changedPlayer: Player = null;
 
 			if (this.occupyingStatus == null) {
 				this.occupyingStatus = {
@@ -166,12 +175,14 @@ class Planet {
 					if (this.occupiedPlayer != occupyingPlayer) {
 						this.occupiedPlayer = occupyingPlayer;
 						this.occupiedPlayer.maxShipsCount += this.size;
+						changedPlayer = this.occupiedPlayer;
 					}
 				}
 			} else {
 				if (--this.occupyingStatus.percent == 0) {
 					if (this.occupiedPlayer == this.occupyingStatus.player) {
 						this.occupiedPlayer.maxShipsCount -= this.size;
+						changedPlayer = this.occupiedPlayer;
 						this.occupiedPlayer = null;
 					}
 
@@ -179,7 +190,7 @@ class Planet {
 				}
 			}
 
-			this._onStatusChange();
+			this.planetChange(changedPlayer == null ? [] : [changedPlayer]);
 			this._occupy();
 		}, interval);
 	}
@@ -206,6 +217,8 @@ class Planet {
 			if (!canCombat())
 				return;
 
+			let changedPlayers: Player[] = this.allShips.map(p => p.player);
+
 			this.allShips.forEach((elem, index) => {
 				elem.player.currShipsCount--;
 				elem.count--;
@@ -214,7 +227,7 @@ class Planet {
 				}
 			});
 
-			this._onStatusChange();
+			this.planetChange(changedPlayers);
 			this._combat();
 		}, 50);
 	}
@@ -245,7 +258,7 @@ class Planet {
 			this.occupiedPlayer.currShipsCount++;
 			occupiedShipsOnThePlanet.count++;
 
-			this._onStatusChange();
+			this.planetChange([this.occupiedPlayer]);
 		}
 	}
 }

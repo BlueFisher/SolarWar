@@ -135,6 +135,7 @@ class Planet {
 
 		this._changePlanet([]);
 
+		this._startOccupying();
 		return count;
 	}
 

@@ -14,7 +14,7 @@ interface occupyingStatus {
 }
 
 class Planet {
-	private _planetChange: (planet: GameProtocols.Planet) => void;
+	private _planetChanged: (planet: GameProtocols.Planet) => void;
 
 	id: number;
 	size: number;
@@ -34,12 +34,12 @@ class Planet {
 	 * @param occupiedPlayer 星球初始化时就占领的玩家
 	 */
 	constructor(id: number, size: number, position: GameProtocols.Point,
-		planetChange: (planet: GameProtocols.Planet) => void,
+		planetChanged: (planet: GameProtocols.Planet) => void,
 		occupiedPlayer: Player = null) {
 		this.id = id;
 		this.size = size;
 		this.position = position;
-		this._planetChange = planetChange;
+		this._planetChanged = planetChanged;
 
 		this._startbuildingShips();
 
@@ -79,15 +79,15 @@ class Planet {
 	}
 	private _changePlanet(players: Player[]) {
 		let protocol = new GameProtocols.Planet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()));
-		this._planetChange(protocol);
+		this._planetChanged(protocol);
 	}
 	private _startOccupyingPlanet(interval: number) {
 		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), interval);
-		this._planetChange(protocol);
+		this._planetChanged(protocol);
 	}
 	private _stopOccupyingPlanet() {
 		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), -1);
-		this._planetChange(protocol);
+		this._planetChanged(protocol);
 	}
 
 	/**飞船到达 */

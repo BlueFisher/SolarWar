@@ -41,10 +41,10 @@ export default class StageManager {
 				break;
 
 			case GameProtocols.Type.movingShipsQueue:
-				this._gameStage.movingShipsQueueChange(<GameProtocols.MovingShipsQueue>protocol);
+				this._gameStage.changeMovingShipsQueue(<GameProtocols.MovingShipsQueue>protocol);
 				break;
 			case GameProtocols.Type.planet:
-				this._gameStage.planetChange(<GameProtocols.Planet>protocol);
+				this._gameStage.changePlanet(<GameProtocols.Planet>protocol);
 				break;
 			case GameProtocols.Type.startOccupyingPlanet:
 				this._gameStage.startOccupyingPlanet(<GameProtocols.StartOccupyingPlanet>protocol);

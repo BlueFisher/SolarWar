@@ -28,7 +28,7 @@ class GameServer {
 		});
 
 		this._gameManager = new GameManager();
-		this._gameManager.on('planetChange', (planetProtocol: GameProtocols.Planet) => {
+		this._gameManager.on(GameManager.events.planetChanged, (planetProtocol: GameProtocols.Planet) => {
 			let json = JSON.stringify(planetProtocol);
 			this._socketPlayerMap.forEach(p => {
 				if (p.socket != null) {
@@ -36,7 +36,7 @@ class GameServer {
 				}
 			});
 		});
-		this._gameManager.on('movingShipsQueueChange', (movingShipsQueueProtocol: GameProtocols.MovingShipsQueue) => {
+		this._gameManager.on(GameManager.events.movingShipsQueueChanged, (movingShipsQueueProtocol: GameProtocols.MovingShipsQueue) => {
 			let json = JSON.stringify(movingShipsQueueProtocol);
 			this._socketPlayerMap.forEach(p => {
 				if (p.socket != null) {
@@ -44,7 +44,7 @@ class GameServer {
 				}
 			});
 		});
-		this._gameManager.on('gameOver', (playerId: number) => {
+		this._gameManager.on(GameManager.events.gameOver, (playerId: number) => {
 			let json = JSON.stringify(new GameProtocols.GameOver());
 			if (playerId) {
 				let socketPlayer = this._socketPlayerMap.filter(p => p.playerId == playerId)[0];
@@ -58,7 +58,7 @@ class GameServer {
 			}
 		});
 
-		this._gameManager.on('gameTimeChange', (gameTimeProtocol: GameProtocols.Time) => {
+		this._gameManager.on(GameManager.events.gameTimeChanged, (gameTimeProtocol: GameProtocols.Time) => {
 			let json = JSON.stringify(gameTimeProtocol);
 			this._socketPlayerMap.forEach(p => {
 				p.socket.send(json);

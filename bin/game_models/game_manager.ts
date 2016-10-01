@@ -13,7 +13,14 @@ interface _movingShipsQueue {
 	distanceLeft: number
 }
 
-class GameManager extends events.EventEmitter {
+export default class GameManager extends events.EventEmitter {
+	static events = {
+		planetChanged: 'planetChanged',
+		gameTimeChanged: 'gameTimeChanged',
+		movingShipsQueueChanged: 'movingShipsQueueChanged',
+		gameOver: 'gameOver'
+	}
+
 	private _gameTime = 60 * 16;
 	private _players: Player[] = [];
 	private _planets: Planet[] = [];
@@ -37,7 +44,7 @@ class GameManager extends events.EventEmitter {
 		map.planets.forEach(p => {
 			if (p.type == PlanetType.None) {
 				this._planets.push(new Planet(this._getNextPlanetId(), p.size, p.position, (planetProtocol) => {
-					this._planetChange(planetProtocol);
+					this._planetChanged(planetProtocol);
 				}));
 			} else if (p.type == PlanetType.Occupied) {
 				this._map.planets.push(p);
@@ -55,7 +62,7 @@ class GameManager extends events.EventEmitter {
 				distance: elem.distance,
 				distanceLeft: elem.distanceLeft
 			}
-		})
+		});
 	}
 
 	/**获取当前完整的地图信息 */
@@ -84,14 +91,14 @@ class GameManager extends events.EventEmitter {
 		let newPlanets: Planet[] = [];
 		if (mapPlanet != undefined) {
 			newPlanets.push(new Planet(this._getNextPlanetId(), mapPlanet.size, mapPlanet.position, (planet) => {
-				this._planetChange(planet);
+				this._planetChanged(planet);
 			}, player));
 		} else {
 			newPlanets.push(new Planet(this._getNextPlanetId(), 50, {
 				x: Math.random() * 1500,
 				y: Math.random() * 900
 			}, (planet) => {
-				this._planetChange(planet);
+				this._planetChanged(planet);
 			}, player));
 		}
 
@@ -198,7 +205,7 @@ class GameManager extends events.EventEmitter {
 		}, 16);
 	}
 
-	private _planetChange(planetProtocol: GameProtocols.Planet) {
+	private _planetChanged(planetProtocol: GameProtocols.Planet) {
 		planetProtocol.players.forEach((player) => {
 			if (player.currShipsCount == 0) {
 				let isGameOver = true;
@@ -219,29 +226,27 @@ class GameManager extends events.EventEmitter {
 						}
 					});
 					this._players.splice(index, 1);
-					this.emit('gameOver', player.id);
+					this.emit(GameManager.events.gameOver, player.id);
 				}
 			}
 		});
-		this.emit('planetChange', planetProtocol);
+		this.emit(GameManager.events.planetChanged, planetProtocol);
 	}
 
 	private _movingShipsQueueChange() {
 		let protocol = new GameProtocols.MovingShipsQueue([], this._getMovingShipsQueue());
-		this.emit('movingShipsQueueChange', protocol);
+		this.emit(GameManager.events.movingShipsQueueChanged, protocol);
 	}
 
 	private _gameTimeElapse() {
 		if (this._gameTime == 0) {
-			this.emit('gameOver');
+			this.emit(GameManager.events.gameOver);
 			return;
 		}
 		this._gameTime--;
-		this.emit('gameTimeChange', new GameProtocols.Time(this._gameTime));
+		this.emit(GameManager.events.gameTimeChanged, new GameProtocols.Time(this._gameTime));
 		setTimeout(() => {
 			this._gameTimeElapse();
 		}, 1000);
 	}
 }
-
-export default GameManager;

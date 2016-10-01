@@ -1,12 +1,22 @@
 import * as GameProtocols from '../protocols/game_protocols';
 
 export default class PlanetsManager {
+	private _map: GameProtocols.Map;
 	private _redrawStage: () => void;
 	constructor(redrawStage: () => void) {
 		this._redrawStage = redrawStage;
 	}
 
-	private _map: GameProtocols.Map;
+	getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
+		if (this._map != undefined) {
+			for (let planet of this._map.planets) {
+				if (Math.sqrt(Math.pow(x - planet.position.x, 2) + Math.pow(y - planet.position.y, 2)) < planet.size / 2 + 20) {
+					return planet;
+				}
+			}
+		}
+		return null;
+	}
 	drawPlanets(ctx: CanvasRenderingContext2D, map: GameProtocols.Map) {
 		this._map = map;
 		map.planets.forEach(planet => {
@@ -54,7 +64,7 @@ export default class PlanetsManager {
 			}
 			ctx.restore();
 
-			//绘制星球占领中状态
+			// 绘制星球占领中状态
 			if ((planet.allShips.length == 1 || planet.allShips.length == 0)
 				&& planet.occupyingStatus != null && planet.occupyingStatus.percent != 100) {
 				ctx.save();

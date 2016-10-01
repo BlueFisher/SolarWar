@@ -62,15 +62,9 @@ export default class GameStage {
 	}
 
 	getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
-		if (this._map != undefined) {
-			for (let planet of this._map.planets) {
-				if (Math.sqrt(Math.pow(x - planet.position.x, 2) + Math.pow(y - planet.position.y, 2)) < planet.size / 2 + 20) {
-					return planet;
-				}
-			}
-		}
-		return null;
+		return this._planetsManager.getPointedPlanet(x, y);
 	}
+
 	initializeMap(protocol: GameProtocols.InitializeMap) {
 		this._currPlayerId = protocol.playerId;
 		let map: GameProtocols.Map = protocol.map;
@@ -80,13 +74,14 @@ export default class GameStage {
 
 		this.drawStage(map);
 	}
-	movingShipsQueueChange(protocol: GameProtocols.MovingShipsQueue) {
+	
+	changeMovingShipsQueue(protocol: GameProtocols.MovingShipsQueue) {
 		this._map.movingShipsQueue = protocol.queue;
 
 		this.redrawStage();
 	}
 
-	planetChange(protocol: GameProtocols.Planet) {
+	changePlanet(protocol: GameProtocols.Planet) {
 		this._planetsManager.changePlanet(protocol);
 	}
 

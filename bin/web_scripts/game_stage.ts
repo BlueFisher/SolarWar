@@ -133,6 +133,9 @@ export default class GameStage {
 	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
 		this.planetChange(protocol);
 		this._clearOccupyingInterval(protocol.planet.id);
+		if (protocol.interval == -1) {
+			return;
+		}
 
 		let timer = setInterval(() => {
 			let planet = protocol.planet;
@@ -151,6 +154,8 @@ export default class GameStage {
 			}
 			if (occupyingPlayerId == planet.occupyingStatus.playerId) {
 				if (++planet.occupyingStatus.percent == 100) {
+					planet.occupiedPlayerId = occupyingPlayerId;
+
 					this._clearOccupyingInterval(protocol.planet.id);
 				}
 			} else {
@@ -158,8 +163,9 @@ export default class GameStage {
 					if (planet.occupiedPlayerId == planet.occupyingStatus.playerId) {
 						planet.occupiedPlayerId = null;
 					}
-
 					planet.occupyingStatus.playerId = occupyingPlayerId;
+
+					this._clearOccupyingInterval(protocol.planet.id);
 				}
 			}
 

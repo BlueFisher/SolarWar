@@ -51,7 +51,7 @@ export default class UiStage extends events.EventEmitter {
 			this._gameStage.redrawStage();
 		});
 
-		/**绘制星球激活特效 */
+		// 绘制星球激活特效
 		let drawActivePlanet = (planet: GameProtocols.BasePlanet) => {
 			ctx.save();
 			ctx.setTransform(this._gameStage.transformation.scaling, 0, 0, this._gameStage.transformation.scaling, this._gameStage.transformation.horizontalMoving, this._gameStage.transformation.verticalMoving);

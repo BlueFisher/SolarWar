@@ -34,8 +34,8 @@ class Planet {
 	 * @param occupiedPlayer 星球初始化时就占领的玩家
 	 */
 	constructor(id: number, size: number, position: GameProtocols.Point,
-	            planetChanged: (planet: GameProtocols.Planet) => void,
-	            occupiedPlayer: Player = null) {
+		planetChanged: (planet: GameProtocols.Planet) => void,
+		occupiedPlayer: Player = null) {
 		this.id = id;
 		this.size = size;
 		this.position = position;
@@ -43,7 +43,7 @@ class Planet {
 
 		this._startbuildingShips();
 
-		if(occupiedPlayer != null) {
+		if (occupiedPlayer != null) {
 			this.allShips.push({
 				player: occupiedPlayer,
 				count: this.size
@@ -95,12 +95,12 @@ class Planet {
 
 	/**飞船到达 */
 	shipsArrived(player: Player, count: number) {
-		if(count == 0) {
+		if (count == 0) {
 			return;
 		}
 
 		let existedShips = this.allShips.filter(p => p.player == player)[0];
-		if(existedShips == undefined) {
+		if (existedShips == undefined) {
 			this.allShips.push({
 				player: player,
 				count: count
@@ -118,21 +118,21 @@ class Planet {
 	/**飞船离开 */
 	shipsLeft(player: Player, countRatio: number): number {
 		let existedShipsIndex = -1;
-		for(let i in this.allShips) {
-			if(this.allShips[i].player == player) {
+		for (let i in this.allShips) {
+			if (this.allShips[i].player == player) {
 				existedShipsIndex = parseInt(i);
 				break;
 			}
 		}
 
-		if(existedShipsIndex == -1) {
+		if (existedShipsIndex == -1) {
 			return -1;
 		}
 
 		let count = parseInt((this.allShips[existedShipsIndex].count * countRatio).toFixed());
 		this.allShips[existedShipsIndex].count -= count;
-		if(this.allShips[existedShipsIndex].count == 0) {
-			if(this.allShips[existedShipsIndex].player != this.occupiedPlayer) {
+		if (this.allShips[existedShipsIndex].count == 0) {
+			if (this.allShips[existedShipsIndex].player != this.occupiedPlayer) {
 				this.allShips.splice(existedShipsIndex, 1);
 			}
 		}
@@ -147,13 +147,13 @@ class Planet {
 	private _isOccupying = false;
 
 	private _canOccupy(): boolean {
-		if(this.allShips.length != 1) {
+		if (this.allShips.length != 1) {
 			return false;
 		}
 		return !(this.occupiedPlayer != null &&
-		this.allShips[0].player == this.occupiedPlayer &&
-		this.occupiedPlayer == this.occupyingStatus.player &&
-		this.occupyingStatus.percent == 100);
+			this.allShips[0].player == this.occupiedPlayer &&
+			this.occupiedPlayer == this.occupyingStatus.player &&
+			this.occupyingStatus.percent == 100);
 	}
 
 	private _getOccupyingInterval() {
@@ -161,38 +161,38 @@ class Planet {
 	}
 
 	private _startOccupying() {
-		if(this._canOccupy()) {
+		if (this._canOccupy()) {
 			this._startOccupyingPlanet([], this._getOccupyingInterval());
 		}
-		if(!this._isOccupying) {
+		if (!this._isOccupying) {
 			this._occupy();
 		}
 	}
 
 	private _occupy() {
-		if(!(this._isOccupying = this._canOccupy())) {
+		if (!(this._isOccupying = this._canOccupy())) {
 			return;
 		}
 
 		let interval = this._getOccupyingInterval();
 
 		setTimeout(() => {
-			if(!(this._isOccupying = this._canOccupy())) {
+			if (!(this._isOccupying = this._canOccupy())) {
 				return;
 			}
 
 			let occupyingPlayer = this.allShips[0].player;
 			let changedPlayer: Player = null;
 
-			if(this.occupyingStatus == null) {
+			if (this.occupyingStatus == null) {
 				this.occupyingStatus = {
 					player: occupyingPlayer,
 					percent: 0
 				};
 			}
-			if(occupyingPlayer == this.occupyingStatus.player) {
-				if(++this.occupyingStatus.percent == 100) {
-					if(this.occupiedPlayer != occupyingPlayer) {
+			if (occupyingPlayer == this.occupyingStatus.player) {
+				if (++this.occupyingStatus.percent == 100) {
+					if (this.occupiedPlayer != occupyingPlayer) {
 						this.occupiedPlayer = occupyingPlayer;
 						this.occupiedPlayer.maxShipsCount += this.size;
 						changedPlayer = this.occupiedPlayer;
@@ -200,8 +200,8 @@ class Planet {
 					this._stopOccupyingPlanet([changedPlayer]);
 				}
 			} else {
-				if(--this.occupyingStatus.percent == 0) {
-					if(this.occupiedPlayer == this.occupyingStatus.player) {
+				if (--this.occupyingStatus.percent == 0) {
+					if (this.occupiedPlayer == this.occupyingStatus.player) {
 						this.occupiedPlayer.maxShipsCount -= this.size;
 						changedPlayer = this.occupiedPlayer;
 						this.occupiedPlayer = null;
@@ -219,7 +219,7 @@ class Planet {
 	// Combatting
 	private _isCombatting = false;
 	private _canCombat = (): boolean => {
-		if(this.allShips.length < 2) {
+		if (this.allShips.length < 2) {
 			this._isCombatting = false;
 			this._startOccupying();
 			return this._isCombatting = false;
@@ -228,16 +228,16 @@ class Planet {
 	};
 
 	private _startCombat() {
-		if(!this._isCombatting)
+		if (!this._isCombatting)
 			this._combat();
 	}
 
 	private _combat() {
-		if(!this._canCombat())
+		if (!this._canCombat())
 			return;
 
 		setTimeout(() => {
-			if(!this._canCombat())
+			if (!this._canCombat())
 				return;
 
 			let changedPlayers: Player[] = this.allShips.map(p => p.player);
@@ -245,7 +245,7 @@ class Planet {
 			this.allShips.forEach((elem, index) => {
 				elem.player.currShipsCount--;
 				elem.count--;
-				if(elem.count <= 0) {
+				if (elem.count <= 0) {
 					this.allShips.splice(index, 1);
 				}
 			});
@@ -264,10 +264,10 @@ class Planet {
 	}
 
 	private _buildShips() {
-		if(this.occupiedPlayer == null || this.occupiedPlayer != this.occupyingStatus.player || this.occupyingStatus.percent != 100) {
+		if (this.occupiedPlayer == null || this.occupiedPlayer != this.occupyingStatus.player || this.occupyingStatus.percent != 100) {
 			return;
 		}
-		if(this.allShips.length == 0) {
+		if (this.allShips.length == 0) {
 			this.allShips.push({
 				player: this.occupiedPlayer,
 				count: 0
@@ -275,10 +275,10 @@ class Planet {
 		}
 
 		let occupiedShipsOnThePlanet = this.allShips.filter(p => p.player == this.occupiedPlayer)[0];
-		if(occupiedShipsOnThePlanet == undefined) {
+		if (occupiedShipsOnThePlanet == undefined) {
 			return;
 		}
-		if(this.occupiedPlayer.currShipsCount < this.occupiedPlayer.maxShipsCount) {
+		if (this.occupiedPlayer.currShipsCount < this.occupiedPlayer.maxShipsCount) {
 			this.occupiedPlayer.currShipsCount++;
 			occupiedShipsOnThePlanet.count++;
 

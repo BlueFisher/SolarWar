@@ -19,7 +19,7 @@ class Player {
 		let getNextNum = (): string => {
 			return '0123456789abcdef'[Math.floor(Math.random() * 16)];
 		};
-		for(let i = 0; i < 6; i++) {
+		for (let i = 0; i < 6; i++) {
 			color += getNextNum();
 		}
 

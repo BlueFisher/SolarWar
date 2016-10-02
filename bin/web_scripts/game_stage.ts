@@ -73,7 +73,7 @@ export default class GameStage {
 
 		this.drawStage(map);
 	}
-	
+
 	changeMovingShipsQueue(protocol: GameProtocols.MovingShipsQueue) {
 		this._map.movingShipsQueue = protocol.queue;
 

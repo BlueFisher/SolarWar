@@ -4,16 +4,12 @@
   "description": "A Multiplayer RTS Game",
   "main": "app.js",
   "scripts": {
-    "watch-ts": "tsc -w -p . --sourcemap",
-	"watch-webpack": "webpack -d -w",
-	"build-ts": "tsc -p .",
-	"build-ts-d": "tsc -p . --sourcemap",
-	"build-webpack": "webpack",
-	"build-webpack-d": "webpack -d",
-	"build": "npm run build-ts && npm run build-webpack",
-	"build-d": "npm run build-ts-d && npm run build-webpack-d",
-	"start": "npm run build && node app",
-	"test": "npm run build-d && node app"
+    "watch-ts": "tsc -p . --sourcemap -w",
+    "watch-webpack": "webpack -d -w",
+    "build": "tsc -p . && webpack -p",
+    "build-d": "tsc -p . --sourcemap && webpack -d",
+    "start": "npm run build && node app",
+    "test": "npm run build-d && node app"
   },
   "author": "",
   "license": "MIT",

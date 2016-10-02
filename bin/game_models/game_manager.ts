@@ -42,11 +42,11 @@ export default class GameManager extends events.EventEmitter {
 			planets: []
 		};
 		map.planets.forEach(p => {
-			if(p.type == PlanetType.None) {
+			if (p.type == PlanetType.None) {
 				this._planets.push(new Planet(this._getNextPlanetId(), p.size, p.position, (planetProtocol) => {
 					this._planetChanged(planetProtocol);
 				}));
-			} else if(p.type == PlanetType.Occupied) {
+			} else if (p.type == PlanetType.Occupied) {
 				this._map.planets.push(p);
 			}
 		});
@@ -87,7 +87,7 @@ export default class GameManager extends events.EventEmitter {
 		let mapPlanet = this._map.planets.pop();
 
 		let newPlanets: Planet[] = [];
-		if(mapPlanet != undefined) {
+		if (mapPlanet != undefined) {
 			newPlanets.push(new Planet(this._getNextPlanetId(), mapPlanet.size, mapPlanet.position, (planet) => {
 				this._planetChanged(planet);
 			}, player));
@@ -129,20 +129,20 @@ export default class GameManager extends events.EventEmitter {
 	 * @param countRatio 从源星球移动的飞船比例
 	 */
 	movePlayerShips(id: number, planetFromId: number, planetToId: number, countRatio: number) {
-		if(planetFromId == planetToId) {
+		if (planetFromId == planetToId) {
 			return;
 		}
 		let planetFrom = this._planets.filter(p => p.id == planetFromId)[0];
 		let planetTo = this._planets.filter(p => p.id == planetToId)[0];
 		let player = this._players.filter(p => p.id == id)[0];
-		if(planetFrom == undefined || planetTo == undefined || player == undefined) {
+		if (planetFrom == undefined || planetTo == undefined || player == undefined) {
 			return;
 		}
-		if(countRatio > 1 || countRatio < 0) {
+		if (countRatio > 1 || countRatio < 0) {
 			return;
 		}
 		let count = planetFrom.shipsLeft(player, countRatio);
-		if(count > 0) {
+		if (count > 0) {
 			// 计算连个星球之间距离，加入到飞行队列中，开始飞船移动计时器
 			let distance = GameManager._getTwoPlanetsDistance(planetFrom, planetTo);
 			this._movingShipsQueue.push({
@@ -164,40 +164,40 @@ export default class GameManager extends events.EventEmitter {
 	private _isMovingShips = false;
 
 	private _startMovingShips() {
-		if(!this._isMovingShips) {
+		if (!this._isMovingShips) {
 			this._moveShips();
 		}
 	}
 
 	private _moveShips() {
 		let canMoveShips = (): boolean => {
-			if(this._movingShipsQueue.length == 0) {
+			if (this._movingShipsQueue.length == 0) {
 				return this._isMovingShips = false;
 			}
 			return this._isMovingShips = true;
 		};
 
-		if(!canMoveShips())
+		if (!canMoveShips())
 			return;
 
 		setTimeout(() => {
-			if(!canMoveShips())
+			if (!canMoveShips())
 				return;
 
-			for(let i in this._movingShipsQueue) {
+			for (let i in this._movingShipsQueue) {
 				let movingShip = this._movingShipsQueue[i];
 
 				let deltaDistance: number;
-				if(movingShip.count < 9) {
+				if (movingShip.count < 9) {
 					deltaDistance = 2.5
-				} else if(movingShip.count > 9) {
+				} else if (movingShip.count > 9) {
 					deltaDistance = 1.25;
 				} else {
 					deltaDistance = -75 / 14 / Math.sqrt(movingShip.count) + 85 / 28;
 				}
 
 				// 如果已到目的星球，则调用shipsArrived，并从飞行队列中移除
-				if((movingShip.distanceLeft -= deltaDistance) <= 0) {
+				if ((movingShip.distanceLeft -= deltaDistance) <= 0) {
 					movingShip.planetTo.shipsArrived(movingShip.player, movingShip.count);
 					this._movingShipsQueue.splice(parseInt(i), 1);
 				}
@@ -210,25 +210,25 @@ export default class GameManager extends events.EventEmitter {
 
 	private _planetChanged(planetProtocol: GameProtocols.Planet) {
 		planetProtocol.players.forEach((player) => {
-			if(player.currShipsCount == 0) {
+			if (player.currShipsCount == 0) {
 				let isGameOver = true;
 				this._planets.forEach((planet) => {
-					if(planet.occupyingStatus != null) {
-						if(planet.occupiedPlayer == player || planet.occupyingStatus.player == player) {
+					if (planet.occupyingStatus != null) {
+						if (planet.occupiedPlayer == player || planet.occupyingStatus.player == player) {
 							isGameOver = false;
 							return;
 						}
 					}
 				});
-				if(isGameOver) {
+				if (isGameOver) {
 					let index: number;
 					this._players.forEach((p, i) => {
-						if(p == player) {
+						if (p == player) {
 							index = i;
 							return;
 						}
 					});
-					if(index != undefined) {
+					if (index != undefined) {
 						this._players.splice(index, 1);
 					}
 					this.emit(GameManager.events.gameOver, player.id);
@@ -244,7 +244,7 @@ export default class GameManager extends events.EventEmitter {
 	}
 
 	private _gameTimeElapse() {
-		if(this._gameTime == 0) {
+		if (this._gameTime == 0) {
 			this.emit(GameManager.events.gameOver);
 			return;
 		}

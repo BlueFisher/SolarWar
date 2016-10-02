@@ -16,7 +16,7 @@ export default class StageManager {
 	 * @param sendProtocol 发送协议的回调函数
 	 */
 	constructor(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement, $countRatio: JQuery,
-	            sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
+		sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._gameStage = new GameStage(gameStageCanvas);
 		this._uiStage = new UiStage(uiStageCanvas, $countRatio, this._gameStage);
 		this._sendProtocol = sendProtocol;

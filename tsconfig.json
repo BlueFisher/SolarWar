@@ -5,9 +5,5 @@
 		"module": "commonjs",
 		"removeComments": false,
 		"sourceMap": true
-	},
-	"files": [
-		"typings/index.d.ts",
-		"app.ts"
-	]
+	}
 }

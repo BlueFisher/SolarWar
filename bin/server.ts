@@ -3,13 +3,13 @@ import * as bodyParser from 'body-parser';
 import * as path from 'path';
 
 import GameServer from './game_server';
-import * as httpProtocols from './protocols/http_protocols';
 
 class Server {
 	private _gameServer: GameServer;
+
 	/**
 	 * 主服务，管理HTTP服务与游戏服务
-	 * 
+	 *
 	 * @param httpPort HTTP端口号
 	 * @param webSocketPort WebSocket端口号
 	 * @param callback 监听成功回调函数 isHttp: 是否为HTTP服务器 port: 端口号
@@ -17,7 +17,7 @@ class Server {
 	constructor(httpPort: number, webSocketPort: number, callback: (isHttp: boolean, port: number) => void) {
 		let app = express();
 
-		this._configExpress(app, this._gameServer);
+		this._configExpress(app);
 
 		app.listen(httpPort, () => {
 			callback(true, httpPort);
@@ -27,7 +27,8 @@ class Server {
 			callback(false, webSocketPort);
 		});
 	}
-	private _configExpress(app: express.Express, gameServer: GameServer) {
+
+	private _configExpress(app: express.Express) {
 		app.use(bodyParser.json({
 			limit: '1mb'
 		}));

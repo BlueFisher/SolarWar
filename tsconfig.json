@@ -3,6 +3,11 @@
 		"target": "es5",
 		"noImplicitAny": false,
 		"module": "commonjs",
-		"removeComments": false
-	}
+		"removeComments": false,
+		"sourceMap": true
+	},
+	"files": [
+		"typings/index.d.ts",
+		"app.ts"
+	]
 }

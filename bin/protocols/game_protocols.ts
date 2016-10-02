@@ -56,6 +56,7 @@ export class BaseProtocol {
 	constructor(type: Type) {
 		this.type = type;
 	}
+
 	type: Type;
 }
 
@@ -65,15 +66,17 @@ export class Planet extends BaseProtocol {
 		this.planet = planet;
 		this.players = players;
 	}
+
 	planet: BasePlanet;
 	players: BasePlayer[];
 }
 export class StartOccupyingPlanet extends Planet {
-	constructor(planet: BasePlanet, interval: number) {
-		super(planet, []);
+	constructor(planet: BasePlanet, players: BasePlayer[], interval: number) {
+		super(planet, players);
 		this.type = Type.startOccupyingPlanet;
 		this.interval = interval;
 	}
+
 	interval: number;
 }
 
@@ -83,6 +86,7 @@ export class MovingShipsQueue extends BaseProtocol {
 		this.players = players;
 		this.queue = queue;
 	}
+
 	players: BasePlayer[];
 	queue: BaseMovingShips[]
 }
@@ -92,6 +96,7 @@ export class RequestInitializeMap extends BaseProtocol {
 		super(Type.requestInitializeMap);
 		this.name = name;
 	}
+
 	name: string
 }
 
@@ -101,6 +106,7 @@ export class InitializeMap extends BaseProtocol {
 		this.map = map;
 		this.playerId = playerId;
 	}
+
 	map: Map;
 	playerId: number;
 }
@@ -112,6 +118,7 @@ export class RequestMovingShips extends BaseProtocol {
 		this.planetToId = planetToId;
 		this.countRatio = countRatio;
 	}
+
 	planetFromId: number;
 	planetToId: number;
 	countRatio: number;
@@ -122,6 +129,7 @@ export class Time extends BaseProtocol {
 		super(Type.time);
 		this.time = time;
 	}
+
 	time: number
 }
 

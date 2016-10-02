@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import * as GameProtocols from '../protocols/game_protocols';
 import GameStage from './game_stage';
 import UiStage from './ui_stage';
@@ -14,10 +13,10 @@ export default class StageManager {
 	 * @param gameStageCanvas 游戏舞台
 	 * @param uiStageCanvas 用户界面舞台
 	 * @param $countRatio 移动星球数量比例的元素
+	 * @param sendProtocol 发送协议的回调函数
 	 */
 	constructor(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement, $countRatio: JQuery,
-		sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
-
+	            sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._gameStage = new GameStage(gameStageCanvas);
 		this._uiStage = new UiStage(uiStageCanvas, $countRatio, this._gameStage);
 		this._sendProtocol = sendProtocol;

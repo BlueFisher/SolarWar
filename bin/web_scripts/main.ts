@@ -1,5 +1,4 @@
 import * as $ from 'jquery';
-import * as HttpProtocols from '../protocols/http_protocols';
 import * as GameProtocols from '../protocols/game_protocols';
 
 import StageManager from './stage_manager';
@@ -14,7 +13,7 @@ class Main {
 	}
 
 	private _initializeCountRatio(): JQuery {
-		let $countRatio = $('#count-ratio input[type="range"]');
+		let $countRatio = $('#count-ratio').find('input[type="range"]');
 		$countRatio.rangeslider({
 			polyfill: false
 		});
@@ -68,19 +67,19 @@ class Main {
 				name: playerName,
 			};
 			this._ws.send(JSON.stringify(protocol));
-		}
+		};
 
 		this._ws.onmessage = (e) => {
 			let protocol = JSON.parse(e.data);
 			this._stageManager.protocolReceived(protocol);
-		}
+		};
 
-		this._ws.onclose = (e) => {
+		this._ws.onclose = () => {
 			onClose();
-		}
-		this._ws.onerror = (e) => {
+		};
+		this._ws.onerror = () => {
 			onClose();
-		}
+		};
 
 		function onClose() {
 			console.log('WebSocket Disconnected');

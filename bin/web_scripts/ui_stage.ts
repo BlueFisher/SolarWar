@@ -21,7 +21,7 @@ export default class UiStage extends events.EventEmitter {
 	private _handleMovingShips() {
 		let $canvas = $(this._uiStageCanvas);
 		let ctx = this._uiStageCanvas.getContext('2d');
-		$canvas.on('contextmenu', function (e) {
+		$canvas.on('contextmenu', function () {
 			return false;
 		});
 		$canvas.mousewheel(e => {
@@ -59,7 +59,7 @@ export default class UiStage extends events.EventEmitter {
 			ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 10, 0, Math.PI * 2);
 			ctx.stroke();
 			ctx.restore();
-		}
+		};
 		let mousedownPoint: GameProtocols.Point;
 		let mousedownPlanet: GameProtocols.BasePlanet;
 		let mouseupPlanet: GameProtocols.BasePlanet;
@@ -151,7 +151,7 @@ export default class UiStage extends events.EventEmitter {
 					planetFromId: mousedownPlanet.id,
 					planetToId: mouseupPlanet.id,
 					countRatio: this._$countRatio.val() / 100,
-				}
+				};
 				this.emit('sendProtocol', protocol);
 			}
 

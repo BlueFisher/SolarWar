@@ -5,6 +5,9 @@
 typings/*
 !typings/index-custom.d.ts
 
+.idea
+.vscode
+
 # Logs
 logs
 *.log

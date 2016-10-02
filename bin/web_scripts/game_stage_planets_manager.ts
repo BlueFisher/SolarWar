@@ -25,8 +25,7 @@ export default class PlanetsManager {
 			ctx.beginPath();
 			ctx.arc(planet.position.x, planet.position.y, planet.size / 2, 0, Math.PI * 2);
 			if (planet.occupiedPlayerId != null) {
-				let color = map.players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
-				ctx.fillStyle = color;
+				ctx.fillStyle = map.players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
 			} else {
 				ctx.fillStyle = '#ddd';
 			}
@@ -161,7 +160,7 @@ export default class PlanetsManager {
 			this._map.planets.push(protocol.planet);
 		}
 
-		protocol.players.forEach((player, index) => {
+		protocol.players.forEach((player) => {
 			isExisted = false;
 			this._map.players.forEach((mapPlayer, mapIndex) => {
 				if (mapPlayer.id == player.id) {

@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import * as GameProtocols from '../protocols/game_protocols';
 import PlanetsManager from './game_stage_planets_manager';
 
@@ -11,7 +10,7 @@ export default class GameStage {
 		scaling: 1,
 		horizontalMoving: 0,
 		verticalMoving: 0
-	}
+	};
 
 	/**游戏舞台 */
 	constructor(gameStageCanvas: HTMLCanvasElement) {
@@ -112,9 +111,8 @@ export default class GameStage {
 			let planetTo = map.planets.filter(p => p.id == movingShips.planetToId)[0];
 			let x = planetTo.position.x - movingShips.distanceLeft * (planetTo.position.x - planetFrom.position.x) / movingShips.distance;
 			let y = planetTo.position.y - movingShips.distanceLeft * (planetTo.position.y - planetFrom.position.y) / movingShips.distance;
-			let color = map.players.filter(player => player.id == movingShips.playerId)[0].color;
 
-			ctx.fillStyle = color;
+			ctx.fillStyle = map.players.filter(player => player.id == movingShips.playerId)[0].color;
 			ctx.fillText(movingShips.count.toString(), x, y);
 		});
 		ctx.restore();

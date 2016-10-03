@@ -1,9 +1,10 @@
 import * as GameProtocols from '../protocols/game_protocols'
 
-class Player {
+export default class Player {
 	id: number;
 	name: string;
 	color: string;
+	historyMaxShipsCount: number;
 	maxShipsCount: number;
 	currShipsCount: number;
 
@@ -11,7 +12,14 @@ class Player {
 		this.id = id;
 		this.name = name;
 		this.color = this._getRandomColor();
-		this.maxShipsCount = this.currShipsCount = maxShipsCount;
+		this.historyMaxShipsCount = this.maxShipsCount = this.currShipsCount = maxShipsCount;
+	}
+
+	addMaxShipsCount(count: number) {
+		this.maxShipsCount += count;
+		if (this.maxShipsCount > this.historyMaxShipsCount) {
+			this.historyMaxShipsCount = this.maxShipsCount;
+		}
 	}
 
 	private _getRandomColor(): string {
@@ -36,5 +44,3 @@ class Player {
 		}
 	}
 }
-
-export default Player;

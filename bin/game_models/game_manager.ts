@@ -108,15 +108,16 @@ export default class GameManager extends events.EventEmitter {
 
 		return [player.id, newPlanetProtocols];
 	}
+	getPlayerHistoryMaxShipsCount(id: number): number {
+		return this._players.filter(p => p.id == id)[0].historyMaxShipsCount;
+	}
 
 	private _currPlanetId = 0;
-
 	private _getNextPlanetId(): number {
 		return ++this._currPlanetId;
 	}
 
 	private _currPlayerId = 0;
-
 	private _getNextPlayerId(): number {
 		return ++this._currPlayerId;
 	}

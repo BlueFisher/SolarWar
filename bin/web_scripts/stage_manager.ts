@@ -51,6 +51,6 @@ export default class StageManager {
 	}
 
 	private _onGameOver(protocol: GameProtocols.GameOver) {
-		alert('Game Over');
+		alert(`Game Over, ${protocol.historyMaxShipsCount}`);
 	}
 }

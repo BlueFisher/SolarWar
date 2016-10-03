@@ -134,7 +134,10 @@ export class Time extends BaseProtocol {
 }
 
 export class GameOver extends BaseProtocol {
-	constructor() {
+	constructor(historyMaxShipsCount: number) {
 		super(Type.gameOver);
+		this.historyMaxShipsCount = historyMaxShipsCount;
 	}
+
+	historyMaxShipsCount: number;
 }

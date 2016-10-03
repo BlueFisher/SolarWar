@@ -45,17 +45,15 @@ class GameServer {
 			});
 		});
 		this._gameManager.on(GameManager.events.gameOver, (playerId: number) => {
-			let json = JSON.stringify(new GameProtocols.GameOver());
+			let socketPlayerMap = this._socketPlayerMap;
 			if (playerId) {
-				let socketPlayer = this._socketPlayerMap.filter(p => p.playerId == playerId)[0];
-				if (socketPlayer != undefined) {
-					socketPlayer.socket.send(json);
-				}
-			} else {
-				this._socketPlayerMap.forEach(p => {
-					p.socket.send(json);
-				});
+				socketPlayerMap = this._socketPlayerMap.filter(p => p.playerId == playerId);
 			}
+			socketPlayerMap.forEach(pair => {
+				let historyMaxShipsCount = this._gameManager.getPlayerHistoryMaxShipsCount(pair.playerId);
+				let json = JSON.stringify(new GameProtocols.GameOver(historyMaxShipsCount));
+				pair.socket.send(json);
+			});
 		});
 
 		this._gameManager.on(GameManager.events.gameTimeChanged, (gameTimeProtocol: GameProtocols.Time) => {

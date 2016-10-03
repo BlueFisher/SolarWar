@@ -53,7 +53,7 @@ class Planet {
 				percent: 100
 			};
 			occupiedPlayer.currShipsCount += this.size;
-			occupiedPlayer.maxShipsCount += this.size;
+			occupiedPlayer.addMaxShipsCount(this.size);
 
 			this.occupiedPlayer = occupiedPlayer;
 		}
@@ -194,7 +194,7 @@ class Planet {
 				if (++this.occupyingStatus.percent == 100) {
 					if (this.occupiedPlayer != occupyingPlayer) {
 						this.occupiedPlayer = occupyingPlayer;
-						this.occupiedPlayer.maxShipsCount += this.size;
+						this.occupiedPlayer.addMaxShipsCount(this.size)
 						changedPlayer = this.occupiedPlayer;
 					}
 					this._stopOccupyingPlanet([changedPlayer]);
@@ -202,7 +202,7 @@ class Planet {
 			} else {
 				if (--this.occupyingStatus.percent == 0) {
 					if (this.occupiedPlayer == this.occupyingStatus.player) {
-						this.occupiedPlayer.maxShipsCount -= this.size;
+						this.occupiedPlayer.addMaxShipsCount(-this.size);
 						changedPlayer = this.occupiedPlayer;
 						this.occupiedPlayer = null;
 					}

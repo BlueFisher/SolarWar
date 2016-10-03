@@ -75,8 +75,10 @@ export class StartOccupyingPlanet extends Planet {
 		super(planet, players);
 		this.type = Type.startOccupyingPlanet;
 		this.interval = interval;
+		this.startDateTime = new Date();
 	}
 
+	startDateTime: Date;
 	interval: number;
 }
 

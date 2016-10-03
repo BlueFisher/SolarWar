@@ -109,6 +109,23 @@ export default class PlanetsManager {
 			return;
 		}
 
+		let occupyingPlayerId = planet.allShips[0].playerId;
+
+		if (planet.occupyingStatus == null) {
+			planet.occupyingStatus = {
+				playerId: occupyingPlayerId,
+				percent: 0
+			};
+		}
+
+		let timeDifference = (new Date().getTime() - protocol.startDateTime.getTime()) / protocol.interval;
+		if (occupyingPlayerId == planet.occupyingStatus.playerId) {
+			planet.occupyingStatus.percent += timeDifference;
+		} else {
+			planet.occupyingStatus.percent -= timeDifference;
+		}
+
+		let smooth = 1 / (planet.size / 10);
 		let timer = setInterval(() => {
 			planet = this._map.planets.filter(p => p.id == protocol.planet.id)[0];
 			if (planet.allShips.length != 1) {
@@ -118,20 +135,15 @@ export default class PlanetsManager {
 
 			let occupyingPlayerId = planet.allShips[0].playerId;
 
-			if (planet.occupyingStatus == null) {
-				planet.occupyingStatus = {
-					playerId: occupyingPlayerId,
-					percent: 0
-				};
-			}
 			if (occupyingPlayerId == planet.occupyingStatus.playerId) {
-				if (++planet.occupyingStatus.percent == 100) {
+				if ((planet.occupyingStatus.percent += smooth) >= 100) {
 					planet.occupiedPlayerId = occupyingPlayerId;
+					console.log(1);
 
 					this._clearOccupyingInterval(planet.id);
 				}
 			} else {
-				if (--planet.occupyingStatus.percent == 0) {
+				if ((planet.occupyingStatus.percent -= smooth) <= 0) {
 					if (planet.occupiedPlayerId == planet.occupyingStatus.playerId) {
 						planet.occupiedPlayerId = null;
 					}
@@ -142,7 +154,7 @@ export default class PlanetsManager {
 			}
 
 			this._redrawStage();
-		}, protocol.interval);
+		}, protocol.interval * smooth);
 
 		this._setOccupyingInterval(planet.id, timer);
 	}

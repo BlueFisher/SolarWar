@@ -46,7 +46,10 @@ export default class StageManager {
 				this._gameStage.changePlanet(<GameProtocols.Planet>protocol);
 				break;
 			case GameProtocols.Type.startOccupyingPlanet:
-				this._gameStage.startOccupyingPlanet(<GameProtocols.StartOccupyingPlanet>protocol);
+				let startOccupyingProtocol = <GameProtocols.StartOccupyingPlanet>protocol;
+				startOccupyingProtocol.startDateTime = new Date(startOccupyingProtocol.startDateTime.toString());
+				this._gameStage.startOccupyingPlanet(startOccupyingProtocol);
+				break;
 		}
 	}
 

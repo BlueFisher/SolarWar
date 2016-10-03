@@ -174,6 +174,13 @@ class Planet {
 			return;
 		}
 
+		if (this.occupyingStatus == null) {
+			this.occupyingStatus = {
+				player: this.allShips[0].player,
+				percent: 0
+			};
+		}
+
 		let interval = this._getOccupyingInterval();
 
 		setTimeout(() => {
@@ -184,12 +191,6 @@ class Planet {
 			let occupyingPlayer = this.allShips[0].player;
 			let changedPlayer: Player = null;
 
-			if (this.occupyingStatus == null) {
-				this.occupyingStatus = {
-					player: occupyingPlayer,
-					percent: 0
-				};
-			}
 			if (occupyingPlayer == this.occupyingStatus.player) {
 				if (++this.occupyingStatus.percent == 100) {
 					if (this.occupiedPlayer != occupyingPlayer) {

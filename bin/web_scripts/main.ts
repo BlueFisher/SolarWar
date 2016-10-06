@@ -1,4 +1,5 @@
 import * as $ from 'jquery';
+import * as HttpProtocols from '../protocols/http_protocols';
 import * as GameProtocols from '../protocols/game_protocols';
 
 import StageManager from './stage_manager';
@@ -52,11 +53,13 @@ class Main {
 			this._stageManager.redrawGameStage();
 		});
 
-		this._connect();
+		$.get('/websocketconfig').then((data: HttpProtocols.WebSocketConfigResProtocol) => {
+			this._connect(data);
+		});
 	}
 
-	private _connect() {
-		this._ws = new WebSocket('ws://localhost:8080');
+	private _connect(webSocketConfig: HttpProtocols.WebSocketConfigResProtocol) {
+		this._ws = new WebSocket(`ws://${webSocketConfig.ip}:${webSocketConfig.port}`);
 
 		this._ws.onopen = () => {
 			console.log("WebSocket Connected");

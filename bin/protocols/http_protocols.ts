@@ -1,6 +1,4 @@
-export interface AddNewPlayerReqProtocol {
-	name: string
-}
-export interface AddNewPlayerResProtocol {
-	id: number
+export interface WebSocketConfigResProtocol {
+	ip: string,
+	port: number
 }

@@ -3,9 +3,10 @@
  */
 
 import Server from './bin/server';
+import Config from './bin/protocols/config';
 
 // 初始化HTTP服务器WebSocket服务器
-let httpServer = new Server(80, 8080, (isHttp, port) => {
+let httpServer = new Server(Config.httpPort, Config.webSocketPort, (isHttp, port) => {
 	if (isHttp) {
 		console.log(`Http Server is listening on port ${port}`);
 	} else {

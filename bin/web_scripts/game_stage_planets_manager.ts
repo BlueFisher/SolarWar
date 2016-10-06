@@ -65,7 +65,7 @@ export default class PlanetsManager {
 
 			// 绘制星球占领中状态
 			if ((planet.allShips.length == 1 || planet.allShips.length == 0)
-				&& planet.occupyingStatus != null && planet.occupyingStatus.percent != 100) {
+				&& planet.occupyingStatus != null && planet.occupyingStatus.percent < 100) {
 				ctx.save();
 				let player = map.players.filter(player => player.id == planet.occupyingStatus.playerId)[0];
 				ctx.beginPath();

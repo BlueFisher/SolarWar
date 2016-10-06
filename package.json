@@ -8,7 +8,7 @@
     "watch-webpack": "webpack -d -w",
     "build": "tsc -p . && webpack -p",
     "build-d": "tsc -p . --sourcemap && webpack -d",
-    "start": "npm run build && node app",
+    "start": "npm run build node app",
     "test": "npm run build-d && node app"
   },
   "author": "",
@@ -20,5 +20,10 @@
     "typescript": "^2.0.3",
     "webpack": "^1.13.2",
     "ws": "^1.1.1"
+  },
+  "config": {
+    "httpPort": 80,
+    "webSocketPort": 8080,
+    "ip": "localhost"
   }
 }

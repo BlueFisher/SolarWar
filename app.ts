@@ -1,5 +1,5 @@
 /**
- * SolarWar入口文件
+ * SolarWar入口
  */
 
 import Server from './bin/server';
@@ -10,7 +10,7 @@ let httpServer = new Server(Config.httpPort, Config.webSocketPort, (isHttp, port
 	if (isHttp) {
 		console.log(`Http Server is listening on port ${port}`);
 	} else {
-		console.log(`WebSocket Server is listening on port ${port}`);
+		console.log(`WebSocket Server is listening on ws://${Config.ip}:${port}`);
 	}
 });
 
@@ -23,8 +23,8 @@ const rl = readline.createInterface({
 	output: process.stdout
 });
 
-rl.on('line', (input) => {
-	let cmd = (<string>input).split(' ');
+rl.on('line', (input: string) => {
+	let cmd = input.split(' ');
 
 	switch (cmd[0]) {
 		// 增加玩家

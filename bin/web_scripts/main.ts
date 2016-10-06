@@ -1,4 +1,5 @@
 import * as $ from 'jquery';
+import * as toastr from 'toastr';
 import * as HttpProtocols from '../protocols/http_protocols';
 import * as GameProtocols from '../protocols/game_protocols';
 
@@ -62,7 +63,7 @@ class Main {
 		this._ws = new WebSocket(`ws://${webSocketConfig.ip}:${webSocketConfig.port}`);
 
 		this._ws.onopen = () => {
-			console.log("WebSocket Connected");
+			toastr.success('服务器连接成功');
 			let playerName = prompt("请输入名字", "Default Player");
 
 			let protocol: GameProtocols.RequestInitializeMap = {
@@ -85,7 +86,7 @@ class Main {
 		};
 
 		function onClose() {
-			console.log('WebSocket Disconnected');
+			toastr.error('服务器断开连接');
 		}
 	}
 }

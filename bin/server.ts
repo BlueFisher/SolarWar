@@ -10,7 +10,7 @@ class Server {
 	private _gameServer: GameServer;
 
 	/**
-	 * 主服务，管理HTTP服务与游戏服务
+	 * 主后台服务，管理HTTP服务与游戏服务
 	 *
 	 * @param httpPort HTTP端口号
 	 * @param webSocketPort WebSocket端口号

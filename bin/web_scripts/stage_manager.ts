@@ -1,12 +1,16 @@
+import * as events from 'events';
 import * as GameProtocols from '../protocols/game_protocols';
 import GameStage from './game_stage';
 import UiStage from './ui_stage';
 
-export default class StageManager {
+export default class StageManager extends events.EventEmitter {
+	static events = {
+		sendProtocol: 'sendProtocol',
+		gameOver: 'gameOvers',
+	};
+
 	private _gameStage: GameStage;
 	private _uiStage: UiStage;
-
-	private _sendProtocol: (protocol: GameProtocols.BaseProtocol) => void;
 
 	/**
 	 * 舞台管理类
@@ -15,14 +19,12 @@ export default class StageManager {
 	 * @param $countRatio 移动星球数量比例的元素
 	 * @param sendProtocol 发送协议的回调函数
 	 */
-	constructor(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement, $countRatio: JQuery,
-		sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
-		this._gameStage = new GameStage(gameStageCanvas);
-		this._uiStage = new UiStage(uiStageCanvas, $countRatio, this._gameStage);
-		this._sendProtocol = sendProtocol;
+	constructor(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement, $countRatio: JQuery) {
+		super();
 
-		this._uiStage.on('sendProtocol', protocol => {
-			this._sendProtocol(protocol);
+		this._gameStage = new GameStage(gameStageCanvas);
+		this._uiStage = new UiStage(uiStageCanvas, $countRatio, this._gameStage, (protocol) => {
+			this.emit(StageManager.events.sendProtocol, protocol);
 		});
 	}
 
@@ -54,6 +56,6 @@ export default class StageManager {
 	}
 
 	private _onGameOver(protocol: GameProtocols.GameOver) {
-		alert(`Game Over, ${protocol.historyMaxShipsCount}`);
+		this.emit(StageManager.events.gameOver, protocol);
 	}
 }

@@ -74,7 +74,7 @@ class GameServer {
 			let protocol: GameProtocols.BaseProtocol = JSON.parse(message);
 			switch (protocol.type) {
 				case GameProtocols.Type.requestInitializeMap:
-					this._onRequestAddPlayer(<GameProtocols.RequestInitializeMap>protocol, socket);
+					this._onInitializeMap(<GameProtocols.RequestInitializeMap>protocol, socket);
 					break;
 				case GameProtocols.Type.requestMoveShips:
 					this._onMovePlayerShips(<GameProtocols.RequestMovingShips>protocol, socket);
@@ -99,14 +99,13 @@ class GameServer {
 		});
 	}
 
-	private _onRequestAddPlayer(protocol: GameProtocols.RequestInitializeMap, socket: WebSocketServer) {
+	private _onInitializeMap(protocol: GameProtocols.RequestInitializeMap, socket: WebSocketServer) {
 		let socketPlayer = this._socketPlayerMap.filter(p => p.socket == socket)[0];
 		if (socketPlayer != undefined) {
 			let [id, newPlanetProtocols] = this._gameManager.addPlayer(protocol.name);
 			socketPlayer.playerId = id;
 
 			let responseProtocol = new GameProtocols.InitializeMap(this._gameManager.getMap(), id);
-
 			socket.send(JSON.stringify(responseProtocol));
 
 			let jsons = newPlanetProtocols.map(p => JSON.stringify(p));

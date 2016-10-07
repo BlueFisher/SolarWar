@@ -210,7 +210,7 @@ class Planet {
 
 					this.occupyingStatus.player = occupyingPlayer;
 				}
-				this._startOccupyingPlanet([changedPlayer], interval);
+				this._startOccupyingPlanet(changedPlayer == null ? [] : [changedPlayer], interval);
 			}
 
 			this._occupy();

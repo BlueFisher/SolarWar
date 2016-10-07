@@ -102,7 +102,6 @@ export default class GameManager extends events.EventEmitter {
 
 		let newPlanetProtocols: GameProtocols.Planet[] = newPlanets.map(p => {
 			this._planets.push(p);
-
 			return new GameProtocols.Planet(p.getBasePlanetProtocol(), [player.getBasePlayerProtocol()]);
 		});
 
@@ -215,24 +214,26 @@ export default class GameManager extends events.EventEmitter {
 				let isGameOver = true;
 				this._planets.forEach((planet) => {
 					if (planet.occupyingStatus != null) {
-						if (planet.occupiedPlayer == player || planet.occupyingStatus.player == player) {
+						if ((planet.occupiedPlayer != null && planet.occupiedPlayer.id == player.id) || planet.occupyingStatus.player.id == player.id) {
 							isGameOver = false;
 							return;
 						}
 					}
 				});
 				if (isGameOver) {
+					this.emit(GameManager.events.gameOver, player.id);
+
 					let index: number;
 					this._players.forEach((p, i) => {
-						if (p == player) {
+						if (p.id == player.id) {
 							index = i;
 							return;
 						}
 					});
+					console.log(index);
 					if (index != undefined) {
 						this._players.splice(index, 1);
 					}
-					this.emit(GameManager.events.gameOver, player.id);
 				}
 			}
 		});

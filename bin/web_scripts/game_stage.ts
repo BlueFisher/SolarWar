@@ -25,7 +25,7 @@ export default class GameStage {
 		let minPosition: GameProtocols.Point = { x: Infinity, y: Infinity };
 		let maxPosition: GameProtocols.Point = { x: -Infinity, y: -Infinity };
 		if (planets.length == 0 || this._currPlayerId == null) {
-			return [maxPosition, minPosition];
+			return [{ x: 10, y: 10 }, { x: 800, y: 800 }];
 		}
 
 		planets.forEach(p => {
@@ -67,7 +67,6 @@ export default class GameStage {
 	initializeMap(protocol: GameProtocols.InitializeMap) {
 		this._currPlayerId = protocol.playerId;
 		let map: GameProtocols.Map = protocol.map;
-
 		let [minPosition, maxPosition] = this._getMapMainRange(map.planets);
 		this._setStageTransformation(minPosition, maxPosition);
 

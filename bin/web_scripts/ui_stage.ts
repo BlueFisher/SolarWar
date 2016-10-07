@@ -1,19 +1,19 @@
-import * as events from 'events';
 import * as $ from 'jquery';
 import * as GameProtocols from '../protocols/game_protocols';
 import GameStage from './game_stage';
 
-export default class UiStage extends events.EventEmitter {
+export default class UiStage {
 	private _gameStage: GameStage;
 	private _uiStageCanvas: HTMLCanvasElement;
 	private _$countRatio: JQuery;
 
-	constructor(uiStageCanvas: HTMLCanvasElement, $countRatio: JQuery, gameStage: GameStage) {
-		super();
+	private _sendProtocol: (protocol: GameProtocols.BaseProtocol) => void;
 
+	constructor(uiStageCanvas: HTMLCanvasElement, $countRatio: JQuery, gameStage: GameStage, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._uiStageCanvas = uiStageCanvas;
 		this._$countRatio = $countRatio;
 		this._gameStage = gameStage;
+		this._sendProtocol = sendProtocol;
 
 		this._handleMovingShips();
 	}
@@ -152,7 +152,7 @@ export default class UiStage extends events.EventEmitter {
 					planetToId: mouseupPlanet.id,
 					countRatio: this._$countRatio.val() / 100,
 				};
-				this.emit('sendProtocol', protocol);
+				this._sendProtocol(protocol);
 			}
 
 			isMouseDown = false;

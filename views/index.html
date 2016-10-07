@@ -5,23 +5,61 @@
 	<meta charset="UTF-8">
 	<title>SolarWar</title>
 	<link rel="stylesheet" href="/public/style/toastr.min.css">
+	<!--<link href="//cdn.bootcss.com/toastr.js/latest/css/toastr.min.css" rel="stylesheet">-->
+	<link rel="stylesheet" href="/public/style/bootstrap.min.css">
+	<!--<link href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">-->
 	<link rel="stylesheet" href="/public/style/main.css">
 </head>
 
 <body>
-<canvas id="game-stage"></canvas>
-<canvas id="ui-stage"></canvas>
-<div id="count-ratio">
-	<label>
-		<input type="range" min="1" max="100" step="1" value="100" data-rangeslider>
-	</label>
-</div>
+	<canvas id="game-stage"></canvas>
+	<canvas id="ui-stage"></canvas>
 
-<script src="/public/scripts/lib/jquery-3.1.0.min.js"></script>
-<script src="/public/scripts/lib/jquery.mousewheel.min.js"></script>
-<script src="/public/scripts/lib/rangeslider.min.js"></script>
-<script src="/public/scripts/lib/toastr.min.js"></script>
-<script src="/public/scripts/bundle.js"></script>
+	<div id="count-ratio">
+		<input type="range" min="1" max="100" step="1" value="100" data-rangeslider>
+	</div>
+
+	<div class="modal fade" id="modal-gameon">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-body">
+					<div class="input-group">
+						<input class="form-control" type="text" value="Default Player">
+						<span class="input-group-btn">
+							<button class="btn btn-default ok">确定</button>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="modal-gameover">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-body">
+					<p class="history-max-ships-count"></p>
+					<div class="input-group">
+						<input class="form-control" type="text" value="Default Player">
+						<span class="input-group-btn">
+							<button class="btn btn-default">确定</button>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="/public/scripts/lib/jquery-3.1.0.min.js"></script>
+	<!--<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>-->
+	<script src="/public/scripts/lib/bootstrap.min.js"></script>
+	<!--<script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
+	<script src="/public/scripts/lib/jquery.mousewheel.min.js"></script>
+	<!--<script src="//cdn.bootcss.com/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js"></script>-->
+	<script src="/public/scripts/lib/rangeslider.min.js"></script>
+	<script src="/public/scripts/lib/toastr.min.js"></script>
+	<!--<script src="//cdn.bootcss.com/toastr.js/latest/js/toastr.min.js"></script>-->
+	<script src="/public/scripts/bundle.js"></script>
 </body>
 
 </html>

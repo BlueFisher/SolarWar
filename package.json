@@ -11,15 +11,18 @@
     "start": "npm run build node app",
     "test": "npm run build-d && node app"
   },
-  "author": "",
+  "author": "Fisher",
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.15.2",
+    "ejs": "^2.5.2",
     "express": "^4.14.0",
+    "ws": "^1.1.1"
+  },
+  "devDependencies": {
     "source-map-loader": "^0.1.5",
     "typescript": "^2.0.3",
-    "webpack": "^1.13.2",
-    "ws": "^1.1.1"
+    "webpack": "^1.13.2"
   },
   "config": {
     "httpPort": 80,

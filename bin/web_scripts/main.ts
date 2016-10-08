@@ -22,7 +22,7 @@ class Main {
 			backdrop: 'static',
 			keyboard: false
 		});
-		$gameonModal.find('.form-gameon').submit(e=>{
+		$gameonModal.find('.form-gameon').submit(e => {
 			e.preventDefault();
 			let protocol = new GameProtocols.RequestInitializeMap($gameonModalInput.val());
 			this._ws.send(JSON.stringify(protocol));
@@ -69,10 +69,6 @@ class Main {
 			this._stageManager.redrawGameStage();
 		});
 
-		$.get('/websocketconfig').then((data: HttpProtocols.WebSocketConfigResProtocol) => {
-			this._connect(data);
-		});
-
 		this._stageManager = new StageManager(gameStageCanvas, uiStageCanvas, $countRatio);
 		this._stageManager.on(StageManager.events.sendProtocol, (protocol: GameProtocols.BaseProtocol) => {
 			this._ws.send(JSON.stringify(protocol));
@@ -80,6 +76,8 @@ class Main {
 		this._stageManager.on(StageManager.events.gameOver, (protocol: GameProtocols.GameOver) => {
 			this._gameover(protocol);
 		});
+
+		this._connect($gameStage.attr('data-ip'), parseInt($gameStage.attr('data-port')));
 	}
 
 	private _adjustCanvasSize(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement) {
@@ -90,8 +88,8 @@ class Main {
 		uiStageCanvas.width = $window.innerWidth();
 	}
 
-	private _connect(webSocketConfig: HttpProtocols.WebSocketConfigResProtocol) {
-		this._ws = new WebSocket(`ws://${webSocketConfig.ip}:${webSocketConfig.port}`);
+	private _connect(ip: string, port: number) {
+		this._ws = new WebSocket(`ws://${ip}:${port}`);
 		toastr.info('正在连接服务器...');
 
 		this._ws.onopen = () => {

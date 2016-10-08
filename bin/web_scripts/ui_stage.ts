@@ -31,7 +31,7 @@ export default class UiStage {
 				x: e.pageX - $canvas.offset().left,
 				y: e.pageY - $canvas.offset().top
 			};
-			let deltaScaling = e.deltaY / e.deltaFactor * 2;
+			let deltaScaling = e.deltaY / e.deltaFactor * 5;
 
 			let planet = this._getPointedPlanet(point.x, point.y);
 			if (planet) { // 如果滚轮滑动时在星球上则缩放中心为该星球中心

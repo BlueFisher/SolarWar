@@ -1,6 +1,5 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
-import * as path from 'path';
 
 import Config from './protocols/config';
 import * as HttpProtocols from './protocols/http_protocols';
@@ -37,17 +36,14 @@ class Server {
 		app.use(bodyParser.urlencoded({
 			extended: true
 		}));
+		app.set('view engine', 'ejs');
 
 		app.get('/', (req, res) => {
-			res.sendFile(path.join(__dirname, '../views', 'index.html'));
-		});
-		app.get('/websocketconfig', (req, res) => {
-			let json: HttpProtocols.WebSocketConfigResProtocol = {
+			res.render('index', {
 				ip: Config.ip,
 				port: Config.webSocketPort
-			}
-			res.json(json);
-		})
+			});
+		});
 
 		app.use('/public', express.static('public'));
 	}

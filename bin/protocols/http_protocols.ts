@@ -1,4 +1,3 @@
-export interface WebSocketConfigResProtocol {
-	ip: string,
-	port: number
+export interface TestResProtocol {
+
 }

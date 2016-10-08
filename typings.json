@@ -4,6 +4,7 @@
   "globalDependencies": {
     "body-parser": "registry:dt/body-parser#0.0.0+20160619023215",
     "bootstrap": "registry:dt/bootstrap#3.3.5+20160619023404",
+    "ejs": "registry:dt/ejs#0.0.0+20161003130526",
     "express": "registry:dt/express#4.0.0+20160708185218",
     "express-serve-static-core": "registry:dt/express-serve-static-core#4.0.0+20160928124223",
     "jquery": "registry:dt/jquery#1.10.0+20160908203239",

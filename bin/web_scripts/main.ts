@@ -15,6 +15,30 @@ class Main {
 		this._initializeStageManager($countRatio);
 	}
 
+	private _initializeUI() {
+		let $gameonModal = $('#modal-gameon');
+		let $gameonModalInput = $gameonModal.find('.form-control');
+		$gameonModal.modal({
+			backdrop: 'static',
+			keyboard: false
+		});
+		$gameonModal.find('.form-gameon').submit(e=>{
+			e.preventDefault();
+			let protocol = new GameProtocols.RequestInitializeMap($gameonModalInput.val());
+			this._ws.send(JSON.stringify(protocol));
+			$gameonModal.modal('hide');
+		})
+
+		let $gameoverModal = $('#modal-gameover');
+		let $gameoverModalInput = $gameoverModal.find('.form-control');
+		$gameoverModal.find('.form-gameover').submit(e => {
+			e.preventDefault();
+			let protocol = new GameProtocols.RequestInitializeMap($gameoverModalInput.val());
+			this._ws.send(JSON.stringify(protocol));
+			$gameoverModal.modal('hide');
+		});
+	}
+
 	private _initializeCountRatio(): JQuery {
 		let $countRatio = $('#count-ratio').find('input[type="range"]');
 		$countRatio.rangeslider({
@@ -28,33 +52,6 @@ class Main {
 		});
 
 		return $countRatio;
-	}
-
-	private _initializeUI() {
-		let $gameonModal = $('#modal-gameon');
-		$gameonModal.modal({
-			backdrop: 'static',
-			keyboard: false
-		});
-		$gameonModal.find('.ok').click(() => {
-			console.log(1)
-			let protocol: GameProtocols.RequestInitializeMap = {
-				type: GameProtocols.Type.requestInitializeMap,
-				name: $gameonModal.find('.form-control').val()
-			};
-			this._ws.send(JSON.stringify(protocol));
-			$gameonModal.modal('hide');
-		});
-
-		let $gameoverModal = $('#modal-gameover');
-		$gameoverModal.find('.ok').click(() => {
-			let protocol: GameProtocols.RequestInitializeMap = {
-				type: GameProtocols.Type.requestInitializeMap,
-				name: $gameoverModal.find('.form-control').val()
-			};
-			this._ws.send(JSON.stringify(protocol));
-			$gameoverModal.modal('hide');
-		});
 	}
 
 	private _initializeStageManager($countRatio: JQuery) {
@@ -122,8 +119,9 @@ class Main {
 		$gameonModal.find('.form-control').focus();
 	}
 	private _gameover(protocol: GameProtocols.GameOver) {
+		console.log(protocol);
 		let $gameoverModal = $('#modal-gameover');
-		$gameoverModal.find('.history-max-ships-count').val(protocol.historyMaxShipsCount);
+		$gameoverModal.find('.history-max-ships-count').text(protocol.historyMaxShipsCount);
 		$gameoverModal.modal({
 			backdrop: 'static',
 			keyboard: false

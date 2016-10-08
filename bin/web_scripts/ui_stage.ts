@@ -146,12 +146,7 @@ export default class UiStage {
 			$canvas.css({ cursor: 'default' });
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {
-				let protocol: GameProtocols.RequestMovingShips = {
-					type: GameProtocols.Type.requestMoveShips,
-					planetFromId: mousedownPlanet.id,
-					planetToId: mouseupPlanet.id,
-					countRatio: this._$countRatio.val() / 100,
-				};
+				let protocol = new GameProtocols.RequestMovingShips(mousedownPlanet.id, mouseupPlanet.id, this._$countRatio.val() / 100);
 				this._sendProtocol(protocol);
 			}
 

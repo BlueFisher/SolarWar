@@ -49,7 +49,6 @@ class Server {
 				ip: Config.ip,
 				port: Config.webSocketPort
 			});
-			console.log(sessionStorage.length);
 		});
 		
 		app.use('/public', express.static('public'));

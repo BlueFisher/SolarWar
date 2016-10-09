@@ -84,12 +84,12 @@ class Planet {
 	}
 
 	private _startOccupyingPlanet(players: Player[], interval: number) {
-		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), players, interval);
+		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), interval);
 		this._planetChanged(protocol);
 	}
 
 	private _stopOccupyingPlanet(players: Player[]) {
-		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), players, -1);
+		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), -1);
 		this._planetChanged(protocol);
 	}
 
@@ -198,7 +198,7 @@ class Planet {
 						this.occupiedPlayer.addMaxShipsCount(this.size)
 						changedPlayer = this.occupiedPlayer;
 					}
-					this._stopOccupyingPlanet([changedPlayer]);
+					this._stopOccupyingPlanet(changedPlayer == null ? [] : [changedPlayer]);
 				}
 			} else {
 				if (--this.occupyingStatus.percent == 0) {

@@ -117,7 +117,6 @@ class Main {
 		$gameonModal.find('.form-control').focus();
 	}
 	private _gameover(protocol: GameProtocols.GameOver) {
-		console.log(protocol);
 		let $gameoverModal = $('#modal-gameover');
 		$gameoverModal.find('.history-max-ships-count').text(protocol.historyMaxShipsCount);
 		$gameoverModal.modal({

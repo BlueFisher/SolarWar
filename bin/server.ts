@@ -1,4 +1,5 @@
 import * as express from 'express';
+import * as session from 'express-session';
 import * as bodyParser from 'body-parser';
 
 import Config from './protocols/config';
@@ -13,7 +14,7 @@ class Server {
 	 *
 	 * @param httpPort HTTP端口号
 	 * @param webSocketPort WebSocket端口号
-	 * @param callback 监听成功回调函数 isHttp: 是否为HTTP服务器 port: 端口号
+	 * @param callback 监听成功回调函数 isHttp: 是否为HTTP服务器, port: 端口号
 	 */
 	constructor(httpPort: number, webSocketPort: number, callback: (isHttp: boolean, port: number) => void) {
 		let app = express();
@@ -36,6 +37,11 @@ class Server {
 		app.use(bodyParser.urlencoded({
 			extended: true
 		}));
+		app.use(session({
+			secret: 'I6zoBZ0LVYPi9Ujt',
+			resave: false,
+			saveUninitialized: true,
+		}));
 		app.set('view engine', 'ejs');
 
 		app.get('/', (req, res) => {
@@ -43,8 +49,9 @@ class Server {
 				ip: Config.ip,
 				port: Config.webSocketPort
 			});
+			console.log(sessionStorage.length);
 		});
-
+		
 		app.use('/public', express.static('public'));
 	}
 

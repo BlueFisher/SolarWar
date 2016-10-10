@@ -1,5 +1,5 @@
 import * as events from 'events';
-import {PlanetType, Map, MapLoader} from './map_loader'
+import * as Map from './map_loader';
 import Player from './player';
 import Planet from './planet';
 import * as GameProtocols from '../protocols/game_protocols';
@@ -25,7 +25,9 @@ export default class GameManager extends events.EventEmitter {
 	private _players: Player[] = [];
 	private _planets: Planet[] = [];
 	private _movingShipsQueue: _movingShipsQueue[] = [];
-	private _map: Map;
+
+	private _mapLoader = new Map.MapLoader();
+	private _map: Map.Planet[] = [];
 
 	/**
 	 * 游戏逻辑管理
@@ -37,19 +39,7 @@ export default class GameManager extends events.EventEmitter {
 	}
 
 	private _initializeMap() {
-		let map = MapLoader.getMap();
-		this._map = {
-			planets: []
-		};
-		map.planets.forEach(p => {
-			if (p.type == PlanetType.None) {
-				this._planets.push(new Planet(this._getNextPlanetId(), p.size, p.position, (planetProtocol) => {
-					this._planetChanged(planetProtocol);
-				}));
-			} else if (p.type == PlanetType.Occupied) {
-				this._map.planets.push(p);
-			}
-		});
+
 	}
 
 	private _getMovingShipsQueue(): GameProtocols.BaseMovingShips[] {
@@ -84,20 +74,16 @@ export default class GameManager extends events.EventEmitter {
 	addPlayer(name: string): [number, GameProtocols.Planet[]] {
 		let player = new Player(this._getNextPlayerId(), name, 0);
 		this._players.push(player);
-		let mapPlanet = this._map.planets.pop();
 
 		let newPlanets: Planet[] = [];
-		if (mapPlanet != undefined) {
-			newPlanets.push(new Planet(this._getNextPlanetId(), mapPlanet.size, mapPlanet.position, (planet) => {
-				this._planetChanged(planet);
-			}, player));
-		} else {
-			newPlanets.push(new Planet(this._getNextPlanetId(), 50, {
-				x: Math.random() * 1500,
-				y: Math.random() * 900
-			}, (planet) => {
-				this._planetChanged(planet);
-			}, player));
+		let mapPlanets = this._mapLoader.getNextPlanets();
+
+		if (mapPlanets.length) {
+			mapPlanets.forEach(p => {
+				newPlanets.push(new Planet(this._getNextPlanetId(), p.size, p.position, (planet) => {
+					this._planetChanged(planet);
+				}, p.type == Map.PlanetType.Occupied ? player : null));
+			});
 		}
 
 		let newPlanetProtocols: GameProtocols.Planet[] = newPlanets.map(p => {

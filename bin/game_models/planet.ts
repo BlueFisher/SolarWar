@@ -24,6 +24,8 @@ class Planet {
 	occupiedPlayer: Player;
 	occupyingStatus: occupyingStatus;
 
+	private _buildingShipsTimer: NodeJS.Timer;
+
 	/**
 	 * 星球
 	 *
@@ -57,6 +59,10 @@ class Planet {
 
 			this.occupiedPlayer = occupiedPlayer;
 		}
+	}
+
+	dispose() {
+		clearInterval(this._buildingShipsTimer);
 	}
 
 	getBasePlanetProtocol(): GameProtocols.BasePlanet {
@@ -259,7 +265,7 @@ class Planet {
 	// Building
 	private _startbuildingShips() {
 		let interval = (-0.005 * this.size + 1) * 1000;
-		setInterval(() => {
+		this._buildingShipsTimer = setInterval(() => {
 			this._buildShips();
 		}, interval);
 	}

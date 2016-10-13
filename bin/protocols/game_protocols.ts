@@ -1,8 +1,3 @@
-// export interface Point {
-// 	x: number,
-// 	y: number
-// }
-
 export enum Type {
 	requestInitializeMap = 0,
 	initializeMap,
@@ -127,7 +122,7 @@ export class RequestMovingShips extends BaseProtocol {
 	countRatio: number;
 }
 
-export class ReadyTime extends BaseProtocol {
+export class ReadyTimeElapse extends BaseProtocol {
 	constructor(time: number) {
 		super(Type.readyTime);
 		this.time = time;
@@ -135,7 +130,7 @@ export class ReadyTime extends BaseProtocol {
 
 	time: number;
 }
-export class Time extends BaseProtocol {
+export class TimeElapse extends BaseProtocol {
 	constructor(time: number) {
 		super(Type.time);
 		this.time = time;

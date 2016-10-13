@@ -23,8 +23,8 @@ export default class GameManager extends events.EventEmitter {
 		gameOver: 'gameOver'
 	};
 
-	private _gameReadyTime = 5;
-	private _gameTime = 60*16;
+	private _gameReadyTime = 10;
+	private _gameTime = 10;
 
 	private _players: Player[] = [];
 	private _planets: Planet[] = [];
@@ -38,13 +38,23 @@ export default class GameManager extends events.EventEmitter {
 	 */
 	constructor() {
 		super();
-		this._initializeMap();
+		// this._initializeMap();
 		this._gameReadyTimeElapse();
 	}
 
-	private _initializeMap() {
-
+	dispose() {
+		this._planets.forEach(p => p.dispose());
+		
+		this._players = [];
+		this._planets = [];
+		this._movingShipsQueue = [];
+		this._mapLoader = null;
+		this._map = [];
 	}
+
+	// private _initializeMap() {
+
+	// }
 
 	private _getMovingShipsQueue(): GameProtocols.BaseMovingShips[] {
 		return this._movingShipsQueue.map(elem => {
@@ -245,7 +255,7 @@ export default class GameManager extends events.EventEmitter {
 			return;
 		}
 		this._gameReadyTime--;
-		this.emit(GameManager.events.gameReadyTimeChanged, new GameProtocols.ReadyTime(this._gameReadyTime));
+		this.emit(GameManager.events.gameReadyTimeChanged, new GameProtocols.ReadyTimeElapse(this._gameReadyTime));
 		setTimeout(() => {
 			this._gameReadyTimeElapse();
 		}, 1000);
@@ -257,7 +267,7 @@ export default class GameManager extends events.EventEmitter {
 			return;
 		}
 		this._gameTime--;
-		this.emit(GameManager.events.gameTimeChanged, new GameProtocols.Time(this._gameTime));
+		this.emit(GameManager.events.gameTimeChanged, new GameProtocols.TimeElapse(this._gameTime));
 		setTimeout(() => {
 			this._gameTimeElapse();
 		}, 1000);

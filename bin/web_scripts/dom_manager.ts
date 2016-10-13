@@ -39,25 +39,38 @@ export default class DomManager {
 
 	private _initializeModals() {
 		new Vue({
-			el: '#modal-gameon .modal-body',
+			el: '#modal-gameinit',
 			data: this._vueUIData,
 			methods: {
 				onSubmit: () => {
 					let protocol = new GameProtocols.RequestInitializeMap(this._vueUIData.name);
 					this._webSocketSend(protocol);
-					$('#modal-gameon').modal('hide');
+					$('#modal-gameinit').modal('hide');
+					$('#modal-gameready').modal({
+						backdrop: 'static',
+						keyboard: false
+					});
 				}
 			}
 		});
 
 		new Vue({
-			el: '#modal-gameover .modal-body',
+			el: '#modal-gameready',
+			data: this._vueUIData
+		});
+
+		new Vue({
+			el: '#modal-gameover',
 			data: this._vueUIData,
 			methods: {
 				onSubmit: () => {
 					let protocol = new GameProtocols.RequestInitializeMap(this._vueUIData.name);
 					this._webSocketSend(protocol);
 					$('#modal-gameover').modal('hide');
+					$('#modal-gameready').modal({
+						backdrop: 'static',
+						keyboard: false
+					});
 				}
 			}
 		});
@@ -82,15 +95,17 @@ export default class DomManager {
 		});
 	}
 
-	gameOn() {
-		let $gameonModal = $('#modal-gameon');
-
-		$gameonModal.modal({
+	gameInit() {
+		$('#modal-gameinit').modal({
 			backdrop: 'static',
 			keyboard: false
-		}).on('shown.bs.modal', function (e) {
-			$gameonModal.find('.form-control').focus();
+		}).on('shown.bs.modal', function () {
+			$('#modal-gameinit').find('.form-control').focus();
 		});
+	}
+
+	gameOn() {
+		$('#modal-gameready').modal('hide');
 	}
 
 	gameOver(protocol: GameProtocols.GameOver) {
@@ -99,8 +114,12 @@ export default class DomManager {
 		$('#modal-gameover').modal({
 			backdrop: 'static',
 			keyboard: false
-		}).on('shown.bs.modal', function (e) {
+		}).on('shown.bs.modal', function () {
 			$('#modal-gameover').find('.form-control').focus();
 		});
+	}
+
+	readyTimeElapse(protocol: GameProtocols.ReadyTimeElapse) {
+		this._vueUIData.gameReadyTime = protocol.time;
 	}
 }

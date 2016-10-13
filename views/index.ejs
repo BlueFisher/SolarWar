@@ -21,11 +21,12 @@
 		<input type="range" min="1" max="100" step="1" data-rangeslider v-model="range">
 	</div>
 
-	<div class="modal fade" id="modal-gameon">
+	<div class="modal fade" id="modal-gameinit">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-body">
-					<form v-on:submit.prevent="onSubmit" class="form-gameon">
+					<h3 class="text-center title">SolarWar</h3>
+					<form v-on:submit.prevent="onSubmit">
 						<div class="input-group">
 							<input v-model="name" class="form-control" type="text">
 							<span class="input-group-btn">
@@ -38,13 +39,23 @@
 		</div>
 	</div>
 
+	<div class="modal fade" id="modal-gameready">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-body">
+					<h3 class="text-center title">等待中 {{gameReadyTime}}</h3>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="modal fade" id="modal-gameover">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-body">
-					<h3 class="text-center">游戏结束</h3>
+					<h3 class="text-center title">游戏结束</h3>
 					<p>你的最高分是 {{historyMaxShipsCount}}</p>
-					<form v-on:submit.prevent="onSubmit" class="form-gameover">
+					<form v-on:submit.prevent="onSubmit">
 						<div class="input-group">
 							<input v-model="name" class="form-control" type="text">
 							<span class="input-group-btn">

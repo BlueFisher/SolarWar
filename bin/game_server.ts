@@ -61,11 +61,12 @@ class GameServer {
 				this._socketPlayerMap.forEach(pair => {
 					pair.playerId = null;
 				})
+				this._gameManager.dispose();
 				this._initializeGameManager();
 			}
 		});
 
-		this._gameManager.on(GameManager.events.gameReadyTimeChanged, (gameTimeProtocol: GameProtocols.ReadyTime) => {
+		this._gameManager.on(GameManager.events.gameReadyTimeChanged, (gameTimeProtocol: GameProtocols.ReadyTimeElapse) => {
 			let json = JSON.stringify(gameTimeProtocol);
 			this._socketPlayerMap.forEach(p => {
 				p.socket.send(json)
@@ -80,7 +81,7 @@ class GameServer {
 			})
 		});
 
-		this._gameManager.on(GameManager.events.gameTimeChanged, (gameTimeProtocol: GameProtocols.Time) => {
+		this._gameManager.on(GameManager.events.gameTimeChanged, (gameTimeProtocol: GameProtocols.TimeElapse) => {
 			let json = JSON.stringify(gameTimeProtocol);
 			this._socketPlayerMap.forEach(p => {
 				p.socket.send(json);

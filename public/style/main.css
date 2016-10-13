@@ -26,6 +26,11 @@ html, body {
 	z-index: 3;
 }
 
+.modal .title {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
 .modal.fade .modal-dialog {
 	-webkit-transition: none;
 	-o-transition: none;

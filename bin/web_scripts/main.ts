@@ -1,4 +1,5 @@
 import * as $ from 'jquery';
+import * as Vue from 'vue';
 import * as toastr from 'toastr';
 import * as HttpProtocols from '../protocols/http_protocols';
 import * as GameProtocols from '../protocols/game_protocols';
@@ -9,6 +10,11 @@ class Main {
 	private _stageManager: StageManager;
 	private _ws: WebSocket;
 
+	private _vueData: {
+		name: string,
+		historyMaxShipsCount: number
+	};
+
 	constructor() {
 		this._initializeUI();
 		let $countRatio = this._initializeCountRatio();
@@ -16,30 +22,45 @@ class Main {
 	}
 
 	private _initializeUI() {
-		let $gameonModal = $('#modal-gameon');
-		let $gameonModalInput = $gameonModal.find('.form-control');
-		$gameonModal.modal({
-			backdrop: 'static',
-			keyboard: false
-		});
-		$gameonModal.find('.form-gameon').submit(e => {
-			e.preventDefault();
-			let protocol = new GameProtocols.RequestInitializeMap($gameonModalInput.val());
-			this._ws.send(JSON.stringify(protocol));
-			$gameonModal.modal('hide');
-		})
+		this._vueData = {
+			name: 'Default Player',
+			historyMaxShipsCount: 0
+		};
 
-		let $gameoverModal = $('#modal-gameover');
-		let $gameoverModalInput = $gameoverModal.find('.form-control');
-		$gameoverModal.find('.form-gameover').submit(e => {
-			e.preventDefault();
-			let protocol = new GameProtocols.RequestInitializeMap($gameoverModalInput.val());
-			this._ws.send(JSON.stringify(protocol));
-			$gameoverModal.modal('hide');
+		new Vue({
+			el: '#modal-gameon .modal-body',
+			data: this._vueData,
+			methods: {
+				onSubmit: () => {
+					let protocol = new GameProtocols.RequestInitializeMap(this._vueData.name);
+					this._ws.send(JSON.stringify(protocol));
+					$('#modal-gameon').modal('hide');
+				}
+			}
+		});
+
+		new Vue({
+			el: '#modal-gameover .modal-body',
+			data: this._vueData,
+			methods: {
+				onSubmit: () => {
+					let protocol = new GameProtocols.RequestInitializeMap(this._vueData.name);
+					this._ws.send(JSON.stringify(protocol));
+					$('#modal-gameover').modal('hide');
+				}
+			}
 		});
 	}
 
-	private _initializeCountRatio(): JQuery {
+	private _initializeCountRatio(): { range: number } {
+		let vueData = {
+			range: 100
+		};
+		let vm = new Vue({
+			el: '#count-ratio',
+			data: vueData
+		});
+
 		let $countRatio = $('#count-ratio').find('input[type="range"]');
 		$countRatio.rangeslider({
 			polyfill: false
@@ -48,13 +69,14 @@ class Main {
 		let $rangesliderHandle = $('.rangeslider__handle');
 		$rangesliderHandle.text(`${$countRatio.val()}%`);
 		$(document).on('input', $countRatio, () => {
+			vm.$data.range = parseInt($countRatio.val());
 			$rangesliderHandle.text(`${$countRatio.val()}%`);
 		});
 
-		return $countRatio;
+		return vueData;
 	}
 
-	private _initializeStageManager($countRatio: JQuery) {
+	private _initializeStageManager(countRatioData: { range: number }) {
 		let $window = $(window);
 
 		let $gameStage = $('#game-stage');
@@ -69,7 +91,7 @@ class Main {
 			this._stageManager.redrawGameStage();
 		});
 
-		this._stageManager = new StageManager(gameStageCanvas, uiStageCanvas, $countRatio);
+		this._stageManager = new StageManager(gameStageCanvas, uiStageCanvas, countRatioData);
 		this._stageManager.on(StageManager.events.sendProtocol, (protocol: GameProtocols.BaseProtocol) => {
 			this._ws.send(JSON.stringify(protocol));
 		});
@@ -113,13 +135,15 @@ class Main {
 		$gameonModal.modal({
 			backdrop: 'static',
 			keyboard: false
+		}).on('shown.bs.modal', function (e) {
+			$gameonModal.find('.form-control').focus();
 		});
-		$gameonModal.find('.form-control').focus();
 	}
+
 	private _gameover(protocol: GameProtocols.GameOver) {
-		let $gameoverModal = $('#modal-gameover');
-		$gameoverModal.find('.history-max-ships-count').text(protocol.historyMaxShipsCount);
-		$gameoverModal.modal({
+		this._vueData.historyMaxShipsCount = protocol.historyMaxShipsCount;
+
+		$('#modal-gameover').modal({
 			backdrop: 'static',
 			keyboard: false
 		});

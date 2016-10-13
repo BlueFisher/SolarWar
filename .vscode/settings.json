@@ -8,8 +8,6 @@
 			"when": "$(basename).ts"
 		},
 		"**/*.map": true,
-		"typings/globals": true,
-		"typings/index.d.ts": true,
 		"node_modules": true
 	},
 	"explorerExcludedFiles.show": true

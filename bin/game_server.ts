@@ -1,14 +1,14 @@
 import * as WebSocketServer from 'ws';
 import GameManager from './game_models/game_manager';
 import * as GameProtocols from './protocols/game_protocols';
-
+interface SocketPlayerMap {
+	socket: WebSocketServer,
+	playerId: number
+}
 class GameServer {
 	private _gameManager: GameManager;
 	/**用户Socket键值对 */
-	private _socketPlayerMap: {
-		socket: WebSocketServer,
-		playerId: number
-	}[] = [];
+	private _socketPlayerMap: SocketPlayerMap[] = [];
 
 	/**
 	 * 发送和接收WebSocket信息，提交和处理后台游戏逻辑
@@ -27,21 +27,21 @@ class GameServer {
 			this._onWebSocketConnection(socket);
 		});
 
+		this._initializeGameManager();
+	}
+
+	private _initializeGameManager() {
 		this._gameManager = new GameManager();
 		this._gameManager.on(GameManager.events.planetChanged, (planetProtocol: GameProtocols.Planet) => {
 			let json = JSON.stringify(planetProtocol);
-			this._socketPlayerMap.forEach(p => {
-				if (p.socket != null) {
-					p.socket.send(json);
-				}
+			this._socketPlayerMap.filter(p => p.playerId != null).forEach(p => {
+				p.socket.send(json);
 			});
 		});
 		this._gameManager.on(GameManager.events.movingShipsQueueChanged, (movingShipsQueueProtocol: GameProtocols.MovingShipsQueue) => {
 			let json = JSON.stringify(movingShipsQueueProtocol);
-			this._socketPlayerMap.forEach(p => {
-				if (p.socket != null) {
-					p.socket.send(json);
-				}
+			this._socketPlayerMap.filter(p => p.playerId != null).forEach(p => {
+				p.socket.send(json);
 			});
 		});
 		this._gameManager.on(GameManager.events.gameOver, (playerId: number) => {
@@ -50,10 +50,34 @@ class GameServer {
 				socketPlayerMap = this._socketPlayerMap.filter(p => p.playerId == playerId);
 			}
 			socketPlayerMap.forEach(pair => {
-				let historyMaxShipsCount = this._gameManager.getPlayerHistoryMaxShipsCount(pair.playerId);
-				let json = JSON.stringify(new GameProtocols.GameOver(historyMaxShipsCount));
-				pair.socket.send(json);
+				if (pair.playerId != null) {
+					let historyMaxShipsCount = this._gameManager.getPlayerHistoryMaxShipsCount(pair.playerId);
+					let json = JSON.stringify(new GameProtocols.GameOver(historyMaxShipsCount));
+					pair.socket.send(json);
+				}
 			});
+
+			if (!playerId) {
+				this._socketPlayerMap.forEach(pair => {
+					pair.playerId = null;
+				})
+				this._initializeGameManager();
+			}
+		});
+
+		this._gameManager.on(GameManager.events.gameReadyTimeChanged, (gameTimeProtocol: GameProtocols.ReadyTime) => {
+			let json = JSON.stringify(gameTimeProtocol);
+			this._socketPlayerMap.forEach(p => {
+				p.socket.send(json)
+			});
+		});
+
+		this._gameManager.on(GameManager.events.gameStarted, () => {
+			let json = new GameProtocols.InitializeMap(this._gameManager.getMap(), null);
+			this._socketPlayerMap.filter(p => p.playerId != null).forEach(p => {
+				json.playerId = p.playerId;
+				p.socket.send(JSON.stringify(json));
+			})
 		});
 
 		this._gameManager.on(GameManager.events.gameTimeChanged, (gameTimeProtocol: GameProtocols.Time) => {
@@ -105,21 +129,23 @@ class GameServer {
 			let [id, newPlanetProtocols] = this._gameManager.addPlayer(protocol.name);
 			socketPlayer.playerId = id;
 
-			let responseProtocol = new GameProtocols.InitializeMap(this._gameManager.getMap(), id);
-			socket.send(JSON.stringify(responseProtocol));
+			if (this._gameManager.isGameStarted()) {
+				let json = new GameProtocols.InitializeMap(this._gameManager.getMap(), id);
+				socket.send(JSON.stringify(json));
 
-			let jsons = newPlanetProtocols.map(p => JSON.stringify(p));
-			this._socketPlayerMap.forEach(sp => {
-				if (sp.socket != socket) {
-					jsons.forEach(json => {
-						sp.socket.send(json);
-					});
-				}
-			});
+				let jsons = newPlanetProtocols.map(p => JSON.stringify(p));
+				this._socketPlayerMap.filter(p => p.playerId != null).forEach(sp => {
+					if (sp.socket != socket) {
+						jsons.forEach(json => {
+							sp.socket.send(json);
+						});
+					}
+				});
+			}
 		}
 	}
 	private _onMovePlayerShips(protocol: GameProtocols.RequestMovingShips, socket: WebSocketServer) {
-		let socketPlayer = this._socketPlayerMap.filter(p => p.socket == socket)[0];
+		let socketPlayer = this._socketPlayerMap.filter(p => p.playerId != null).filter(p => p.socket == socket)[0];
 		if (socketPlayer != undefined) {
 			this._gameManager.movePlayerShips(socketPlayer.playerId, protocol.planetFromId, protocol.planetToId, protocol.countRatio);
 		}

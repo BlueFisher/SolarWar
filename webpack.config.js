@@ -10,6 +10,7 @@ module.exports = {
 		]
 	},
 	externals: {
+		vue: "window.Vue",
 		jquery: 'window.$',
 		toastr: 'window.toastr'
 	},

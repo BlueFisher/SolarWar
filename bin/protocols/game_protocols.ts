@@ -10,6 +10,7 @@ export enum Type {
 	planet,
 	startOccupyingPlanet,
 	movingShipsQueue,
+	readyTime,
 	time,
 	gameOver
 }
@@ -126,13 +127,21 @@ export class RequestMovingShips extends BaseProtocol {
 	countRatio: number;
 }
 
+export class ReadyTime extends BaseProtocol {
+	constructor(time: number) {
+		super(Type.readyTime);
+		this.time = time;
+	}
+
+	time: number;
+}
 export class Time extends BaseProtocol {
 	constructor(time: number) {
 		super(Type.time);
 		this.time = time;
 	}
 
-	time: number
+	time: number;
 }
 
 export class GameOver extends BaseProtocol {

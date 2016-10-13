@@ -4,7 +4,7 @@ import Player from './player';
 import Planet from './planet';
 import * as GameProtocols from '../protocols/game_protocols';
 
-interface _movingShipsQueue {
+interface MovingShipsQueue {
 	planetFrom: Planet,
 	planetTo: Planet,
 	player: Player,
@@ -15,16 +15,20 @@ interface _movingShipsQueue {
 
 export default class GameManager extends events.EventEmitter {
 	static events = {
+		gameReadyTimeChanged: 'gameReadyTimeChanged',
+		gameStarted: 'gameStarted',
 		planetChanged: 'planetChanged',
 		gameTimeChanged: 'gameTimeChanged',
 		movingShipsQueueChanged: 'movingShipsQueueChanged',
 		gameOver: 'gameOver'
 	};
 
-	private _gameTime = 60 * 16;
+	private _gameReadyTime = 5;
+	private _gameTime = 60*16;
+
 	private _players: Player[] = [];
 	private _planets: Planet[] = [];
-	private _movingShipsQueue: _movingShipsQueue[] = [];
+	private _movingShipsQueue: MovingShipsQueue[] = [];
 
 	private _mapLoader = new Map.MapLoader();
 	private _map: Map.Planet[] = [];
@@ -35,7 +39,7 @@ export default class GameManager extends events.EventEmitter {
 	constructor() {
 		super();
 		this._initializeMap();
-		this._gameTimeElapse();
+		this._gameReadyTimeElapse();
 	}
 
 	private _initializeMap() {
@@ -216,7 +220,7 @@ export default class GameManager extends events.EventEmitter {
 							return;
 						}
 					});
-					console.log(index);
+
 					if (index != undefined) {
 						this._players.splice(index, 1);
 					}
@@ -229,6 +233,22 @@ export default class GameManager extends events.EventEmitter {
 	private _movingShipsQueueChange() {
 		let protocol = new GameProtocols.MovingShipsQueue([], this._getMovingShipsQueue());
 		this.emit(GameManager.events.movingShipsQueueChanged, protocol);
+	}
+
+	isGameStarted(): boolean {
+		return this._gameReadyTime == 0;
+	}
+	private _gameReadyTimeElapse() {
+		if (this._gameReadyTime == 0) {
+			this._gameTimeElapse();
+			this.emit(GameManager.events.gameStarted);
+			return;
+		}
+		this._gameReadyTime--;
+		this.emit(GameManager.events.gameReadyTimeChanged, new GameProtocols.ReadyTime(this._gameReadyTime));
+		setTimeout(() => {
+			this._gameReadyTimeElapse();
+		}, 1000);
 	}
 
 	private _gameTimeElapse() {

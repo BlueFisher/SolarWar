@@ -1,17 +1,16 @@
-import * as $ from 'jquery';
 import * as GameProtocols from '../protocols/game_protocols';
 import GameStage from './game_stage';
 
 export default class UiStage {
 	private _gameStage: GameStage;
 	private _uiStageCanvas: HTMLCanvasElement;
-	private _$countRatio: JQuery;
+	private _countRatioData: { range: number };
 
 	private _sendProtocol: (protocol: GameProtocols.BaseProtocol) => void;
 
-	constructor(uiStageCanvas: HTMLCanvasElement, $countRatio: JQuery, gameStage: GameStage, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
+	constructor(uiStageCanvas: HTMLCanvasElement, countRatioData: { range: number }, gameStage: GameStage, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._uiStageCanvas = uiStageCanvas;
-		this._$countRatio = $countRatio;
+		this._countRatioData = countRatioData;
 		this._gameStage = gameStage;
 		this._sendProtocol = sendProtocol;
 
@@ -146,7 +145,7 @@ export default class UiStage {
 			$canvas.css({ cursor: 'default' });
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {
-				let protocol = new GameProtocols.RequestMovingShips(mousedownPlanet.id, mouseupPlanet.id, this._$countRatio.val() / 100);
+				let protocol = new GameProtocols.RequestMovingShips(mousedownPlanet.id, mouseupPlanet.id, this._countRatioData.range / 100);
 				this._sendProtocol(protocol);
 			}
 

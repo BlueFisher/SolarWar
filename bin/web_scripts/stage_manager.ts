@@ -19,11 +19,11 @@ export default class StageManager extends events.EventEmitter {
 	 * @param $countRatio 移动星球数量比例的元素
 	 * @param sendProtocol 发送协议的回调函数
 	 */
-	constructor(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement, $countRatio: JQuery) {
+	constructor(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement, countRatioData: { range: number }) {
 		super();
 
 		this._gameStage = new GameStage(gameStageCanvas);
-		this._uiStage = new UiStage(uiStageCanvas, $countRatio, this._gameStage, (protocol) => {
+		this._uiStage = new UiStage(uiStageCanvas,countRatioData, this._gameStage, (protocol) => {
 			this.emit(StageManager.events.sendProtocol, protocol);
 		});
 	}

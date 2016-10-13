@@ -1,3 +1,8 @@
+export enum PlanetType {
+	None = 0,
+	Occupied
+}
+
 export enum Type {
 	requestInitializeMap = 0,
 	initializeMap,

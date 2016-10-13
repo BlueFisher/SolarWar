@@ -1,7 +1,5 @@
-export enum PlanetType {
-	None = 0,
-	Occupied
-}
+import { PlanetType } from '../protocols/game_protocols';
+import Config from '../protocols/config';
 
 export interface Planet {
 	type: PlanetType,
@@ -13,20 +11,9 @@ export interface Planet {
 }
 
 export class MapLoader {
-	private _areaWidth = 275;
-	private _padding = (Math.sqrt(2) - 1) * this._areaWidth / 2;
-	private _planetsTypeSizes = [
-		{
-			size: 25,
-			type: PlanetType.None
-		}, {
-			size: 50,
-			type: PlanetType.Occupied
-		}, {
-			size: 75,
-			type: PlanetType.None
-		}
-	];
+	private _areaWidth = Config.map.areaWidth;
+	private _padding = Config.map.padding;
+	private _planetsTypeSizes = Config.map.planetsTypeSizes.slice();
 
 	private _circleIndex = 0;
 	private _areaIndexes: number[] = [];

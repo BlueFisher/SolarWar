@@ -24,10 +24,5 @@
     "source-map-loader": "^0.1.5",
     "typescript": "^2.0.3",
     "webpack": "^1.13.2"
-  },
-  "config": {
-    "httpPort": 80,
-    "webSocketPort": 8080,
-    "ip": "localhost"
   }
 }

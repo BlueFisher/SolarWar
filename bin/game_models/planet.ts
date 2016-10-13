@@ -1,3 +1,4 @@
+import Config from '../protocols/config';
 import Player from './player';
 import * as GameProtocols from '../protocols/game_protocols'
 
@@ -163,7 +164,7 @@ class Planet {
 	}
 
 	private _getOccupyingInterval() {
-		return (3 * Math.pow(this.size / this.allShips[0].count, 0.25) + 2) * 1000 / 100;
+		return Config.algorithm.getOccupyingInterval(this.size, this.allShips[0].count);
 	}
 
 	private _startOccupying() {
@@ -259,15 +260,14 @@ class Planet {
 
 			this._changePlanet(changedPlayers);
 			this._combat();
-		}, 50);
+		}, Config.algorithm.getCombatInterval());
 	}
 
 	// Building
 	private _startbuildingShips() {
-		let interval = (-0.005 * this.size + 1) * 1000;
 		this._buildingShipsTimer = setInterval(() => {
 			this._buildShips();
-		}, interval);
+		}, Config.algorithm.getBuildingShipsInterval(this.size));
 	}
 
 	private _buildShips() {

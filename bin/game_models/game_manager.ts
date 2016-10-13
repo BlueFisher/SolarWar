@@ -1,4 +1,5 @@
 import * as events from 'events';
+import Config from '../protocols/config';
 import * as Map from './map_loader';
 import Player from './player';
 import Planet from './planet';
@@ -23,15 +24,14 @@ export default class GameManager extends events.EventEmitter {
 		gameOver: 'gameOver'
 	};
 
-	private _gameReadyTime = 10;
-	private _gameTime = 10;
+	private _gameReadyTime = Config.gameReadyTime;
+	private _gameTime = Config.gameTime;
 
 	private _players: Player[] = [];
 	private _planets: Planet[] = [];
 	private _movingShipsQueue: MovingShipsQueue[] = [];
 
 	private _mapLoader = new Map.MapLoader();
-	private _map: Map.Planet[] = [];
 
 	/**
 	 * 游戏逻辑管理
@@ -44,12 +44,11 @@ export default class GameManager extends events.EventEmitter {
 
 	dispose() {
 		this._planets.forEach(p => p.dispose());
-		
+
 		this._players = [];
 		this._planets = [];
 		this._movingShipsQueue = [];
 		this._mapLoader = null;
-		this._map = [];
 	}
 
 	// private _initializeMap() {
@@ -96,7 +95,7 @@ export default class GameManager extends events.EventEmitter {
 			mapPlanets.forEach(p => {
 				newPlanets.push(new Planet(this._getNextPlanetId(), p.size, p.position, (planet) => {
 					this._planetChanged(planet);
-				}, p.type == Map.PlanetType.Occupied ? player : null));
+				}, p.type == GameProtocols.PlanetType.Occupied ? player : null));
 			});
 		}
 
@@ -186,15 +185,7 @@ export default class GameManager extends events.EventEmitter {
 
 			for (let i in this._movingShipsQueue) {
 				let movingShip = this._movingShipsQueue[i];
-
-				let deltaDistance: number;
-				if (movingShip.count < 9) {
-					deltaDistance = 2.5
-				} else if (movingShip.count > 9) {
-					deltaDistance = 1.25;
-				} else {
-					deltaDistance = -75 / 14 / Math.sqrt(movingShip.count) + 85 / 28;
-				}
+				let deltaDistance = Config.algorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
 
 				// 如果已到目的星球，则调用shipsArrived，并从飞行队列中移除
 				if ((movingShip.distanceLeft -= deltaDistance) <= 0) {
@@ -205,7 +196,7 @@ export default class GameManager extends events.EventEmitter {
 
 			this._movingShipsQueueChange();
 			this._moveShips();
-		}, 16);
+		}, Config.algorithm.getMovingShipsInterval());
 	}
 
 	private _planetChanged(planetProtocol: GameProtocols.Planet) {

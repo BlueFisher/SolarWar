@@ -59,7 +59,7 @@ export default class UiStage {
 			ctx.stroke();
 			ctx.restore();
 		};
-		let mousedownPoint: GameProtocols.Point;
+		let mousedownPoint: Point;
 		let mousedownPlanet: GameProtocols.BasePlanet;
 		let mouseupPlanet: GameProtocols.BasePlanet;
 		let isMouseDown = false;

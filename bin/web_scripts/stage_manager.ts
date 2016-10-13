@@ -1,14 +1,19 @@
-import * as events from 'events';
 import * as GameProtocols from '../protocols/game_protocols';
+import DomManager from './dom_manager';
 import GameStage from './game_stage';
 import UiStage from './ui_stage';
 
-export default class StageManager extends events.EventEmitter {
-	static events = {
-		sendProtocol: 'sendProtocol',
-		gameOver: 'gameOvers',
-	};
+export default class StageManager {
+	private _vueUiData: VueUIData = {
+		range: 100,
+		gameTime: null,
+		gameReadyTime: null,
 
+		name: 'Default Player',
+		historyMaxShipsCount: 0
+	}
+
+	private _domManager: DomManager;
 	private _gameStage: GameStage;
 	private _uiStage: UiStage;
 
@@ -19,26 +24,56 @@ export default class StageManager extends events.EventEmitter {
 	 * @param $countRatio 移动星球数量比例的元素
 	 * @param sendProtocol 发送协议的回调函数
 	 */
-	constructor(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement, countRatioData: { range: number }) {
-		super();
+	constructor() {
+		this._domManager = new DomManager(this._vueUiData, (p) => {
+			this._webSocketSend(p);
+		});
+		let [gameStageCanvas, uiStageCanvas] = this._domManager.getCanvas();
 
 		this._gameStage = new GameStage(gameStageCanvas);
-		this._uiStage = new UiStage(uiStageCanvas,countRatioData, this._gameStage, (protocol) => {
-			this.emit(StageManager.events.sendProtocol, protocol);
+		this._uiStage = new UiStage(uiStageCanvas, this._vueUiData, this._gameStage, (p) => {
+			this._webSocketSend(p);
 		});
+
+		$(window).on('resize', () => {
+			this._gameStage.redrawStage();
+		});
+
+		this._connect(gameStageCanvas.getAttribute('data-ip'), parseInt(gameStageCanvas.getAttribute('data-port')));
 	}
 
-	redrawGameStage() {
-		this._gameStage.redrawStage();
+	private _ws: WebSocket;
+	private _connect(ip: string, port: number) {
+		this._ws = new WebSocket(`ws://${ip}:${port}`);
+		toastr.info('正在连接服务器...');
+
+		this._ws.onopen = () => {
+			toastr.clear();
+			toastr.success('服务器连接成功');
+			this._domManager.gameOn();
+		};
+
+		this._ws.onmessage = (e) => {
+			let protocol = JSON.parse(e.data);
+			this._protocolReceived(protocol);
+		};
+
+		this._ws.onclose = this._ws.onerror = () => {
+			toastr.error('服务器断开连接');
+		};
 	}
 
-	protocolReceived(protocol: GameProtocols.BaseProtocol) {
+	private _webSocketSend(protocol: GameProtocols.BaseProtocol) {
+		this._ws.send(JSON.stringify(protocol));
+	}
+
+	private _protocolReceived(protocol: GameProtocols.BaseProtocol) {
 		switch (protocol.type) {
 			case GameProtocols.Type.initializeMap:
 				this._gameStage.initializeMap(<GameProtocols.InitializeMap>protocol);
 				break;
 			case GameProtocols.Type.gameOver:
-				this._onGameOver(<GameProtocols.GameOver>protocol);
+				this._domManager.gameOver(<GameProtocols.GameOver>protocol);
 				break;
 
 			case GameProtocols.Type.movingShipsQueue:
@@ -53,9 +88,5 @@ export default class StageManager extends events.EventEmitter {
 				this._gameStage.startOccupyingPlanet(startOccupyingProtocol);
 				break;
 		}
-	}
-
-	private _onGameOver(protocol: GameProtocols.GameOver) {
-		this.emit(StageManager.events.gameOver, protocol);
 	}
 }

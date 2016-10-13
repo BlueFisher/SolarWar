@@ -138,7 +138,6 @@ export default class PlanetsManager {
 			if (occupyingPlayerId == planet.occupyingStatus.playerId) {
 				if ((planet.occupyingStatus.percent += smooth) >= 100) {
 					planet.occupiedPlayerId = occupyingPlayerId;
-					console.log(1);
 
 					this._clearOccupyingInterval(planet.id);
 				}

@@ -1,7 +1,7 @@
-export interface Point {
-	x: number,
-	y: number
-}
+// export interface Point {
+// 	x: number,
+// 	y: number
+// }
 
 export enum Type {
 	requestInitializeMap = 0,

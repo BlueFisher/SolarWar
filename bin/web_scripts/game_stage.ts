@@ -20,10 +20,10 @@ export default class GameStage {
 		});
 	}
 
-	private _getMapMainRange(planets: GameProtocols.BasePlanet[]): [GameProtocols.Point, GameProtocols.Point] {
+	private _getMapMainRange(planets: GameProtocols.BasePlanet[]): [Point, Point] {
 		let range = 200;
-		let minPosition: GameProtocols.Point = { x: Infinity, y: Infinity };
-		let maxPosition: GameProtocols.Point = { x: -Infinity, y: -Infinity };
+		let minPosition: Point = { x: Infinity, y: Infinity };
+		let maxPosition: Point = { x: -Infinity, y: -Infinity };
 		if (planets.length == 0 || this._currPlayerId == null) {
 			return [{ x: 10, y: 10 }, { x: 800, y: 800 }];
 		}
@@ -49,7 +49,7 @@ export default class GameStage {
 
 		return [minPosition, maxPosition];
 	}
-	private _setStageTransformation(minPosition: GameProtocols.Point, maxPosition: GameProtocols.Point) {
+	private _setStageTransformation(minPosition: Point, maxPosition: Point) {
 		let scaling = Math.sqrt((this._gameStageCanvas.width * this._gameStageCanvas.height) / ((maxPosition.x - minPosition.x) * (maxPosition.y - minPosition.y)));
 		let horizontalMoving = -(minPosition.x * scaling - (this._gameStageCanvas.width - (maxPosition.x - minPosition.x) * scaling) / 2);
 		let verticalMoving = -(minPosition.y * scaling - (this._gameStageCanvas.height - (maxPosition.y - minPosition.y) * scaling) / 2);

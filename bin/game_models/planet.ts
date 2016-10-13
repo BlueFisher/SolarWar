@@ -18,7 +18,7 @@ class Planet {
 
 	id: number;
 	size: number;
-	position: GameProtocols.Point;
+	position: Point;
 
 	allShips: ShipsOnThePlanet[] = [];
 	occupiedPlayer: Player;
@@ -33,7 +33,7 @@ class Planet {
 	 * @param planetChanged 星球状态改变回调函数
 	 * @param occupiedPlayer 星球初始化时就占领的玩家
 	 */
-	constructor(id: number, size: number, position: GameProtocols.Point,
+	constructor(id: number, size: number, position: Point,
 		planetChanged: (planet: GameProtocols.Planet) => void,
 		occupiedPlayer: Player = null) {
 		this.id = id;

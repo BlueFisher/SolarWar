@@ -1,5 +1,3 @@
-import {Point} from '../protocols/game_protocols';
-
 export enum PlanetType {
 	None = 0,
 	Occupied

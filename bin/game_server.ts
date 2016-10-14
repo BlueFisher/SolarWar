@@ -151,11 +151,6 @@ class GameServer {
 			this._gameManager.movePlayerShips(socketPlayer.playerId, protocol.planetFromId, protocol.planetToId, protocol.countRatio);
 		}
 	}
-
-	/**获取游戏逻辑管理实例 */
-	getGameManager(): GameManager {
-		return this._gameManager;
-	}
 }
 
 export default GameServer;

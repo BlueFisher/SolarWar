@@ -7,7 +7,7 @@ import * as HttpProtocols from './protocols/http_protocols';
 import GameServer from './game_server';
 
 class Server {
-	private _gameServer: GameServer;
+	private _gameServers: GameServer[] = [];
 
 	/**
 	 * 主后台服务，管理HTTP服务与游戏服务
@@ -16,18 +16,21 @@ class Server {
 	 * @param webSocketPort WebSocket端口号
 	 * @param callback 监听成功回调函数 isHttp: 是否为HTTP服务器, port: 端口号
 	 */
-	constructor(httpPort: number, webSocketPort: number, callback: (isHttp: boolean, port: number) => void) {
+	constructor(callback: (isHttp: boolean, port: number) => void) {
 		let app = express();
 
 		this._configExpress(app);
 
-		app.listen(httpPort, () => {
-			callback(true, httpPort);
+		app.listen(Config.httpPort, () => {
+			callback(true, Config.httpPort);
 		});
 
-		this._gameServer = new GameServer(webSocketPort, () => {
-			callback(false, webSocketPort);
+		Config.webSocketServers.forEach(s => {
+			this._gameServers.push(new GameServer(s.port, () => {
+				callback(false, s.port);
+			}));
 		});
+
 	}
 
 	private _configExpress(app: express.Express) {
@@ -45,18 +48,13 @@ class Server {
 		app.set('view engine', 'ejs');
 
 		app.get('/', (req, res) => {
-			res.render('index', {
-				ip: Config.ip,
-				port: Config.webSocketPort
-			});
+			res.render('index');
 		});
-		
-		app.use('/public', express.static('public'));
-	}
+		app.get('/websockets', (req, res) => {
+			res.json(Config.webSocketServers);
+		});
 
-	/**获取游戏服务器实例 */
-	getGameServer(): GameServer {
-		return this._gameServer;
+		app.use('/public', express.static('public'));
 	}
 }
 

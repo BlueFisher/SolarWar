@@ -3,14 +3,15 @@ import * as Vue from 'vue';
 import * as toastr from 'toastr';
 import * as HttpProtocols from '../protocols/http_protocols';
 import * as GameProtocols from '../protocols/game_protocols';
+import * as VueData from '../protocols/vue_data';
 
 export default class DomManager {
-	private _vueUIData: VueUIData;
-	private _webSocketSend: (protocol: GameProtocols.BaseProtocol) => void;
+	private _vueIndex: VueData.Index;
+	private _connectWebSocket: () => void;
 
-	constructor(vueUIData: VueUIData, webSocketSend: (protocol: GameProtocols.BaseProtocol) => void) {
-		this._vueUIData = vueUIData;
-		this._webSocketSend = webSocketSend;
+	constructor(vueIndex: VueData.Index, connectWebSocket: () => void) {
+		this._vueIndex = vueIndex;
+		this._connectWebSocket = connectWebSocket;
 
 		this._initializeCanvas();
 		this._initializeModals();
@@ -40,11 +41,10 @@ export default class DomManager {
 	private _initializeModals() {
 		new Vue({
 			el: '#modal-gameinit',
-			data: this._vueUIData,
+			data: this._vueIndex,
 			methods: {
 				onSubmit: () => {
-					let protocol = new GameProtocols.RequestInitializeMap(this._vueUIData.name);
-					this._webSocketSend(protocol);
+					this._connectWebSocket();
 					$('#modal-gameinit').modal('hide');
 					$('#modal-gameready').modal({
 						backdrop: 'static',
@@ -56,16 +56,15 @@ export default class DomManager {
 
 		new Vue({
 			el: '#modal-gameready',
-			data: this._vueUIData
+			data: this._vueIndex
 		});
 
 		new Vue({
 			el: '#modal-gameover',
-			data: this._vueUIData,
+			data: this._vueIndex,
 			methods: {
 				onSubmit: () => {
-					let protocol = new GameProtocols.RequestInitializeMap(this._vueUIData.name);
-					this._webSocketSend(protocol);
+					this._connectWebSocket();
 					$('#modal-gameover').modal('hide');
 					$('#modal-gameready').modal({
 						backdrop: 'static',
@@ -79,7 +78,7 @@ export default class DomManager {
 	private _initializeCountRatio() {
 		let vm = new Vue({
 			el: '#count-ratio',
-			data: this._vueUIData
+			data: this._vueIndex
 		});
 
 		let $countRatio = $('#count-ratio').find('input[type="range"]');
@@ -90,7 +89,7 @@ export default class DomManager {
 		let $rangesliderHandle = $('.rangeslider__handle');
 		$rangesliderHandle.text(`${$countRatio.val()}%`);
 		$(document).on('input', $countRatio, () => {
-			this._vueUIData.range = parseInt($countRatio.val());
+			this._vueIndex.range = parseInt($countRatio.val());
 			$rangesliderHandle.text(`${$countRatio.val()}%`);
 		});
 	}
@@ -109,7 +108,7 @@ export default class DomManager {
 	}
 
 	gameOver(protocol: GameProtocols.GameOver) {
-		this._vueUIData.historyMaxShipsCount = protocol.historyMaxShipsCount;
+		this._vueIndex.historyMaxShipsCount = protocol.historyMaxShipsCount;
 
 		$('#modal-gameover').modal({
 			backdrop: 'static',
@@ -120,6 +119,6 @@ export default class DomManager {
 	}
 
 	readyTimeElapse(protocol: GameProtocols.ReadyTimeElapse) {
-		this._vueUIData.gameReadyTime = protocol.time;
+		this._vueIndex.gameReadyTime = protocol.time;
 	}
 }

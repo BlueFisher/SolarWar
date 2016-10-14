@@ -1,16 +1,21 @@
+import * as HttpProtocols from '../protocols/http_protocols';
 import * as GameProtocols from '../protocols/game_protocols';
+import * as VueData from '../protocols/vue_data';
 import DomManager from './dom_manager';
 import GameStage from './game_stage';
 import UiStage from './ui_stage';
 
 class Main {
-	private _vueUiData: VueUIData = {
+	private _vueIndex: VueData.Index = {
 		range: 100,
 		gameTime: null,
 		gameReadyTime: null,
 
 		name: 'Default Player',
-		historyMaxShipsCount: 0
+		historyMaxShipsCount: 0,
+
+		activeWebSocket: null,
+		webSockets: []
 	}
 
 	private _domManager: DomManager;
@@ -18,13 +23,13 @@ class Main {
 	private _uiStage: UiStage;
 
 	constructor() {
-		this._domManager = new DomManager(this._vueUiData, (p) => {
-			this._webSocketSend(p);
+		this._domManager = new DomManager(this._vueIndex, () => {
+			this._connectWebSocket();
 		});
 		let [gameStageCanvas, uiStageCanvas] = this._domManager.getCanvas();
 
 		this._gameStage = new GameStage(gameStageCanvas);
-		this._uiStage = new UiStage(uiStageCanvas, this._vueUiData, this._gameStage, (p) => {
+		this._uiStage = new UiStage(uiStageCanvas, this._vueIndex, this._gameStage, (p) => {
 			this._webSocketSend(p);
 		});
 
@@ -32,18 +37,33 @@ class Main {
 			this._gameStage.redrawStage();
 		});
 
-		this._connect(gameStageCanvas.getAttribute('data-ip'), parseInt(gameStageCanvas.getAttribute('data-port')));
+		$.getJSON('/websockets').then((data: HttpProtocols.WebSocketResProtocol[]) => {
+			this._vueIndex.webSockets = data;
+			this._vueIndex.activeWebSocket = this._vueIndex.webSockets[0];
+			this._domManager.gameInit();
+		});
 	}
 
-	private _ws: WebSocket;
-	private _connect(ip: string, port: number) {
-		this._ws = new WebSocket(`ws://${ip}:${port}`);
+	private _ws: WebSocket = null;
+	private _connectWebSocket() {
+		let url = `ws://${this._vueIndex.activeWebSocket.ip}:${this._vueIndex.activeWebSocket.port}/`;
+		if (this._ws == null) {
+			this._connect(url);
+		} else if (this._ws.url != url) {
+			this._ws.close();
+			this._connect(url);
+		} else {
+			this._webSocketSend(new GameProtocols.RequestInitializeMap(this._vueIndex.name));
+		}
+	}
+	private _connect(url: string) {
+		this._ws = new WebSocket(url);
 		toastr.info('正在连接服务器...');
 
 		this._ws.onopen = () => {
 			toastr.clear();
 			toastr.success('服务器连接成功');
-			this._domManager.gameInit();
+			this._webSocketSend(new GameProtocols.RequestInitializeMap(this._vueIndex.name));
 		};
 
 		this._ws.onmessage = (e) => {

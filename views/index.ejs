@@ -8,13 +8,14 @@
 	<!--<link href="//cdn.bootcss.com/rangeslider.js/2.2.1/rangeslider.min.css" rel="stylesheet">-->
 	<link rel="stylesheet" href="/public/style/toastr.min.css">
 	<!--<link href="//cdn.bootcss.com/toastr.js/latest/css/toastr.min.css" rel="stylesheet">-->
+	<link rel="stylesheet" href="/public/style/font-awesome.min.css">
 	<link rel="stylesheet" href="/public/style/bootstrap.min.css">
 	<!--<link href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">-->
 	<link rel="stylesheet" href="/public/style/main.css">
 </head>
 
 <body>
-	<canvas id="game-stage" data-ip="<%=ip%>" data-port="<%=port%>"></canvas>
+	<canvas id="game-stage"></canvas>
 	<canvas id="ui-stage"></canvas>
 
 	<div id="count-ratio">
@@ -27,6 +28,13 @@
 				<div class="modal-body">
 					<h3 class="text-center title">SolarWar</h3>
 					<form v-on:submit.prevent="onSubmit">
+						<div class="list-group">
+							<a v-for="webSocket in webSockets" v-bind:class="{active: webSocket == activeWebSocket}" v-on:click="activeWebSocket = webSocket"
+								href="javascript:;" class="list-group-item">
+								{{webSocket.ip}}:{{webSocket.port}}
+								<span v-show="webSocket == activeWebSocket" class="pull-right"><i class="fa fa-check-circle"></i></span>
+							</a>
+						</div>
 						<div class="input-group">
 							<input v-model="name" class="form-control" type="text">
 							<span class="input-group-btn">
@@ -56,6 +64,13 @@
 					<h3 class="text-center title">游戏结束</h3>
 					<p>你的最高分是 {{historyMaxShipsCount}}</p>
 					<form v-on:submit.prevent="onSubmit">
+						<div class="list-group">
+							<a v-for="webSocket in webSockets" v-bind:class="{active: webSocket == activeWebSocket}" v-on:click="activeWebSocket = webSocket"
+								href="javascript:;" class="list-group-item">
+								{{webSocket.ip}}:{{webSocket.port}}
+								<span v-show="webSocket == activeWebSocket" class="pull-right"><i class="fa fa-check-circle"></i></span>
+							</a>
+						</div>
 						<div class="input-group">
 							<input v-model="name" class="form-control" type="text">
 							<span class="input-group-btn">

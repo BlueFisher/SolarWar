@@ -2,8 +2,10 @@ import { PlanetType } from '../protocols/game_protocols';
 
 export default {
 	httpPort: 80,
-	webSocketPort: 8080,
-	ip: 'localhost',
+	webSocketServers: [
+		{ ip: 'localhost', port: 8080 },
+		{ ip: 'localhost', port: 8081 }
+	],
 
 	gameReadyTime: 10,
 	gameTime: 10,

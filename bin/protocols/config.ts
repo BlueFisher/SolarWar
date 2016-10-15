@@ -3,22 +3,21 @@ import { PlanetType } from '../protocols/game_protocols';
 export default {
 	httpPort: 80,
 	webSocketServers: [
-		{ ip: 'localhost', port: 8080 },
-		{ ip: 'localhost', port: 8081 }
+		{ ip: 'localhost', port: 8080 }
 	],
 
 	gameReadyTime: 10,
-	gameTime: 10,
+	gameTime: 60 * 16,
 
 	algorithm: {
 		getOccupyingInterval: function (size: number, count: number): number {
-			return (3 * Math.pow(size / count, 0.25) + 2) * 1000 / 100;
+			return (3 * Math.pow(size / count, 2) + 2) * 10;
 		},
 		getCombatInterval: function (): number {
 			return 50;
 		},
 		getBuildingShipsInterval: function (size: number): number {
-			return (-0.005 * this.size + 1) * 1000;
+			return (-0.005 * size + 1) * 1000;
 		},
 		getMovingShipsInterval: function (): number {
 			return 16;

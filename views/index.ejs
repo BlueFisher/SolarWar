@@ -9,6 +9,7 @@
 	<link rel="stylesheet" href="/public/style/toastr.min.css">
 	<!--<link href="//cdn.bootcss.com/toastr.js/latest/css/toastr.min.css" rel="stylesheet">-->
 	<link rel="stylesheet" href="/public/style/font-awesome.min.css">
+	<!--<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">-->
 	<link rel="stylesheet" href="/public/style/bootstrap.min.css">
 	<!--<link href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">-->
 	<link rel="stylesheet" href="/public/style/main.css">
@@ -29,9 +30,9 @@
 					<h3 class="text-center title">SolarWar</h3>
 					<form v-on:submit.prevent="onSubmit">
 						<div class="list-group">
-							<a v-for="webSocket in webSockets" v-bind:class="{active: webSocket == activeWebSocket}" v-on:click="activeWebSocket = webSocket"
+							<a v-for="(webSocket, index) in webSockets" v-bind:class="{active: webSocket == activeWebSocket}" v-on:click="activeWebSocket = webSocket"
 								href="javascript:;" class="list-group-item">
-								{{webSocket.ip}}:{{webSocket.port}}
+								{{index+1}}. {{webSocket.ip}}:{{webSocket.port}}
 								<span v-show="webSocket == activeWebSocket" class="pull-right"><i class="fa fa-check-circle"></i></span>
 							</a>
 						</div>

@@ -13,9 +13,10 @@ interface occupyingStatus {
 	// 该占领比率属于的玩家
 	player: Player
 }
+type funcPlanetChanged = (planet: GameProtocols.Planet) => void;
 
 class Planet {
-	private _planetChanged: (planet: GameProtocols.Planet) => void;
+	private _planetChanged: funcPlanetChanged;
 
 	id: number;
 	size: number;
@@ -37,7 +38,7 @@ class Planet {
 	 * @param occupiedPlayer 星球初始化时就占领的玩家
 	 */
 	constructor(id: number, size: number, position: Point,
-		planetChanged: (planet: GameProtocols.Planet) => void,
+		planetChanged: funcPlanetChanged,
 		occupiedPlayer: Player = null) {
 		this.id = id;
 		this.size = size;

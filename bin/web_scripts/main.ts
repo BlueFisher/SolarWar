@@ -21,6 +21,8 @@ class Main {
 	private _domManager: DomManager;
 	private _gameStage: GameStage;
 	private _uiStage: UiStage;
+	
+	private _ws: WebSocket = null;
 
 	constructor() {
 		this._domManager = new DomManager(this._vueIndex, () => {
@@ -43,8 +45,7 @@ class Main {
 			this._domManager.gameInit();
 		});
 	}
-
-	private _ws: WebSocket = null;
+	
 	private _connectWebSocket() {
 		let url = `ws://${this._vueIndex.activeWebSocket.ip}:${this._vueIndex.activeWebSocket.port}/`;
 		if (this._ws == null) {

@@ -3,10 +3,7 @@ import Config from '../protocols/config';
 
 export interface Planet {
 	type: PlanetType,
-	position: {
-		x: number,
-		y: number
-	},
+	position: Point,
 	size: number
 }
 

@@ -1,14 +1,13 @@
 import Config from '../protocols/config';
-import Player from './player';
-import Planet from './planet';
 import * as GameProtocols from '../protocols/game_protocols';
 
-type funcEmit = (event: string, ...args: any[]) => void;
+import GameManagerEvents from './game_manager_events';
+
+import Player from './player';
+import Planet from './planet';
 
 export default class MovingShipsManager {
-	static events = {
-		movingShipsQueueChanged: 'movingShipsQueueChanged',
-	}
+	private _emit: FuncEmit;
 
 	private _movingShipsQueue: {
 		planetFrom: Planet,
@@ -18,9 +17,8 @@ export default class MovingShipsManager {
 		distance: number,
 		distanceLeft: number
 	}[] = [];
-	private _emit: funcEmit;
 
-	constructor(emit: funcEmit) {
+	constructor(emit: FuncEmit) {
 		this._emit = emit;
 	}
 
@@ -112,6 +110,6 @@ export default class MovingShipsManager {
 
 	private _movingShipsQueueChange() {
 		let protocol = new GameProtocols.MovingShipsQueue([], this.getMovingShipsQueue());
-		this._emit(MovingShipsManager.events.movingShipsQueueChanged, protocol);
+		this._emit(GameManagerEvents.sendToAllDirectly, protocol);
 	}
 }

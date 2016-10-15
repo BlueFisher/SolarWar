@@ -1,10 +1,13 @@
 import * as WebSocketServer from 'ws';
 import GameManager from './game_models/game_manager';
 import * as GameProtocols from './protocols/game_protocols';
+import GameManagerEvents from './game_models//game_manager_events';
+
 interface SocketPlayerMap {
 	socket: WebSocketServer,
 	playerId: number
 }
+
 class GameServer {
 	private _gameManager: GameManager;
 	/**用户Socket键值对 */
@@ -32,19 +35,22 @@ class GameServer {
 
 	private _initializeGameManager() {
 		this._gameManager = new GameManager();
-		this._gameManager.on(GameManager.events.planetChanged, (planetProtocol: GameProtocols.Planet) => {
-			let json = JSON.stringify(planetProtocol);
+		this._gameManager.on(GameManagerEvents.sendToAllDirectly, (protocol: any) => {
+			let json = JSON.stringify(protocol);
 			this._socketPlayerMap.filter(p => p.playerId != null).forEach(p => {
 				p.socket.send(json);
 			});
 		});
-		this._gameManager.on(GameManager.events.movingShipsQueueChanged, (movingShipsQueueProtocol: GameProtocols.MovingShipsQueue) => {
-			let json = JSON.stringify(movingShipsQueueProtocol);
+
+		this._gameManager.on(GameManagerEvents.gameStarted, () => {
+			let json = new GameProtocols.InitializeMap(this._gameManager.getMap(), null);
 			this._socketPlayerMap.filter(p => p.playerId != null).forEach(p => {
-				p.socket.send(json);
-			});
+				json.playerId = p.playerId;
+				p.socket.send(JSON.stringify(json));
+			})
 		});
-		this._gameManager.on(GameManager.events.gameOver, (playerId: number) => {
+
+		this._gameManager.on(GameManagerEvents.gameOver, (playerId: number) => {
 			let socketPlayerMap = this._socketPlayerMap;
 			if (playerId) {
 				socketPlayerMap = this._socketPlayerMap.filter(p => p.playerId == playerId);
@@ -57,6 +63,7 @@ class GameServer {
 				}
 			});
 
+			// 游戏整场回合结束，释放资源，重新启动
 			if (!playerId) {
 				this._socketPlayerMap.forEach(pair => {
 					pair.playerId = null;
@@ -64,29 +71,7 @@ class GameServer {
 				this._gameManager.dispose();
 				this._initializeGameManager();
 			}
-		});
-
-		this._gameManager.on(GameManager.events.gameReadyTimeChanged, (gameTimeProtocol: GameProtocols.ReadyTimeElapse) => {
-			let json = JSON.stringify(gameTimeProtocol);
-			this._socketPlayerMap.forEach(p => {
-				p.socket.send(json)
-			});
-		});
-
-		this._gameManager.on(GameManager.events.gameStarted, () => {
-			let json = new GameProtocols.InitializeMap(this._gameManager.getMap(), null);
-			this._socketPlayerMap.filter(p => p.playerId != null).forEach(p => {
-				json.playerId = p.playerId;
-				p.socket.send(JSON.stringify(json));
-			})
-		});
-
-		this._gameManager.on(GameManager.events.gameTimeChanged, (gameTimeProtocol: GameProtocols.TimeElapse) => {
-			let json = JSON.stringify(gameTimeProtocol);
-			this._socketPlayerMap.forEach(p => {
-				p.socket.send(json);
-			});
-		});
+		})
 	}
 
 	private _onWebSocketConnection(socket: WebSocketServer) {

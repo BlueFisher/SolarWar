@@ -1,4 +1,4 @@
-import * as HttpProtocols from './http_protocols';
+import * as HttpProtocols from '../protocols/http_protocols';
 
 export interface Index {
 	range: number,

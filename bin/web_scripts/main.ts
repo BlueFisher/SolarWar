@@ -1,6 +1,6 @@
 import * as HttpProtocols from '../protocols/http_protocols';
 import * as GameProtocols from '../protocols/game_protocols';
-import * as VueData from '../protocols/vue_data';
+import * as VueData from './vue_data';
 import DomManager from './dom_manager';
 import GameStage from './game_stage';
 import UiStage from './ui_stage';

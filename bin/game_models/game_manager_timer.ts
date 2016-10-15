@@ -1,22 +1,15 @@
 import Config from '../protocols/config';
 import * as GameProtocols from '../protocols/game_protocols';
 
-type funcEmit = (event: string, ...args: any[]) => void;
+import GameManagerEvents from './game_manager_events';
 
 export default class TimeManager {
-	static events = {
-		gameReadyTimeChanged: 'gameReadyTimeChanged',
-		gameStarted: 'gameStarted',
-		gameTimeChanged: 'gameTimeChanged',
-		gameOver: 'gameOver'
-	}
-
-	private _emit: funcEmit;
+	private _emit: FuncEmit;
 
 	private _gameReadyTime = Config.gameReadyTime;
 	private _gameTime = Config.gameTime;
 
-	constructor(emit: funcEmit) {
+	constructor(emit: FuncEmit) {
 		this._emit = emit;
 
 		this._gameReadyTimeElapse();
@@ -26,25 +19,30 @@ export default class TimeManager {
 		return this._gameReadyTime == 0;
 	}
 	private _gameReadyTimeElapse() {
-		if (this._gameReadyTime == 1) {
+
+		this._gameReadyTime--;
+		this._emit(GameManagerEvents.sendToAllDirectly, new GameProtocols.ReadyTimeElapse(this._gameReadyTime));
+
+		if (this._gameReadyTime == 0) {
 			this._gameTimeElapse();
-			this._emit(TimeManager.events.gameStarted);
+			this._emit(GameManagerEvents.gameStarted);
 			return;
 		}
-		this._gameReadyTime--;
-		this._emit(TimeManager.events.gameReadyTimeChanged, new GameProtocols.ReadyTimeElapse(this._gameReadyTime));
+
 		setTimeout(() => {
 			this._gameReadyTimeElapse();
 		}, 1000);
 	}
 
 	private _gameTimeElapse() {
-		if (this._gameTime == 1) {
-			this._emit(TimeManager.events.gameOver);
+		this._gameTime--;
+		this._emit(GameManagerEvents.sendToAllDirectly, new GameProtocols.TimeElapse(this._gameTime));
+
+		if (this._gameTime == 0) {
+			this._emit(GameManagerEvents.gameOver);
 			return;
 		}
-		this._gameTime--;
-		this._emit(TimeManager.events.gameTimeChanged, new GameProtocols.TimeElapse(this._gameTime));
+
 		setTimeout(() => {
 			this._gameTimeElapse();
 		}, 1000);

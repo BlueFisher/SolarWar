@@ -1,24 +1,17 @@
 import * as events from 'events';
+
 import Config from '../protocols/config';
+import * as GameProtocols from '../protocols/game_protocols';
+
+import GameManagerEvents from './game_manager_events';
 import * as Map from './map_loader';
 import MovingShipsManager from './game_manager_moving_ships';
 import TimeManager from './game_manager_timer';
 import Player from './player';
 import Planet from './planet';
-import * as GameProtocols from '../protocols/game_protocols';
+
 
 export default class GameManager extends events.EventEmitter {
-	static events = {
-		planetChanged: 'planetChanged',
-
-		movingShipsQueueChanged: MovingShipsManager.events.movingShipsQueueChanged,
-
-		gameReadyTimeChanged: TimeManager.events.gameReadyTimeChanged,
-		gameStarted: TimeManager.events.gameStarted,
-		gameTimeChanged: TimeManager.events.gameTimeChanged,
-		gameOver: TimeManager.events.gameOver
-	};
-
 	private _players: Player[] = [];
 	private _planets: Planet[] = [];
 	private _movingShipsManager: MovingShipsManager;
@@ -129,7 +122,7 @@ export default class GameManager extends events.EventEmitter {
 					}
 				});
 				if (isGameOver) {
-					this.emit(GameManager.events.gameOver, player.id);
+					this.emit(GameManagerEvents.gameOver, player.id);
 
 					let index: number;
 					this._players.forEach((p, i) => {
@@ -145,6 +138,6 @@ export default class GameManager extends events.EventEmitter {
 				}
 			}
 		});
-		this.emit(GameManager.events.planetChanged, planetProtocol);
+		this.emit(GameManagerEvents.sendToAllDirectly, planetProtocol);
 	}
 }

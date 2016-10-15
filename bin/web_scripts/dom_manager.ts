@@ -3,7 +3,7 @@ import * as Vue from 'vue';
 import * as toastr from 'toastr';
 import * as HttpProtocols from '../protocols/http_protocols';
 import * as GameProtocols from '../protocols/game_protocols';
-import * as VueData from '../protocols/vue_data';
+import * as VueData from './vue_data';
 
 export default class DomManager {
 	private _vueIndex: VueData.Index;

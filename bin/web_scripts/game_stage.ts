@@ -1,3 +1,4 @@
+import * as $ from 'jquery';
 import * as GameProtocols from '../protocols/game_protocols';
 import PlanetsManager from './game_stage_planets_manager';
 
@@ -17,6 +18,13 @@ export default class GameStage {
 		this._gameStageCanvas = gameStageCanvas;
 		this._planetsManager = new PlanetsManager(() => {
 			this.redrawStage();
+		});
+
+
+		this._gameStageCanvas.addEventListener('webkitTransitionEnd', () => {
+			this.redrawStage();
+			this._gameStageCanvas.style.transition = 'none';
+			this._gameStageCanvas.style.transform = `matrix(1,0,0,1,0,0)`;
 		});
 	}
 
@@ -71,6 +79,22 @@ export default class GameStage {
 		this._setStageTransformation(minPosition, maxPosition);
 
 		this.drawStage(map);
+	}
+
+	changeTransform(deltaScaling: number, deltaHorizontalMoving: number, deltaVerticalMoving: number) {
+		if (this.transformation.scaling + deltaScaling <= 0.5) {
+			return;
+		}
+
+		this._gameStageCanvas.style.transition = 'transform 0.5s';
+
+		this._gameStageCanvas.style.transform += `matrix(${1 + deltaScaling / this.transformation.scaling},0,0,${1 + deltaScaling / this.transformation.scaling},
+		${(deltaScaling / this.transformation.scaling) * (this._gameStageCanvas.width / 2 - this.transformation.horizontalMoving) + deltaHorizontalMoving},
+		${(deltaScaling / this.transformation.scaling) * (this._gameStageCanvas.height / 2 - this.transformation.verticalMoving) + deltaVerticalMoving}) `
+
+		this.transformation.scaling += deltaScaling;
+		this.transformation.horizontalMoving += deltaHorizontalMoving;
+		this.transformation.verticalMoving += deltaVerticalMoving;
 	}
 
 	changeMovingShipsQueue(protocol: GameProtocols.MovingShipsQueue) {

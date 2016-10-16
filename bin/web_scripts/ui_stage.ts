@@ -30,24 +30,25 @@ export default class UiStage {
 				x: e.pageX - $canvas.offset().left,
 				y: e.pageY - $canvas.offset().top
 			};
-			let deltaScaling = e.deltaY / e.deltaFactor * 5;
+			let deltaScaling = e.deltaY > 0 ? 0.5 : -0.5;
+			let deltaHorizontalMoving = 0;
+			let deltaVerticalMoving = 0;
 
 			let planet = this._getPointedPlanet(point.x, point.y);
 			if (planet) { // 如果滚轮滑动时在星球上则缩放中心为该星球中心
-				this._gameStage.transformation.horizontalMoving -= deltaScaling * planet.position.x;
-				this._gameStage.transformation.verticalMoving -= deltaScaling * planet.position.y;
+				deltaHorizontalMoving = -deltaScaling * planet.position.x;
+				deltaVerticalMoving = -deltaScaling * planet.position.y; 
 			} else {
-				this._gameStage.transformation.horizontalMoving -= deltaScaling * (point.x - this._gameStage.transformation.horizontalMoving) / this._gameStage.transformation.scaling;
-				this._gameStage.transformation.verticalMoving -= deltaScaling * (point.y - this._gameStage.transformation.verticalMoving) / this._gameStage.transformation.scaling;
+				deltaHorizontalMoving = -deltaScaling * (point.x - this._gameStage.transformation.horizontalMoving) / this._gameStage.transformation.scaling;
+				deltaVerticalMoving = -deltaScaling * (point.y - this._gameStage.transformation.verticalMoving) / this._gameStage.transformation.scaling;
 			}
-			this._gameStage.transformation.scaling += deltaScaling;
-
+			
+			this._gameStage.changeTransform(deltaScaling, deltaHorizontalMoving, deltaVerticalMoving);
 			// 触发鼠标移动事件来重绘星球激活效果
 			$canvas.trigger(new $.Event('mousemove', {
 				pageX: e.pageX,
 				pageY: e.pageY
 			}));
-			this._gameStage.redrawStage();
 		});
 
 		// 绘制星球激活特效

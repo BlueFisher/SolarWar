@@ -23,8 +23,6 @@ export default class GameStage {
 
 		this._gameStageCanvas.addEventListener('webkitTransitionEnd', () => {
 			this.redrawStage();
-			this._gameStageCanvas.style.transition = 'none';
-			this._gameStageCanvas.style.transform = `matrix(1,0,0,1,0,0)`;
 		});
 	}
 
@@ -113,6 +111,8 @@ export default class GameStage {
 
 	redrawStage() {
 		if (this._map) {
+			this._gameStageCanvas.style.transition = 'none';
+			this._gameStageCanvas.style.transform = `matrix(1,0,0,1,0,0)`;
 			this.drawStage(this._map);
 		}
 	}

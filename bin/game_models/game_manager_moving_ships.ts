@@ -40,15 +40,7 @@ export default class MovingShipsManager {
 		if (count > 0) {
 			// 计算连个星球之间距离，加入到飞行队列中，开始飞船移动计时器
 			let distance = this._getTwoPlanetsDistance(planetFrom, planetTo);
-			this._movingShipsQueue.push({
-				planetFrom: planetFrom,
-				planetTo: planetTo,
-				player: player,
-				count: count,
-				distance: distance,
-				distanceLeft: distance
-			});
-			this._startMovingShips();
+			this._startMovingShips(player, planetFrom, planetTo, count, distance);
 		}
 	}
 
@@ -69,29 +61,40 @@ export default class MovingShipsManager {
 		return Math.sqrt(Math.pow(planet1.position.x - planet2.position.x, 2) + Math.pow(planet1.position.y - planet2.position.y, 2)) - planet1.size / 2 - planet2.size / 2;
 	}
 
+	private _sendStartingMovingShips() {
+		let protocol = new GameProtocols.StartMovingShips([], this.getMovingShipsQueue());
+		this._emit(GameManagerEvents.sendToAllDirectly, protocol);
+	}
+
 	private _isMovingShips = false;
 
-	private _startMovingShips() {
+	private _canMoveShips(): boolean {
+		if (this._movingShipsQueue.length == 0) {
+			return false;
+		}
+		return true;
+	}
+	private _startMovingShips(player: Player, planetFrom: Planet, planetTo: Planet, count: number, distance: number) {
+		this._movingShipsQueue.push({
+			player: player,
+			planetFrom: planetFrom,
+			planetTo: planetTo,
+			count: count,
+			distance: distance,
+			distanceLeft: distance
+		});
+		this._sendStartingMovingShips();
+
 		if (!this._isMovingShips) {
 			this._moveShips();
 		}
 	}
 
 	private _moveShips() {
-		let canMoveShips = (): boolean => {
-			if (this._movingShipsQueue.length == 0) {
-				return this._isMovingShips = false;
-			}
-			return this._isMovingShips = true;
-		};
-
-		if (!canMoveShips())
+		if (!(this._isMovingShips = this._canMoveShips()))
 			return;
 
 		setTimeout(() => {
-			if (!canMoveShips())
-				return;
-
 			for (let i in this._movingShipsQueue) {
 				let movingShip = this._movingShipsQueue[i];
 				let deltaDistance = Config.algorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
@@ -100,16 +103,10 @@ export default class MovingShipsManager {
 				if ((movingShip.distanceLeft -= deltaDistance) <= 0) {
 					movingShip.planetTo.shipsArrived(movingShip.player, movingShip.count);
 					this._movingShipsQueue.splice(parseInt(i), 1);
+					this._sendStartingMovingShips();
 				}
 			}
-
-			this._movingShipsQueueChange();
 			this._moveShips();
 		}, Config.algorithm.getMovingShipsInterval());
-	}
-
-	private _movingShipsQueueChange() {
-		let protocol = new GameProtocols.MovingShipsQueue([], this.getMovingShipsQueue());
-		this._emit(GameManagerEvents.sendToAllDirectly, protocol);
 	}
 }

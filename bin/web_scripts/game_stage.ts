@@ -1,10 +1,12 @@
 import * as $ from 'jquery';
 import * as GameProtocols from '../protocols/game_protocols';
 import PlanetsManager from './game_stage_planets_manager';
+import MovingShipsManager from './game_stage_moving_ships_manager';
 
 export default class GameStage {
 	private _gameStageCanvas: HTMLCanvasElement;
 	private _planetsManager: PlanetsManager;
+	private _movingShipsManager: MovingShipsManager;
 	private _map: GameProtocols.Map;
 	private _currPlayerId: number;
 	transformation = {
@@ -19,7 +21,9 @@ export default class GameStage {
 		this._planetsManager = new PlanetsManager(() => {
 			this.redrawStage();
 		});
-
+		this._movingShipsManager = new MovingShipsManager(() => {
+			this.redrawStage();
+		});
 
 		this._gameStageCanvas.addEventListener('webkitTransitionEnd', () => {
 			this.redrawStage();
@@ -88,25 +92,43 @@ export default class GameStage {
 
 		this._gameStageCanvas.style.transform += `matrix(${1 + deltaScaling / this.transformation.scaling},0,0,${1 + deltaScaling / this.transformation.scaling},
 		${(deltaScaling / this.transformation.scaling) * (this._gameStageCanvas.width / 2 - this.transformation.horizontalMoving) + deltaHorizontalMoving},
-		${(deltaScaling / this.transformation.scaling) * (this._gameStageCanvas.height / 2 - this.transformation.verticalMoving) + deltaVerticalMoving}) `
+		${(deltaScaling / this.transformation.scaling) * (this._gameStageCanvas.height / 2 - this.transformation.verticalMoving) + deltaVerticalMoving}) `;
 
 		this.transformation.scaling += deltaScaling;
 		this.transformation.horizontalMoving += deltaHorizontalMoving;
 		this.transformation.verticalMoving += deltaVerticalMoving;
 	}
 
-	changeMovingShipsQueue(protocol: GameProtocols.MovingShipsQueue) {
-		this._map.movingShipsQueue = protocol.queue;
+	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
+		this._updatePlayers(protocol.players);
+		this._planetsManager.startOccupyingPlanet(protocol);
+	}
 
-		this.redrawStage();
+	startMovingShipsQueue(protocol: GameProtocols.StartMovingShips) {
+		this._updatePlayers(protocol.players);
+		this._movingShipsManager.startMovingShips(protocol);
 	}
 
 	changePlanet(protocol: GameProtocols.Planet) {
+		this._updatePlayers(protocol.players);
 		this._planetsManager.changePlanet(protocol);
 	}
 
-	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
-		this._planetsManager.startOccupyingPlanet(protocol);
+	private _updatePlayers(players: GameProtocols.BasePlayer[]) {
+		let isExisted = false;
+		players.forEach((player) => {
+			isExisted = false;
+			this._map.players.forEach((mapPlayer, mapIndex) => {
+				if (mapPlayer.id == player.id) {
+					this._map.players[mapIndex] = player;
+					isExisted = true;
+					return;
+				}
+			});
+			if (!isExisted) {
+				this._map.players.push(player);
+			}
+		});
 	}
 
 	redrawStage() {
@@ -116,6 +138,7 @@ export default class GameStage {
 			this.drawStage(this._map);
 		}
 	}
+
 	drawStage(map: GameProtocols.Map) {
 		this._map = map;
 		let ctx = this._gameStageCanvas.getContext('2d');
@@ -123,24 +146,10 @@ export default class GameStage {
 		ctx.clearRect(0, 0, this._gameStageCanvas.width, this._gameStageCanvas.height);
 
 		ctx.save();
-
 		ctx.setTransform(this.transformation.scaling, 0, 0, this.transformation.scaling, this.transformation.horizontalMoving, this.transformation.verticalMoving);
 
-		// 绘制飞船移动
-		ctx.save();
-		ctx.font = '14px Arial,Microsoft YaHei';
-		map.movingShipsQueue.forEach(movingShips => {
-			let planetFrom = map.planets.filter(p => p.id == movingShips.planetFromId)[0];
-			let planetTo = map.planets.filter(p => p.id == movingShips.planetToId)[0];
-			let x = planetTo.position.x - movingShips.distanceLeft * (planetTo.position.x - planetFrom.position.x) / movingShips.distance;
-			let y = planetTo.position.y - movingShips.distanceLeft * (planetTo.position.y - planetFrom.position.y) / movingShips.distance;
-
-			ctx.fillStyle = map.players.filter(player => player.id == movingShips.playerId)[0].color;
-			ctx.fillText(movingShips.count.toString(), x, y);
-		});
-		ctx.restore();
-
-		this._planetsManager.drawPlanets(ctx, map);
+		this._movingShipsManager.draw(ctx, map);
+		this._planetsManager.draw(ctx, map);
 
 		ctx.restore();
 	}

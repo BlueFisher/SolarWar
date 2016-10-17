@@ -8,7 +8,7 @@ interface SocketPlayerMap {
 	playerId: number
 }
 
-class GameServer {
+export default class GameServer {
 	private _gameManager: GameManager;
 	/**用户Socket键值对 */
 	private _socketPlayerMap: SocketPlayerMap[] = [];
@@ -137,5 +137,3 @@ class GameServer {
 		}
 	}
 }
-
-export default GameServer;

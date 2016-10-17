@@ -91,8 +91,8 @@ class Main {
 				this._domManager.gameOver(<GameProtocols.GameOver>protocol);
 				break;
 
-			case GameProtocols.Type.movingShipsQueue:
-				this._gameStage.changeMovingShipsQueue(<GameProtocols.MovingShipsQueue>protocol);
+			case GameProtocols.Type.startMovingShips:
+				this._gameStage.startMovingShipsQueue(<GameProtocols.StartMovingShips>protocol);
 				break;
 			case GameProtocols.Type.planet:
 				this._gameStage.changePlanet(<GameProtocols.Planet>protocol);

@@ -17,7 +17,7 @@ export default class PlanetsManager {
 		}
 		return null;
 	}
-	drawPlanets(ctx: CanvasRenderingContext2D, map: GameProtocols.Map) {
+	draw(ctx: CanvasRenderingContext2D, map: GameProtocols.Map) {
 		this._map = map;
 		map.planets.forEach(planet => {
 			// 绘制星球
@@ -170,20 +170,6 @@ export default class PlanetsManager {
 		if (!isExisted) {
 			this._map.planets.push(protocol.planet);
 		}
-
-		protocol.players.forEach((player) => {
-			isExisted = false;
-			this._map.players.forEach((mapPlayer, mapIndex) => {
-				if (mapPlayer.id == player.id) {
-					this._map.players[mapIndex] = player;
-					isExisted = true;
-					return;
-				}
-			});
-			if (!isExisted) {
-				this._map.players.push(player);
-			}
-		});
 
 		this._redrawStage();
 	}

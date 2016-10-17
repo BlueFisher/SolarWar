@@ -17,7 +17,7 @@ export default class GameManager extends events.EventEmitter {
 	private _movingShipsManager: MovingShipsManager;
 	private _timeManager: TimeManager;
 
-	private _mapLoader
+	private _mapLoader: Map.MapLoader;
 
 	/**
 	 * 游戏逻辑管理

@@ -91,12 +91,12 @@ class Planet {
 		this._planetChanged(protocol);
 	}
 
-	private _startOccupyingPlanet(players: Player[], interval: number) {
+	private _sendstartingOccupying(players: Player[], interval: number) {
 		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), interval);
 		this._planetChanged(protocol);
 	}
 
-	private _stopOccupyingPlanet(players: Player[]) {
+	private _sendstopingOccupying(players: Player[]) {
 		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), -1);
 		this._planetChanged(protocol);
 	}
@@ -170,7 +170,7 @@ class Planet {
 
 	private _startOccupying() {
 		if (this._canOccupy()) {
-			this._startOccupyingPlanet([], this._getOccupyingInterval());
+			this._sendstartingOccupying([], this._getOccupyingInterval());
 		}
 		if (!this._isOccupying) {
 			this._occupy();
@@ -206,7 +206,7 @@ class Planet {
 						this.occupiedPlayer.addMaxShipsCount(this.size)
 						changedPlayer = this.occupiedPlayer;
 					}
-					this._stopOccupyingPlanet(changedPlayer == null ? [] : [changedPlayer]);
+					this._sendstopingOccupying(changedPlayer == null ? [] : [changedPlayer]);
 				}
 			} else {
 				if (--this.occupyingStatus.percent == 0) {
@@ -218,7 +218,7 @@ class Planet {
 
 					this.occupyingStatus.player = occupyingPlayer;
 				}
-				this._startOccupyingPlanet(changedPlayer == null ? [] : [changedPlayer], interval);
+				this._sendstartingOccupying(changedPlayer == null ? [] : [changedPlayer], interval);
 			}
 
 			this._occupy();

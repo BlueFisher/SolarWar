@@ -9,7 +9,8 @@ export enum Type {
 	requestMoveShips,
 	planet,
 	startOccupyingPlanet,
-	movingShipsQueue,
+	startMovingShips,
+	// movingShipsQueue,
 	readyTime,
 	time,
 	gameOver
@@ -83,9 +84,9 @@ export class StartOccupyingPlanet extends Planet {
 	interval: number;
 }
 
-export class MovingShipsQueue extends BaseProtocol {
+export class StartMovingShips extends BaseProtocol {
 	constructor(players: BasePlayer[], queue: BaseMovingShips[]) {
-		super(Type.movingShipsQueue);
+		super(Type.startMovingShips);
 		this.players = players;
 		this.queue = queue;
 	}
@@ -93,6 +94,17 @@ export class MovingShipsQueue extends BaseProtocol {
 	players: BasePlayer[];
 	queue: BaseMovingShips[]
 }
+
+// export class MovingShipsQueue extends BaseProtocol {
+// 	constructor(players: BasePlayer[], queue: BaseMovingShips[]) {
+// 		super(Type.movingShipsQueue);
+// 		this.players = players;
+// 		this.queue = queue;
+// 	}
+
+// 	players: BasePlayer[];
+// 	queue: BaseMovingShips[]
+// }
 
 export class RequestInitializeMap extends BaseProtocol {
 	constructor(name: string) {

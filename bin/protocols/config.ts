@@ -17,7 +17,7 @@ export default {
 			return 50;
 		},
 		getBuildingShipsInterval: function (size: number): number {
-			return (-0.005 * size + 1) * 1000;
+			return 963.2 * Math.exp(-0.01 * size) + 130 * Math.exp(0.003 * size);
 		},
 		getMovingShipsInterval: function (): number {
 			return 16;

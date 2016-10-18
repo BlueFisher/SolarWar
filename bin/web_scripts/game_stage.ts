@@ -3,17 +3,40 @@ import * as GameProtocols from '../protocols/game_protocols';
 import PlanetsManager from './game_stage_planets_manager';
 import MovingShipsManager from './game_stage_moving_ships_manager';
 
+interface transformation {
+	scaling: number,
+	horizontalMoving: number,
+	verticalMoving: number
+}
+
 export default class GameStage {
 	private _gameStageCanvas: HTMLCanvasElement;
 	private _planetsManager: PlanetsManager;
 	private _movingShipsManager: MovingShipsManager;
 	private _map: GameProtocols.Map;
 	private _currPlayerId: number;
-	transformation = {
+	private _transformation: transformation = {
 		scaling: 1,
 		horizontalMoving: 0,
 		verticalMoving: 0
 	};
+	private _tempTransformation: transformation = null;
+	private _tempDeltaTransformation: {
+		deltaScaling: number,
+		deltaHorizontalMoving: number,
+		deltaVerticalMoving: number
+	} = null;
+	
+	getTrans() {
+		return this._transformation;
+	}
+	getNewestTrans() {
+		if (this._tempTransformation == null) {
+			return this.getTrans();
+		} else {
+			return this._tempTransformation;
+		}
+	}
 
 	/**游戏舞台 */
 	constructor(gameStageCanvas: HTMLCanvasElement) {
@@ -26,7 +49,7 @@ export default class GameStage {
 		});
 
 		this._gameStageCanvas.addEventListener('webkitTransitionEnd', () => {
-			this.redrawStage();
+			this._endTransition();
 		});
 	}
 
@@ -63,7 +86,7 @@ export default class GameStage {
 		let scaling = Math.sqrt((this._gameStageCanvas.width * this._gameStageCanvas.height) / ((maxPosition.x - minPosition.x) * (maxPosition.y - minPosition.y)));
 		let horizontalMoving = -(minPosition.x * scaling - (this._gameStageCanvas.width - (maxPosition.x - minPosition.x) * scaling) / 2);
 		let verticalMoving = -(minPosition.y * scaling - (this._gameStageCanvas.height - (maxPosition.y - minPosition.y) * scaling) / 2);
-		this.transformation = {
+		this._transformation = {
 			scaling: scaling,
 			horizontalMoving: horizontalMoving,
 			verticalMoving: verticalMoving
@@ -83,20 +106,62 @@ export default class GameStage {
 		this.drawStage(map);
 	}
 
-	changeTransform(deltaScaling: number, deltaHorizontalMoving: number, deltaVerticalMoving: number) {
-		if (this.transformation.scaling + deltaScaling <= 0.5) {
+	zoomStage(deltaScaling: number, deltaHorizontalMoving: number, deltaVerticalMoving: number) {
+		if (this._transformation.scaling + deltaScaling <= 0.5 || (this._tempTransformation != null && this._tempTransformation.scaling + deltaScaling <= 0.5)
+			|| this._transformation.scaling + deltaScaling >= 7 || (this._tempTransformation != null && this._tempTransformation.scaling + deltaScaling >= 7)) {
 			return;
 		}
 
-		this._gameStageCanvas.style.transition = 'transform 0.5s';
+		if (this._tempTransformation == null) {
+			this._gameStageCanvas.style.transition = 'transform 0.5s';
+			this._tempTransformation = {
+				scaling: this._transformation.scaling,
+				horizontalMoving: this._transformation.horizontalMoving,
+				verticalMoving: this._transformation.verticalMoving
+			}
+		}
+		if (this._tempDeltaTransformation == null) {
+			this._tempDeltaTransformation = {
+				deltaScaling: deltaScaling,
+				deltaHorizontalMoving: deltaHorizontalMoving,
+				deltaVerticalMoving: deltaVerticalMoving
+			}
+		} else {
+			this._tempDeltaTransformation.deltaScaling += deltaScaling;
+			this._tempDeltaTransformation.deltaHorizontalMoving += deltaHorizontalMoving;
+			this._tempDeltaTransformation.deltaVerticalMoving += deltaVerticalMoving;
+		}
 
-		this._gameStageCanvas.style.transform += `matrix(${1 + deltaScaling / this.transformation.scaling},0,0,${1 + deltaScaling / this.transformation.scaling},
-		${(deltaScaling / this.transformation.scaling) * (this._gameStageCanvas.width / 2 - this.transformation.horizontalMoving) + deltaHorizontalMoving},
-		${(deltaScaling / this.transformation.scaling) * (this._gameStageCanvas.height / 2 - this.transformation.verticalMoving) + deltaVerticalMoving}) `;
+		let cssScaling = 1 + this._tempDeltaTransformation.deltaScaling / this._transformation.scaling;
+		let cssHorizontalMoving = this._tempDeltaTransformation.deltaScaling / this._transformation.scaling * (this._gameStageCanvas.width / 2 - this._transformation.horizontalMoving)
+			+ this._tempDeltaTransformation.deltaHorizontalMoving;
+		let cssVerticalMoving = this._tempDeltaTransformation.deltaScaling / this._transformation.scaling * (this._gameStageCanvas.height / 2 - this._transformation.verticalMoving)
+			+ this._tempDeltaTransformation.deltaVerticalMoving;
+		this._gameStageCanvas.style.transform = `matrix(${cssScaling},0,0,${cssScaling},${cssHorizontalMoving},${cssVerticalMoving})`;
 
-		this.transformation.scaling += deltaScaling;
-		this.transformation.horizontalMoving += deltaHorizontalMoving;
-		this.transformation.verticalMoving += deltaVerticalMoving;
+		this._tempTransformation.scaling += deltaScaling;
+		this._tempTransformation.horizontalMoving += deltaHorizontalMoving;
+		this._tempTransformation.verticalMoving += deltaVerticalMoving;
+	}
+	
+	moveStage(x: number, y: number) {
+		this._transformation.horizontalMoving += x;
+		this._transformation.verticalMoving += y;
+		if (this._tempTransformation == null) {
+			this.redrawStage();
+		} else {
+			this._endTransition();
+		}
+	}
+
+	private _endTransition() {
+		this._gameStageCanvas.style.transition = 'none';
+		this._gameStageCanvas.style.transform = `matrix(1,0,0,1,0,0)`;
+		this._transformation = this._tempTransformation;
+
+		this._tempTransformation = null;
+		this._tempDeltaTransformation = null;
+		this.redrawStage();
 	}
 
 	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
@@ -133,8 +198,6 @@ export default class GameStage {
 
 	redrawStage() {
 		if (this._map) {
-			this._gameStageCanvas.style.transition = 'none';
-			this._gameStageCanvas.style.transform = `matrix(1,0,0,1,0,0)`;
 			this.drawStage(this._map);
 		}
 	}
@@ -146,7 +209,7 @@ export default class GameStage {
 		ctx.clearRect(0, 0, this._gameStageCanvas.width, this._gameStageCanvas.height);
 
 		ctx.save();
-		ctx.setTransform(this.transformation.scaling, 0, 0, this.transformation.scaling, this.transformation.horizontalMoving, this.transformation.verticalMoving);
+		ctx.setTransform(this._transformation.scaling, 0, 0, this._transformation.scaling, this._transformation.horizontalMoving, this._transformation.verticalMoving);
 
 		this._movingShipsManager.draw(ctx, map);
 		this._planetsManager.draw(ctx, map);

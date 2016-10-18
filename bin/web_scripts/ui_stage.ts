@@ -37,13 +37,14 @@ export default class UiStage {
 			let planet = this._getPointedPlanet(point.x, point.y);
 			if (planet) { // 如果滚轮滑动时在星球上则缩放中心为该星球中心
 				deltaHorizontalMoving = -deltaScaling * planet.position.x;
-				deltaVerticalMoving = -deltaScaling * planet.position.y; 
+				deltaVerticalMoving = -deltaScaling * planet.position.y;
 			} else {
-				deltaHorizontalMoving = -deltaScaling * (point.x - this._gameStage.transformation.horizontalMoving) / this._gameStage.transformation.scaling;
-				deltaVerticalMoving = -deltaScaling * (point.y - this._gameStage.transformation.verticalMoving) / this._gameStage.transformation.scaling;
+				let trans = this._gameStage.getTrans();
+				deltaHorizontalMoving = -deltaScaling * (point.x - trans.horizontalMoving) / trans.scaling;
+				deltaVerticalMoving = -deltaScaling * (point.y - trans.verticalMoving) / trans.scaling;
 			}
-			
-			this._gameStage.changeTransform(deltaScaling, deltaHorizontalMoving, deltaVerticalMoving);
+
+			this._gameStage.zoomStage(deltaScaling, deltaHorizontalMoving, deltaVerticalMoving);
 			// 触发鼠标移动事件来重绘星球激活效果
 			$canvas.trigger(new $.Event('mousemove', {
 				pageX: e.pageX,
@@ -53,8 +54,9 @@ export default class UiStage {
 
 		// 绘制星球激活特效
 		let drawActivePlanet = (planet: GameProtocols.BasePlanet) => {
+			let trans = this._gameStage.getNewestTrans();
 			ctx.save();
-			ctx.setTransform(this._gameStage.transformation.scaling, 0, 0, this._gameStage.transformation.scaling, this._gameStage.transformation.horizontalMoving, this._gameStage.transformation.verticalMoving);
+			ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
 			ctx.beginPath();
 			ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 10, 0, Math.PI * 2);
 			ctx.stroke();
@@ -82,7 +84,8 @@ export default class UiStage {
 					mouseupPlanet = this._getPointedPlanet(point.x, point.y);
 					ctx.save();
 					ctx.beginPath();
-					ctx.setTransform(this._gameStage.transformation.scaling, 0, 0, this._gameStage.transformation.scaling, this._gameStage.transformation.horizontalMoving, this._gameStage.transformation.verticalMoving);
+					let trans = this._gameStage.getNewestTrans();
+					ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
 					// 路径线从点击的星球开始绘制
 					ctx.moveTo(mousedownPlanet.position.x, mousedownPlanet.position.y);
 					if (mouseupPlanet) { // 如果鼠标移动到星球上
@@ -107,9 +110,7 @@ export default class UiStage {
 						drawActivePlanet(mousedownPlanet);
 					}
 
-					this._gameStage.transformation.horizontalMoving += point.x - mousedownPoint.x;
-					this._gameStage.transformation.verticalMoving += point.y - mousedownPoint.y;
-					this._gameStage.redrawStage();
+					this._gameStage.moveStage(point.x - mousedownPoint.x, point.y - mousedownPoint.y);
 					mousedownPoint = point;
 				}
 			} else {
@@ -157,8 +158,9 @@ export default class UiStage {
 	}
 
 	private _getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
-		x = (x - this._gameStage.transformation.horizontalMoving) / this._gameStage.transformation.scaling;
-		y = (y - this._gameStage.transformation.verticalMoving) / this._gameStage.transformation.scaling;
+		let trans = this._gameStage.getTrans();
+		x = (x - trans.horizontalMoving) / trans.scaling;
+		y = (y - trans.verticalMoving) / trans.scaling;
 		return this._gameStage.getPointedPlanet(x, y);
 	}
 }

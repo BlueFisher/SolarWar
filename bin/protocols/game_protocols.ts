@@ -6,11 +6,15 @@ export enum PlanetType {
 export enum Type {
 	requestInitializeMap = 0,
 	initializeMap,
+
 	requestMoveShips,
+	requestRefereshOccupyingPlanet,
+	requestRefreshMovingShips,
+
 	planet,
 	startOccupyingPlanet,
 	startMovingShips,
-	// movingShipsQueue,
+
 	readyTime,
 	time,
 	gameOver
@@ -94,17 +98,6 @@ export class StartMovingShips extends BaseProtocol {
 	players: BasePlayer[];
 	queue: BaseMovingShips[]
 }
-
-// export class MovingShipsQueue extends BaseProtocol {
-// 	constructor(players: BasePlayer[], queue: BaseMovingShips[]) {
-// 		super(Type.movingShipsQueue);
-// 		this.players = players;
-// 		this.queue = queue;
-// 	}
-
-// 	players: BasePlayer[];
-// 	queue: BaseMovingShips[]
-// }
 
 export class RequestInitializeMap extends BaseProtocol {
 	constructor(name: string) {

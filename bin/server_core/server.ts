@@ -4,8 +4,10 @@ import * as express from 'express';
 import * as session from 'express-session';
 import * as bodyParser from 'body-parser';
 
-import Config from './protocols/config';
-import * as HttpProtocols from './protocols/http_protocols';
+import * as log4js from 'log4js';
+
+import config from '../shared/config';
+import * as HttpProtocols from '../shared/http_protocols';
 import GameServer from './game_server';
 
 class Server {
@@ -23,16 +25,15 @@ class Server {
 
 		this._configExpress(app);
 
-		app.listen(Config.httpPort, () => {
-			callback(true, Config.httpPort);
+		app.listen(config.httpPort, () => {
+			callback(true, config.httpPort);
 		});
 
-		Config.webSocketServers.forEach(s => {
+		config.webSocketServers.forEach(s => {
 			this._gameServers.push(new GameServer(s.port, () => {
 				callback(false, s.port);
 			}));
 		});
-
 	}
 
 	private _configExpress(app: express.Express) {
@@ -49,17 +50,36 @@ class Server {
 		}));
 
 		app.engine('.html', require('ejs').__express);
-		app.set('views', path.resolve(__dirname, '..') + '/views');
+		app.set('views', path.resolve(__dirname, '../../') + '/views');
 		app.set('view engine', 'html');
+
+		log4js.configure({
+			appenders: [
+				{
+					type: 'console',
+					layout: {
+						type: 'pattern',
+						pattern: '%[[%r] [%p]%] - %m'
+					}
+				}
+			],
+			replaceConsole: true
+		});
+		let logger = log4js.getLogger();
+
+		app.use(log4js.connectLogger(logger, {
+			level: log4js.levels.INFO,
+			format: ':remote-addr :method :url :status - :response-time ms'
+		}));
+
+		app.use('/public', express.static('public'));
 
 		app.get('/', (req, res) => {
 			res.render('index');
 		});
 		app.get('/websockets', (req, res) => {
-			res.json(Config.webSocketServers);
+			res.json(config.webSocketServers);
 		});
-
-		app.use('/public', express.static('public'));
 	}
 }
 

@@ -1,4 +1,4 @@
-import * as GameProtocols from '../protocols/game_protocols';
+import * as GameProtocols from '../shared/game_protocols';
 import GameStage from './game_stage';
 
 export default class UiStage {
@@ -30,7 +30,7 @@ export default class UiStage {
 				x: e.pageX - $canvas.offset().left,
 				y: e.pageY - $canvas.offset().top
 			};
-			let deltaScaling = e.deltaY > 0 ? 0.5 : -0.5;
+			let deltaScaling = e.deltaY > 0 ? 0.25 : -0.25;
 			let deltaHorizontalMoving = 0;
 			let deltaVerticalMoving = 0;
 

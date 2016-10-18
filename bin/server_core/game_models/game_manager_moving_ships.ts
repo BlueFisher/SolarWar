@@ -1,5 +1,5 @@
-import Config from '../protocols/config';
-import * as GameProtocols from '../protocols/game_protocols';
+import config from '../../shared/config';
+import * as GameProtocols from '../../shared/game_protocols';
 
 import GameManagerEvents from './game_manager_events';
 
@@ -97,7 +97,7 @@ export default class MovingShipsManager {
 		setTimeout(() => {
 			for (let i in this._movingShipsQueue) {
 				let movingShip = this._movingShipsQueue[i];
-				let deltaDistance = Config.algorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
+				let deltaDistance = config.gameAlgorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
 
 				// 如果已到目的星球，则调用shipsArrived，并从飞行队列中移除
 				if ((movingShip.distanceLeft -= deltaDistance) <= 0) {
@@ -107,6 +107,6 @@ export default class MovingShipsManager {
 				}
 			}
 			this._moveShips();
-		}, Config.algorithm.getMovingShipsInterval());
+		}, config.gameAlgorithm.getMovingShipsInterval());
 	}
 }

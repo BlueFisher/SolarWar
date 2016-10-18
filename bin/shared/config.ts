@@ -1,4 +1,4 @@
-import { PlanetType } from '../protocols/game_protocols';
+import { PlanetType } from '../shared/game_protocols';
 
 export default {
 	httpPort: 80,
@@ -9,7 +9,7 @@ export default {
 	gameReadyTime: 10,
 	gameTime: 60 * 16,
 
-	algorithm: {
+	gameAlgorithm: {
 		getOccupyingInterval: function (size: number, count: number): number {
 			return (3 * Math.pow(size / count, 2) + 2) * 10;
 		},

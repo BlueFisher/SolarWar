@@ -1,8 +1,8 @@
 import * as $ from 'jquery';
 import * as Vue from 'vue';
 import * as toastr from 'toastr';
-import * as HttpProtocols from '../protocols/http_protocols';
-import * as GameProtocols from '../protocols/game_protocols';
+import * as HttpProtocols from '../shared/http_protocols';
+import * as GameProtocols from '../shared/game_protocols';
 import * as VueData from './vue_data';
 
 export default class DomManager {

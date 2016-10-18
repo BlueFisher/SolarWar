@@ -1,7 +1,6 @@
-import Config from '../protocols/config';
+import config from '../../shared/config';
 import Player from './player';
-import * as GameProtocols from '../protocols/game_protocols'
-
+import * as GameProtocols from '../../shared/game_protocols'
 
 interface ShipsOnThePlanet {
 	player: Player,
@@ -168,7 +167,7 @@ class Planet {
 	}
 
 	private _getOccupyingInterval() {
-		return Config.algorithm.getOccupyingInterval(this.size, this.allShips[0].count);
+		return config.gameAlgorithm.getOccupyingInterval(this.size, this.allShips[0].count);
 	}
 
 	private _startOccupying() {
@@ -269,14 +268,14 @@ class Planet {
 
 			this._changePlanet(changedPlayers);
 			this._combat();
-		}, Config.algorithm.getCombatInterval());
+		}, config.gameAlgorithm.getCombatInterval());
 	}
 
 	// Building
 	private _startbuildingShips() {
 		this._buildingShipsTimer = setInterval(() => {
 			this._buildShips();
-		}, Config.algorithm.getBuildingShipsInterval(this.size));
+		}, config.gameAlgorithm.getBuildingShipsInterval(this.size));
 	}
 
 	private _buildShips() {

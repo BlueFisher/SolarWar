@@ -1,4 +1,4 @@
-import * as GameProtocols from '../protocols/game_protocols';
+import * as GameProtocols from '../shared/game_protocols';
 
 export default class PlanetsManager {
 	private _map: GameProtocols.Map;

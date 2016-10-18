@@ -1,5 +1,5 @@
-import * as GameProtocols from '../protocols/game_protocols';
-import Config from '../protocols/config';
+import * as GameProtocols from '../shared/game_protocols';
+import config from '../shared/config';
 
 export default class MovingShipsManager {
 	private _map: GameProtocols.Map;
@@ -37,13 +37,13 @@ export default class MovingShipsManager {
 		this._timer = setInterval(() => {
 			for (let i in queue) {
 				let movingShip = queue[i];
-				let deltaDistance = Config.algorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
+				let deltaDistance = config.gameAlgorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
 
 				if ((movingShip.distanceLeft -= deltaDistance) <= 0) {
 					queue.splice(parseInt(i), 1);
 				}
 			}
 			this._redrawStage();
-		}, Config.algorithm.getMovingShipsInterval());
+		}, config.gameAlgorithm.getMovingShipsInterval());
 	}
 }

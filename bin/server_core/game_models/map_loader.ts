@@ -1,5 +1,5 @@
-import { PlanetType } from '../protocols/game_protocols';
-import Config from '../protocols/config';
+import { PlanetType } from '../../shared/game_protocols';
+import config from '../../shared/config';
 
 export interface Planet {
 	type: PlanetType,
@@ -8,9 +8,9 @@ export interface Planet {
 }
 
 export class MapLoader {
-	private _areaWidth = Config.map.areaWidth;
-	private _padding = Config.map.padding;
-	private _planetsTypeSizes = Config.map.planetsTypeSizes.slice();
+	private _areaWidth = config.map.areaWidth;
+	private _padding = config.map.padding;
+	private _planetsTypeSizes = config.map.planetsTypeSizes.slice();
 
 	private _circleIndex = 0;
 	private _areaIndexes: number[] = [];

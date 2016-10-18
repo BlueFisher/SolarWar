@@ -1,7 +1,7 @@
 import * as events from 'events';
 
-import Config from '../protocols/config';
-import * as GameProtocols from '../protocols/game_protocols';
+import config from '../../shared/config';
+import * as GameProtocols from '../../shared/game_protocols';
 
 import GameManagerEvents from './game_manager_events';
 import * as Map from './map_loader';

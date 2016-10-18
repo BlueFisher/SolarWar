@@ -1,13 +1,13 @@
-import Config from '../protocols/config';
-import * as GameProtocols from '../protocols/game_protocols';
+import config from '../../shared/config';
+import * as GameProtocols from '../../shared/game_protocols';
 
 import GameManagerEvents from './game_manager_events';
 
 export default class TimeManager {
 	private _emit: FuncEmit;
 
-	private _gameReadyTime = Config.gameReadyTime;
-	private _gameTime = Config.gameTime;
+	private _gameReadyTime = config.gameReadyTime;
+	private _gameTime = config.gameTime;
 
 	constructor(emit: FuncEmit) {
 		this._emit = emit;

@@ -1,6 +1,6 @@
 import * as WebSocketServer from 'ws';
 import GameManager from './game_models/game_manager';
-import * as GameProtocols from './protocols/game_protocols';
+import * as GameProtocols from '../shared/game_protocols';
 import GameManagerEvents from './game_models//game_manager_events';
 
 interface SocketPlayerMap {

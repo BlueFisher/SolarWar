@@ -1,5 +1,5 @@
 import * as $ from 'jquery';
-import * as GameProtocols from '../protocols/game_protocols';
+import * as GameProtocols from '../shared/game_protocols';
 import PlanetsManager from './game_stage_planets_manager';
 import MovingShipsManager from './game_stage_moving_ships_manager';
 
@@ -113,7 +113,7 @@ export default class GameStage {
 		}
 
 		if (this._tempTransformation == null) {
-			this._gameStageCanvas.style.transition = 'transform 0.5s';
+			this._gameStageCanvas.style.transition = 'transform 0.25s';
 			this._tempTransformation = {
 				scaling: this._transformation.scaling,
 				horizontalMoving: this._transformation.horizontalMoving,

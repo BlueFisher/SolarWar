@@ -91,15 +91,7 @@ class Planet {
 		this._planetChanged(protocol);
 	}
 
-	private _sendstartingOccupying(players: Player[], interval: number) {
-		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), interval);
-		this._planetChanged(protocol);
-	}
 
-	private _sendstopingOccupying(players: Player[]) {
-		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), -1);
-		this._planetChanged(protocol);
-	}
 
 	/**飞船到达 */
 	shipsArrived(player: Player, count: number) {
@@ -153,6 +145,17 @@ class Planet {
 
 	// Occupying
 	private _isOccupying = false;
+	private _timerDuration = 0;
+
+	private _sendstartingOccupying(players: Player[], interval: number) {
+		this._timerDuration = 0;
+		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), interval);
+		this._planetChanged(protocol);
+	}
+
+	private _sendstopingOccupying(players: Player[]) {
+		this._sendstartingOccupying(players, -1);
+	}
 
 	private _canOccupy(): boolean {
 		if (this.allShips.length != 1) {
@@ -218,6 +221,11 @@ class Planet {
 
 					this.occupyingStatus.player = occupyingPlayer;
 				}
+				this._sendstartingOccupying(changedPlayer == null ? [] : [changedPlayer], interval);
+			}
+
+			this._timerDuration += interval;
+			if (this._timerDuration >= 2000) {
 				this._sendstartingOccupying(changedPlayer == null ? [] : [changedPlayer], interval);
 			}
 

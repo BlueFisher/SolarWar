@@ -118,12 +118,12 @@ export default class PlanetsManager {
 			};
 		}
 
-		// let timeDifference = (new Date().getTime() - protocol.startDateTime.getTime()) / protocol.interval;
-		// if (occupyingPlayerId == planet.occupyingStatus.playerId) {
-		// 	planet.occupyingStatus.percent += timeDifference;
-		// } else {
-		// 	planet.occupyingStatus.percent -= timeDifference;
-		// }
+		let timeDifference = (new Date().getTime() - protocol.startDateTime.getTime()) / protocol.interval;
+		if (occupyingPlayerId == planet.occupyingStatus.playerId) {
+			planet.occupyingStatus.percent += timeDifference;
+		} else {
+			planet.occupyingStatus.percent -= timeDifference;
+		}
 
 		let smooth = 1 / (planet.size / 10);
 		let timer = setInterval(() => {

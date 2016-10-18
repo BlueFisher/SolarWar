@@ -84,7 +84,7 @@ GitHub - [https://github.com/BlueFisher/SolarWar](https://github.com/BlueFisher/
 #### 开源项目
 
 - body-parser
-- ejs
+- ejs
 - express
 - express session
 - log4js

@@ -8,3 +8,7 @@ interface Point {
 }
 
 type FuncEmit = (event: string, ...args: any[]) => void;
+
+interface Error {
+    status?: number
+}

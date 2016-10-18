@@ -1,3 +1,5 @@
+import * as path from 'path';
+
 import * as express from 'express';
 import * as session from 'express-session';
 import * as bodyParser from 'body-parser';
@@ -45,7 +47,10 @@ class Server {
 			resave: false,
 			saveUninitialized: true,
 		}));
-		app.set('view engine', 'ejs');
+
+		app.engine('.html', require('ejs').__express);
+		app.set('views', path.resolve(__dirname, '..') + '/views');
+		app.set('view engine', 'html');
 
 		app.get('/', (req, res) => {
 			res.render('index');

@@ -21,7 +21,10 @@ export default class MovingShipsManager {
 			let y = planetTo.position.y - movingShips.distanceLeft * (planetTo.position.y - planetFrom.position.y) / movingShips.distance;
 
 			ctx.fillStyle = map.players.filter(player => player.id == movingShips.playerId)[0].color;
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
 			ctx.fillText(movingShips.count.toString(), x, y);
+
 		});
 		ctx.restore();
 	}

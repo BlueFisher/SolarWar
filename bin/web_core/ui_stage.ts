@@ -58,7 +58,11 @@ export default class UiStage {
 			ctx.save();
 			ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
 			ctx.beginPath();
-			ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 10, 0, Math.PI * 2);
+			ctx.arc(planet.position.x, planet.position.y, planet.size / 2 - 1, 0, Math.PI * 2);
+			ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+			ctx.lineWidth = 2;
+			ctx.shadowBlur = 30; // 模糊尺寸
+			ctx.shadowColor = '#fff'; // 颜色
 			ctx.stroke();
 			ctx.restore();
 		};
@@ -96,6 +100,12 @@ export default class UiStage {
 						ctx.setTransform(1, 0, 0, 1, 0, 0);
 						ctx.lineTo(point.x, point.y);
 					}
+
+					ctx.lineCap = 'round';
+					ctx.strokeStyle = '#fff';
+					ctx.lineWidth = 2;
+					ctx.shadowBlur = 15; // 模糊尺寸
+					ctx.shadowColor = '#fff'; // 颜色
 					ctx.stroke();
 					ctx.restore();
 

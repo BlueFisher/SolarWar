@@ -12,7 +12,6 @@ export default class Player {
 		this.id = id;
 		this.name = name;
 		this.color = this._getRandomColor();
-		console.log(this.color);
 		this.historyMaxShipsCount = this.maxShipsCount = this.currShipsCount = maxShipsCount;
 	}
 

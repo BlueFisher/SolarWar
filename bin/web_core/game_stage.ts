@@ -212,8 +212,8 @@ export default class GameStage {
 		ctx.save();
 		ctx.setTransform(this._transformation.scaling, 0, 0, this._transformation.scaling, this._transformation.horizontalMoving, this._transformation.verticalMoving);
 
-		this._movingShipsManager.draw(ctx, map);
 		this._planetsManager.draw(ctx, map);
+		this._movingShipsManager.draw(ctx, map);
 
 		ctx.restore();
 	}

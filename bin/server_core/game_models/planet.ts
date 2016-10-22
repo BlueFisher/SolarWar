@@ -245,7 +245,7 @@ class Planet {
 
 	private _startCombat() {
 		if (!this._isCombatting)
-			this._combat();
+			this._combat();4
 	}
 
 	private _combat() {
@@ -263,7 +263,6 @@ class Planet {
 				ships.player.currShipsCount--;
 				ships.count--;
 				if (ships.count <= 0) {
-					console.log(ships.player.id, ships.player.name, i);
 					this.allShips.splice(i, 1);
 				}
 			}

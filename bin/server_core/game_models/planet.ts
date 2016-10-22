@@ -258,13 +258,15 @@ class Planet {
 
 			let changedPlayers: Player[] = this.allShips.map(p => p.player);
 
-			this.allShips.forEach((elem, index) => {
-				elem.player.currShipsCount--;
-				elem.count--;
-				if (elem.count <= 0) {
-					this.allShips.splice(index, 1);
+			for (let i = this.allShips.length - 1; i >= 0; i--) {
+				let ships = this.allShips[i];
+				ships.player.currShipsCount--;
+				ships.count--;
+				if (ships.count <= 0) {
+					console.log(ships.player.id, ships.player.name, i);
+					this.allShips.splice(i, 1);
 				}
-			});
+			}
 
 			this._changePlanet(changedPlayers);
 			this._combat();

@@ -26,7 +26,7 @@ export default class GameStage {
 		deltaHorizontalMoving: number,
 		deltaVerticalMoving: number
 	} = null;
-	
+
 	getTrans() {
 		return this._transformation;
 	}
@@ -99,6 +99,7 @@ export default class GameStage {
 
 	initializeMap(protocol: GameProtocols.InitializeMap) {
 		this._currPlayerId = protocol.playerId;
+		this._planetsManager.refreshCurrPlayerId(protocol.playerId);
 		let map: GameProtocols.Map = protocol.map;
 		let [minPosition, maxPosition] = this._getMapMainRange(map.planets);
 		this._setStageTransformation(minPosition, maxPosition);
@@ -143,7 +144,7 @@ export default class GameStage {
 		this._tempTransformation.horizontalMoving += deltaHorizontalMoving;
 		this._tempTransformation.verticalMoving += deltaVerticalMoving;
 	}
-	
+
 	moveStage(x: number, y: number) {
 		this._transformation.horizontalMoving += x;
 		this._transformation.verticalMoving += y;

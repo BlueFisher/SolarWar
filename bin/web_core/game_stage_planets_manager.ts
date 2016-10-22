@@ -3,6 +3,7 @@ import * as GameProtocols from '../shared/game_protocols';
 export default class PlanetsManager {
 	private _map: GameProtocols.Map;
 	private _redrawStage: () => void;
+	private _currPlayerId: number = null;
 	private _planetImgs: HTMLImageElement[] = [];
 
 	constructor(redrawStage: () => void) {
@@ -12,6 +13,9 @@ export default class PlanetsManager {
 			img.src = `/public/images/planets_0${i}.png`;
 			this._planetImgs.push(img);
 		}
+	}
+	refreshCurrPlayerId(id) {
+		this._currPlayerId = id;
 	}
 
 	getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
@@ -29,13 +33,23 @@ export default class PlanetsManager {
 		map.planets.forEach(planet => {
 			// 绘制星球
 			ctx.save();
+
+			let color = '#ddd';
+			if (planet.occupiedPlayerId != null) {
+				color = map.players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
+			}
+
 			ctx.beginPath();
 			ctx.arc(planet.position.x, planet.position.y, planet.size / 2, 0, Math.PI * 2);
-			if (planet.occupiedPlayerId != null) {
-				ctx.fillStyle = map.players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
-			} else {
-				ctx.fillStyle = '#ddd';
-			}
+
+			// setShadow(ctx, 1, 1, 15, color);
+			var grd = ctx.createRadialGradient(planet.position.x - planet.size * 0.2, planet.position.y - planet.size * 0.2, planet.size / 2,
+				planet.position.x - planet.size * 0.2, planet.position.y - planet.size * 0.2, planet.size * 1.5);
+			grd.addColorStop(0, color);
+			grd.addColorStop(1, 'rgba(0,0,0,.5)');
+
+			ctx.fillStyle = grd;
+
 			ctx.fill();
 			ctx.drawImage(this._planetImgs[planet.id % this._planetImgs.length], planet.position.x - planet.size / 2, planet.position.y - planet.size / 2, planet.size, planet.size);
 			ctx.restore();
@@ -47,12 +61,23 @@ export default class PlanetsManager {
 				ctx.textAlign = 'center';
 				let player = map.players.filter(player => player.id == planet.allShips[0].playerId)[0];
 				ctx.fillStyle = player.color;
+				// setShadow(ctx, 1, 1, 15, player.color);
 				ctx.fillText(`${player.name} ${planet.allShips[0].count}`, planet.position.x, planet.position.y + planet.size / 2 + 15);
 			} else if (planet.allShips.length > 1) {
 				let sum = 0;
 				planet.allShips.forEach(p => sum += p.count);
-
-				let currAngle = 0;
+				if (this._currPlayerId != null) {
+					let index = 0;
+					planet.allShips.forEach((s, i) => {
+						if (s.playerId == this._currPlayerId) {
+							index = i;
+							return;
+						}
+					});
+					let currShips = planet.allShips.splice(index, 1)[0];
+					planet.allShips.unshift(currShips);
+				}
+				let currAngle = -Math.PI / 2 - Math.PI * planet.allShips[0].count / sum;
 				planet.allShips.forEach(ship => {
 					ctx.beginPath();
 					let nextAngle = currAngle + Math.PI * 2 * ship.count / sum;
@@ -60,12 +85,15 @@ export default class PlanetsManager {
 
 					let player = map.players.filter(player => player.id == ship.playerId)[0];
 					ctx.strokeStyle = ctx.fillStyle = player.color;
-					let x = planet.position.x + Math.cos((currAngle + nextAngle) / 2) * (planet.size + 10);
-					let y = planet.position.y + Math.sin((currAngle + nextAngle) / 2) * (planet.size + 10);
-					ctx.fillText(`${player.name} ${ship.count}`, x, y);
+					let x = planet.position.x + Math.cos((currAngle + nextAngle) / 2) * (planet.size / 2 + 12);
+					let y = planet.position.y + Math.sin((currAngle + nextAngle) / 2) * (planet.size / 2 + 12);
+					ctx.textAlign = 'center';
+					ctx.textBaseline = 'middle';
+					ctx.fillText(ship.count.toString(), x, y);
 					currAngle = nextAngle;
 
-					ctx.lineWidth = 5;
+					setShadow(ctx, 0, 0, 30, player.color);
+					ctx.lineWidth = 2;
 					ctx.stroke();
 				});
 			}
@@ -77,15 +105,24 @@ export default class PlanetsManager {
 				ctx.save();
 				let player = map.players.filter(player => player.id == planet.occupyingStatus.playerId)[0];
 				ctx.beginPath();
-				let angle = Math.PI * 2 * planet.occupyingStatus.percent / 100;
-				ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 5, 0, angle);
+				let angle = Math.PI * 2 * planet.occupyingStatus.percent / 100 - Math.PI / 2;
+				ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 3, -Math.PI / 2, angle);
 
+				setShadow(ctx, 0, 0, 30, player.color);
+				ctx.lineCap = 'round';
 				ctx.strokeStyle = player.color;
-				ctx.lineWidth = 5;
+				ctx.lineWidth = 2;
 				ctx.stroke();
 				ctx.restore();
 			}
 		});
+
+		function setShadow(ctx: CanvasRenderingContext2D, x: number, y: number, blur: number, color: string) {
+			ctx.shadowOffsetX = x; // 阴影Y轴偏移
+			ctx.shadowOffsetY = y; // 阴影X轴偏移
+			ctx.shadowBlur = blur; // 模糊尺寸
+			ctx.shadowColor = color; // 颜色
+		}
 	}
 
 	private _occupyingTimers: {

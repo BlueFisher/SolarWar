@@ -77,20 +77,55 @@ export default class DomManager {
 
 	private _initializeCountRatio() {
 		let vm = new Vue({
-			el: '#count-ratio',
+			el: '#ratio',
 			data: this._vueIndex
 		});
 
-		let $countRatio = $('#count-ratio').find('input[type="range"]');
-		$countRatio.rangeslider({
-			polyfill: false
+		let div = $('#ratio #indicator');
+		let path = $('#ratio #path');
+		let [x, y] = [div.width() / 2 + div.offset().left, div.height() / 2 + div.offset().top];
+
+		$(window).on('resize', function () {
+			[x, y] = [div.width() / 2 + div.offset().left, div.height() / 2 + div.offset().top];
 		});
 
-		let $rangesliderHandle = $('.rangeslider__handle');
-		$rangesliderHandle.text(`${$countRatio.val()}%`);
-		$(document).on('input', $countRatio, () => {
-			this._vueIndex.range = parseInt($countRatio.val());
-			$rangesliderHandle.text(`${$countRatio.val()}%`);
+		let setAngle = (pageX, pageY) => {
+			let width = pageX - x;
+			let height = y - pageY;
+
+			let angle = Math.atan(width / height);
+			if (isNaN(angle)) {
+				angle = 0;
+			} else if (height < 0) {
+				angle += Math.PI;
+			} else if (width < 0) {
+				angle += Math.PI * 2;
+			}
+
+			angle = angle * 180 / Math.PI;
+
+			if (angle < 30 || angle > 330) {
+				return;
+			}
+
+			this._vueIndex.range = Math.round(-0.33 * angle + 109.9);
+			console.log(this._vueIndex.range);
+
+			path.css('stroke-dasharray', `${565 * (1 - (angle + 30) / 360)} 565`);
+
+			div.css('transform', `rotate(${angle}deg)`);
+		}
+		$('#ratio').on('mousedown', function () {
+			$(document).one('mousedown', function (e) {
+				setAngle(e.pageX, e.pageY)
+			});
+			$(document).on('mousemove', function (e) {
+				setAngle(e.pageX, e.pageY)
+			});
+		});
+
+		$(document).on('mouseup', function () {
+			$(document).off('mousemove')
 		});
 	}
 

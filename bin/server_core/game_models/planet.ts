@@ -224,7 +224,7 @@ class Planet {
 			}
 
 			this._timerDuration += interval;
-			if (this._timerDuration >= 2000) {
+			if (this._timerDuration >= 1000) {
 				this._sendstartingOccupying(changedPlayer == null ? [] : [changedPlayer], interval);
 			}
 

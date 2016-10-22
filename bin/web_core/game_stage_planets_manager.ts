@@ -3,8 +3,15 @@ import * as GameProtocols from '../shared/game_protocols';
 export default class PlanetsManager {
 	private _map: GameProtocols.Map;
 	private _redrawStage: () => void;
+	private _planetImgs: HTMLImageElement[] = [];
+
 	constructor(redrawStage: () => void) {
 		this._redrawStage = redrawStage;
+		for (let i = 1; i <= 5; i++) {
+			let img = new Image();
+			img.src = `/public/images/planets_0${i}.png`;
+			this._planetImgs.push(img);
+		}
 	}
 
 	getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
@@ -30,6 +37,7 @@ export default class PlanetsManager {
 				ctx.fillStyle = '#ddd';
 			}
 			ctx.fill();
+			ctx.drawImage(this._planetImgs[planet.id % this._planetImgs.length], planet.position.x - planet.size / 2, planet.position.y - planet.size / 2, planet.size, planet.size);
 			ctx.restore();
 
 			// 绘制星球争夺或平静状态
@@ -118,12 +126,12 @@ export default class PlanetsManager {
 			};
 		}
 
-		let timeDifference = (new Date().getTime() - protocol.startDateTime.getTime()) / protocol.interval;
-		if (occupyingPlayerId == planet.occupyingStatus.playerId) {
-			planet.occupyingStatus.percent += timeDifference;
-		} else {
-			planet.occupyingStatus.percent -= timeDifference;
-		}
+		// let timeDifference = (new Date().getTime() - protocol.startDateTime.getTime()) / protocol.interval;
+		// if (occupyingPlayerId == planet.occupyingStatus.playerId) {
+		// 	planet.occupyingStatus.percent += timeDifference;
+		// } else {
+		// 	planet.occupyingStatus.percent -= timeDifference;
+		// }
 
 		let smooth = 1 / (planet.size / 10);
 		let timer = setInterval(() => {

@@ -23,22 +23,12 @@ export default class Player {
 	}
 
 	private _getRandomColor(): string {
-		let [h, s, v] = [Math.random() * 360, 0.7, 1];
+		let ss = [0.4, 0.7, 1];
+		let [h, s, v] = [Math.random() * 360, ss[Math.round(Math.random() * ss.length)], 1];
 		let [r, g, b] = this._hslToRgb(h, s, v);
 		return `#${this._toHexString(r, g, b)}`;
 	}
 
-	/**
-	 * HSL颜色值转换为RGB. 
-	 * 换算公式改编自 http://en.wikipedia.org/wiki/HSL_color_space.
-	 * h, s, 和 l 设定在 [0, 1] 之间
-	 * 返回的 r, g, 和 b 在 [0, 255]之间
-	 *
-	 * @param h 色相
-	 * @param s 饱和度
-	 * @param l 亮度
-	 * @return RGB色值数值
-	 */
 	private _hslToRgb(h, s, v): [number, number, number] {
 		let r = 0, g = 0, b = 0;
 		let i = Math.floor(h / 60) % 6;

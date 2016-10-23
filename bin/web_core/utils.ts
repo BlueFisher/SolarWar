@@ -1,18 +1,23 @@
 import * as HttpProtocols from '../shared/http_protocols';
 
-export interface VueIndex {
-	range: number,
-	gameTime: number,
-	gameReadyTime: number,
+interface VueIndex {
+    ratio: number,
+    gameTime: number,
+    gameReadyTime: number,
 
-	name: string,
-	historyMaxShipsCount: number,
-	activeWebSocket: HttpProtocols.WebSocketResProtocol,
-	webSockets: HttpProtocols.WebSocketResProtocol[]
+    name: string,
+    historyMaxShipsCount: number,
+    activeWebSocket: HttpProtocols.WebSocketResProtocol,
+    webSockets: HttpProtocols.WebSocketResProtocol[]
 }
+export let vueIndex: VueIndex = {
+    ratio: 100,
+    gameTime: null,
+    gameReadyTime: null,
 
-export interface Transformation {
-	scaling: number,
-	horizontalMoving: number,
-	verticalMoving: number
+    name: 'Default Player',
+    historyMaxShipsCount: 0,
+
+    activeWebSocket: null,
+    webSockets: []
 }

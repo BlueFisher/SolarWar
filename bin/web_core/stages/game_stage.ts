@@ -1,18 +1,16 @@
-import * as GameProtocols from '../shared/game_protocols';
-import * as Utils from './utils';
+import * as GameProtocols from '../../shared/game_protocols';
 
-export default class PlanetsManager {
-	private _map: GameProtocols.Map;
+import StageMediator from './stage_mediator';
+
+export default class GameStage {
 	private _canvas: HTMLCanvasElement;
-	private _transformation: Utils.Transformation;
-	private _redrawStage: () => void;
+	private _mediator: StageMediator;
 
-	private _currPlayerId: number = null;
 	private _planetImgs: HTMLImageElement[] = [];
 
-	constructor(gameStageCanvas: HTMLCanvasElement, redrawStage: () => void) {
+	constructor(gameStageCanvas: HTMLCanvasElement, gameStageMediator: StageMediator) {
 		this._canvas = gameStageCanvas;
-		this._redrawStage = redrawStage;
+		this._mediator = gameStageMediator;
 
 		for (let i = 1; i <= 5; i++) {
 			let img = new Image();
@@ -21,13 +19,13 @@ export default class PlanetsManager {
 		}
 	}
 
-	refreshCurrPlayerId(id) {
-		this._currPlayerId = id;
+	getCanvas(): HTMLCanvasElement {
+		return this._canvas;
 	}
 
 	getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
-		if (this._map != undefined) {
-			for (let planet of this._map.planets) {
+		if (this._mediator.map != undefined) {
+			for (let planet of this._mediator.map.planets) {
 				if (Math.sqrt(Math.pow(x - planet.position.x, 2) + Math.pow(y - planet.position.y, 2)) < planet.size / 2 + 20) {
 					return planet;
 				}
@@ -35,15 +33,15 @@ export default class PlanetsManager {
 		}
 		return null;
 	}
-	draw(map: GameProtocols.Map, transformation: Utils.Transformation) {
-		this._map = map;
-		this._transformation = transformation;
+	draw() {
+		let map = this._mediator.map;
+		let transformation = this._mediator.transformation;
 
 		let ctx = this._canvas.getContext('2d');
 		ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
 		ctx.save();
-		ctx.setTransform(this._transformation.scaling, 0, 0, this._transformation.scaling, this._transformation.horizontalMoving, this._transformation.verticalMoving);
+		ctx.setTransform(transformation.scaling, 0, 0, transformation.scaling, transformation.horizontalMoving, transformation.verticalMoving);
 
 		map.planets.forEach(planet => {
 			// 绘制星球
@@ -81,10 +79,10 @@ export default class PlanetsManager {
 			} else if (planet.allShips.length > 1) {
 				let sum = 0;
 				planet.allShips.forEach(p => sum += p.count);
-				if (this._currPlayerId != null) {
+				if (this._mediator != null) {
 					let index = 0;
 					planet.allShips.forEach((s, i) => {
-						if (s.playerId == this._currPlayerId) {
+						if (s.playerId == this._mediator.currPlayerId) {
 							index = i;
 							return;
 						}
@@ -165,7 +163,7 @@ export default class PlanetsManager {
 	}
 	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
 		this.changePlanet(protocol);
-		let planet = this._map.planets.filter(p => p.id == protocol.planet.id)[0];
+		let planet = this._mediator.map.planets.filter(p => p.id == protocol.planet.id)[0];
 		this._clearOccupyingInterval(planet.id);
 		if (protocol.interval == -1) {
 			return;
@@ -187,9 +185,8 @@ export default class PlanetsManager {
 		// 	planet.occupyingStatus.percent -= timeDifference;
 		// }
 
-		let smooth = 1 / (planet.size / 10);
 		let timer = setInterval(() => {
-			planet = this._map.planets.filter(p => p.id == protocol.planet.id)[0];
+			planet = this._mediator.map.planets.filter(p => p.id == protocol.planet.id)[0];
 			if (planet.allShips.length != 1) {
 				this._clearOccupyingInterval(planet.id);
 				return;
@@ -198,13 +195,13 @@ export default class PlanetsManager {
 			let occupyingPlayerId = planet.allShips[0].playerId;
 
 			if (occupyingPlayerId == planet.occupyingStatus.playerId) {
-				if ((planet.occupyingStatus.percent += smooth) >= 100) {
+				if ((planet.occupyingStatus.percent += 0.5) >= 100) {
 					planet.occupiedPlayerId = occupyingPlayerId;
 
 					this._clearOccupyingInterval(planet.id);
 				}
 			} else {
-				if ((planet.occupyingStatus.percent -= smooth) <= 0) {
+				if ((planet.occupyingStatus.percent -= 0.5) <= 0) {
 					if (planet.occupiedPlayerId == planet.occupyingStatus.playerId) {
 						planet.occupiedPlayerId = null;
 					}
@@ -214,25 +211,26 @@ export default class PlanetsManager {
 				}
 			}
 
-			this.draw(this._map, this._transformation);
-		}, protocol.interval * smooth + 1);
+			this.draw();
+		}, Math.ceil(protocol.interval * 0.5));
 
 		this._setOccupyingInterval(planet.id, timer);
 	}
 
 	changePlanet(protocol: GameProtocols.Planet) {
+		let map = this._mediator.map;
 		let isExisted = false;
-		this._map.planets.forEach((mapPlanet, mapIndex) => {
+		map.planets.forEach((mapPlanet, mapIndex) => {
 			if (mapPlanet.id == protocol.planet.id) {
-				this._map.planets[mapIndex] = protocol.planet;
+				map.planets[mapIndex] = protocol.planet;
 				isExisted = true;
 				return;
 			}
 		});
 		if (!isExisted) {
-			this._map.planets.push(protocol.planet);
+			map.planets.push(protocol.planet);
 		}
 
-		this.draw(this._map, this._transformation);
+		this.draw();
 	}
 }

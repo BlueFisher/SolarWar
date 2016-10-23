@@ -1,17 +1,18 @@
-import * as GameProtocols from '../shared/game_protocols';
-import GameStageManager from './game_stage_manager';
+import * as GameProtocols from '../../shared/game_protocols';
+import * as Utils from '../utils';
+
+import StageMediator from './stage_mediator';
 
 export default class UiStage {
-	private _gameStageManager: GameStageManager;
+	private _mediator: StageMediator;
 	private _uiStageCanvas: HTMLCanvasElement;
-	private _countRatioData: { range: number };
 
 	private _sendProtocol: (protocol: GameProtocols.BaseProtocol) => void;
 
-	constructor(uiStageCanvas: HTMLCanvasElement, countRatioData: { range: number }, gameStageManager: GameStageManager, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
+	constructor(uiStageCanvas: HTMLCanvasElement, gameStageMediator: StageMediator, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._uiStageCanvas = uiStageCanvas;
-		this._countRatioData = countRatioData;
-		this._gameStageManager = gameStageManager;
+
+		this._mediator = gameStageMediator;
 		this._sendProtocol = sendProtocol;
 
 		this._handleMovingShips();
@@ -19,7 +20,7 @@ export default class UiStage {
 
 	private _handleMovingShips() {
 		let $canvas = $(this._uiStageCanvas);
-		
+
 		$canvas.on('contextmenu', function () {
 			return false;
 		});
@@ -39,12 +40,12 @@ export default class UiStage {
 				deltaHorizontalMoving = -deltaScaling * planet.position.x;
 				deltaVerticalMoving = -deltaScaling * planet.position.y;
 			} else {
-				let trans = this._gameStageManager.getTrans();
+				let trans = this._mediator.getTrans();
 				deltaHorizontalMoving = -deltaScaling * (point.x - trans.horizontalMoving) / trans.scaling;
 				deltaVerticalMoving = -deltaScaling * (point.y - trans.verticalMoving) / trans.scaling;
 			}
 
-			this._gameStageManager.zoomStage(deltaScaling, deltaHorizontalMoving, deltaVerticalMoving);
+			this._mediator.zoomStage(deltaScaling, deltaHorizontalMoving, deltaVerticalMoving);
 			// 触发鼠标移动事件来重绘星球激活效果
 			$canvas.trigger(new $.Event('mousemove', {
 				pageX: e.pageX,
@@ -55,7 +56,7 @@ export default class UiStage {
 		let ctx = this._uiStageCanvas.getContext('2d');
 		// 绘制星球激活特效
 		let drawActivePlanet = (planet: GameProtocols.BasePlanet) => {
-			let trans = this._gameStageManager.getNewestTrans();
+			let trans = this._mediator.getNewestTrans();
 			ctx.save();
 			ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
 			ctx.beginPath();
@@ -89,7 +90,7 @@ export default class UiStage {
 					mouseupPlanet = this._getPointedPlanet(point.x, point.y);
 					ctx.save();
 					ctx.beginPath();
-					let trans = this._gameStageManager.getNewestTrans();
+					let trans = this._mediator.getNewestTrans();
 					ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
 					// 路径线从点击的星球开始绘制
 					ctx.moveTo(mousedownPlanet.position.x, mousedownPlanet.position.y);
@@ -121,7 +122,7 @@ export default class UiStage {
 						drawActivePlanet(mousedownPlanet);
 					}
 
-					this._gameStageManager.moveStage(point.x - mousedownPoint.x, point.y - mousedownPoint.y);
+					this._mediator.moveStage(point.x - mousedownPoint.x, point.y - mousedownPoint.y);
 					mousedownPoint = point;
 				}
 			} else {
@@ -158,7 +159,7 @@ export default class UiStage {
 			$canvas.css({ cursor: 'default' });
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {
-				let protocol = new GameProtocols.RequestMovingShips(mousedownPlanet.id, mouseupPlanet.id, this._countRatioData.range / 100);
+				let protocol = new GameProtocols.RequestMovingShips(mousedownPlanet.id, mouseupPlanet.id, Utils.vueIndex.ratio / 100);
 				this._sendProtocol(protocol);
 			}
 
@@ -169,9 +170,9 @@ export default class UiStage {
 	}
 
 	private _getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
-		let trans = this._gameStageManager.getTrans();
+		let trans = this._mediator.getTrans();
 		x = (x - trans.horizontalMoving) / trans.scaling;
 		y = (y - trans.verticalMoving) / trans.scaling;
-		return this._gameStageManager.getPointedPlanet(x, y);
+		return this._mediator.getPointedPlanet(x, y);
 	}
 }

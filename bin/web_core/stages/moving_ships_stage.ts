@@ -1,27 +1,30 @@
-import * as GameProtocols from '../shared/game_protocols';
-import * as Utils from './utils';
-import config from '../shared/config';
+import * as GameProtocols from '../../shared/game_protocols';
+import config from '../../shared/config';
 
-export default class MovingShipsManager {
-	private _map: GameProtocols.Map;
+import StageMediator from './stage_mediator';
+
+export default class MovingShipsStage {
 	private _canvas: HTMLCanvasElement;
-	private _transformation: Utils.Transformation;
-	private _redrawStage: () => void;
+	private _mediator: StageMediator;
 
-	constructor(gameMovingShipsStageCanvas: HTMLCanvasElement, redrawStage: () => void) {
+	constructor(gameMovingShipsStageCanvas: HTMLCanvasElement, gameStageMediator: StageMediator) {
 		this._canvas = gameMovingShipsStageCanvas;
-		this._redrawStage = redrawStage;
+		this._mediator = gameStageMediator;
 	}
 
-	draw(map: GameProtocols.Map, transformation: Utils.Transformation) {
-		this._map = map;
-		this._transformation = transformation;
+	getCanvas(): HTMLCanvasElement {
+		return this._canvas;
+	}
+
+	draw() {
+		let map = this._mediator.map;
+		let transformation = this._mediator.transformation;
 
 		let ctx = this._canvas.getContext('2d');
 		ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
 		ctx.save();
-		ctx.setTransform(this._transformation.scaling, 0, 0, this._transformation.scaling, this._transformation.horizontalMoving, this._transformation.verticalMoving);
+		ctx.setTransform(transformation.scaling, 0, 0, transformation.scaling, transformation.horizontalMoving, transformation.verticalMoving);
 
 		// 绘制飞船移动
 		ctx.font = '14px Arial,Microsoft YaHei';
@@ -42,7 +45,7 @@ export default class MovingShipsManager {
 
 	private _timer: NodeJS.Timer;
 	startMovingShips(protocol: GameProtocols.StartMovingShips) {
-		let queue = this._map.movingShipsQueue = protocol.queue;
+		let queue = this._mediator.map.movingShipsQueue = protocol.queue;
 		clearInterval(this._timer);
 		if (protocol.queue.length == 0) {
 			return;
@@ -57,7 +60,7 @@ export default class MovingShipsManager {
 					queue.splice(parseInt(i), 1);
 				}
 			}
-			this.draw(this._map, this._transformation);
+			this.draw();
 		}, config.gameAlgorithm.getMovingShipsInterval());
 	}
 }

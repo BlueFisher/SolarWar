@@ -1,16 +1,15 @@
 import * as $ from 'jquery';
 import * as Vue from 'vue';
 import * as toastr from 'toastr';
+
 import * as HttpProtocols from '../shared/http_protocols';
 import * as GameProtocols from '../shared/game_protocols';
 import * as Utils from './utils';
 
 export default class DomManager {
-	private _vueIndex: Utils.VueIndex;
 	private _connectWebSocket: () => void;
 
-	constructor(vueIndex: Utils.VueIndex, connectWebSocket: () => void) {
-		this._vueIndex = vueIndex;
+	constructor(connectWebSocket: () => void) {
 		this._connectWebSocket = connectWebSocket;
 
 		this._initializeCanvas();
@@ -19,7 +18,7 @@ export default class DomManager {
 	}
 
 	private _initializeCanvas() {
-		let canvases = this.getCanvas();
+		let canvases = this.getCanvases();
 
 		this._adjustCanvasSize(canvases);
 		$(window).on('resize', () => {
@@ -34,7 +33,7 @@ export default class DomManager {
 		});
 	}
 
-	getCanvas(): [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement] {
+	getCanvases(): [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement] {
 		return [<HTMLCanvasElement>document.querySelector('#game-stage'),
 		<HTMLCanvasElement>document.querySelector('#game-moving-ships-stage'),
 		<HTMLCanvasElement>document.querySelector('#ui-stage')]
@@ -43,7 +42,7 @@ export default class DomManager {
 	private _initializeModals() {
 		new Vue({
 			el: '#modal-gameinit',
-			data: this._vueIndex,
+			data: Utils.vueIndex,
 			methods: {
 				onSubmit: () => {
 					this._connectWebSocket();
@@ -58,12 +57,12 @@ export default class DomManager {
 
 		new Vue({
 			el: '#modal-gameready',
-			data: this._vueIndex
+			data: Utils.vueIndex
 		});
 
 		new Vue({
 			el: '#modal-gameover',
-			data: this._vueIndex,
+			data: Utils.vueIndex,
 			methods: {
 				onSubmit: () => {
 					this._connectWebSocket();
@@ -79,12 +78,12 @@ export default class DomManager {
 
 	private _initializeCountRatio() {
 		let vm = new Vue({
-			el: '#range',
-			data: this._vueIndex
+			el: '#ratio',
+			data: Utils.vueIndex
 		});
 
-		let div = $('#range #indicator');
-		let path = $('#range #path');
+		let div = $('#ratio #indicator');
+		let path = $('#ratio #path');
 		let [x, y] = [div.width() / 2 + div.offset().left, div.height() / 2 + div.offset().top];
 
 		$(window).on('resize', function () {
@@ -110,13 +109,13 @@ export default class DomManager {
 				return;
 			}
 
-			this._vueIndex.range = Math.round(-0.33 * angle + 109.9);
+			Utils.vueIndex.ratio = Math.round(-0.33 * angle + 109.9);
 
 			path.css('stroke-dasharray', `${565 * (1 - (angle + 30) / 360)} 565`);
 
 			div.css('transform', `rotate(${angle}deg)`);
 		}
-		$('#range').on('mousedown', function () {
+		$('#ratio').on('mousedown', function () {
 			$(document).one('mousedown', function (e) {
 				setAngle(e.pageX, e.pageY)
 			});
@@ -144,7 +143,7 @@ export default class DomManager {
 	}
 
 	gameOver(protocol: GameProtocols.GameOver) {
-		this._vueIndex.historyMaxShipsCount = protocol.historyMaxShipsCount;
+		Utils.vueIndex.historyMaxShipsCount = protocol.historyMaxShipsCount;
 
 		$('#modal-gameover').modal({
 			backdrop: 'static',
@@ -155,6 +154,6 @@ export default class DomManager {
 	}
 
 	readyTimeElapse(protocol: GameProtocols.ReadyTimeElapse) {
-		this._vueIndex.gameReadyTime = protocol.time;
+		Utils.vueIndex.gameReadyTime = protocol.time;
 	}
 }

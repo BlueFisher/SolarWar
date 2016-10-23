@@ -1,17 +1,17 @@
 import * as GameProtocols from '../shared/game_protocols';
-import GameStage from './game_stage';
+import GameStageManager from './game_stage_manager';
 
 export default class UiStage {
-	private _gameStage: GameStage;
+	private _gameStageManager: GameStageManager;
 	private _uiStageCanvas: HTMLCanvasElement;
 	private _countRatioData: { range: number };
 
 	private _sendProtocol: (protocol: GameProtocols.BaseProtocol) => void;
 
-	constructor(uiStageCanvas: HTMLCanvasElement, countRatioData: { range: number }, gameStage: GameStage, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
+	constructor(uiStageCanvas: HTMLCanvasElement, countRatioData: { range: number }, gameStageManager: GameStageManager, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._uiStageCanvas = uiStageCanvas;
 		this._countRatioData = countRatioData;
-		this._gameStage = gameStage;
+		this._gameStageManager = gameStageManager;
 		this._sendProtocol = sendProtocol;
 
 		this._handleMovingShips();
@@ -19,7 +19,7 @@ export default class UiStage {
 
 	private _handleMovingShips() {
 		let $canvas = $(this._uiStageCanvas);
-		let ctx = this._uiStageCanvas.getContext('2d');
+		
 		$canvas.on('contextmenu', function () {
 			return false;
 		});
@@ -39,12 +39,12 @@ export default class UiStage {
 				deltaHorizontalMoving = -deltaScaling * planet.position.x;
 				deltaVerticalMoving = -deltaScaling * planet.position.y;
 			} else {
-				let trans = this._gameStage.getTrans();
+				let trans = this._gameStageManager.getTrans();
 				deltaHorizontalMoving = -deltaScaling * (point.x - trans.horizontalMoving) / trans.scaling;
 				deltaVerticalMoving = -deltaScaling * (point.y - trans.verticalMoving) / trans.scaling;
 			}
 
-			this._gameStage.zoomStage(deltaScaling, deltaHorizontalMoving, deltaVerticalMoving);
+			this._gameStageManager.zoomStage(deltaScaling, deltaHorizontalMoving, deltaVerticalMoving);
 			// 触发鼠标移动事件来重绘星球激活效果
 			$canvas.trigger(new $.Event('mousemove', {
 				pageX: e.pageX,
@@ -52,9 +52,10 @@ export default class UiStage {
 			}));
 		});
 
+		let ctx = this._uiStageCanvas.getContext('2d');
 		// 绘制星球激活特效
 		let drawActivePlanet = (planet: GameProtocols.BasePlanet) => {
-			let trans = this._gameStage.getNewestTrans();
+			let trans = this._gameStageManager.getNewestTrans();
 			ctx.save();
 			ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
 			ctx.beginPath();
@@ -88,7 +89,7 @@ export default class UiStage {
 					mouseupPlanet = this._getPointedPlanet(point.x, point.y);
 					ctx.save();
 					ctx.beginPath();
-					let trans = this._gameStage.getNewestTrans();
+					let trans = this._gameStageManager.getNewestTrans();
 					ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
 					// 路径线从点击的星球开始绘制
 					ctx.moveTo(mousedownPlanet.position.x, mousedownPlanet.position.y);
@@ -120,7 +121,7 @@ export default class UiStage {
 						drawActivePlanet(mousedownPlanet);
 					}
 
-					this._gameStage.moveStage(point.x - mousedownPoint.x, point.y - mousedownPoint.y);
+					this._gameStageManager.moveStage(point.x - mousedownPoint.x, point.y - mousedownPoint.y);
 					mousedownPoint = point;
 				}
 			} else {
@@ -168,9 +169,9 @@ export default class UiStage {
 	}
 
 	private _getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
-		let trans = this._gameStage.getTrans();
+		let trans = this._gameStageManager.getTrans();
 		x = (x - trans.horizontalMoving) / trans.scaling;
 		y = (y - trans.verticalMoving) / trans.scaling;
-		return this._gameStage.getPointedPlanet(x, y);
+		return this._gameStageManager.getPointedPlanet(x, y);
 	}
 }

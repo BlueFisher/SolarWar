@@ -1,220 +1,238 @@
-import * as $ from 'jquery';
 import * as GameProtocols from '../shared/game_protocols';
-import PlanetsManager from './game_stage_planets_manager';
-import MovingShipsManager from './game_stage_moving_ships_manager';
+import * as Utils from './utils';
 
-interface transformation {
-	scaling: number,
-	horizontalMoving: number,
-	verticalMoving: number
-}
-
-export default class GameStage {
-	private _gameStageCanvas: HTMLCanvasElement;
-	private _planetsManager: PlanetsManager;
-	private _movingShipsManager: MovingShipsManager;
+export default class PlanetsManager {
 	private _map: GameProtocols.Map;
-	private _currPlayerId: number;
-	private _transformation: transformation = {
-		scaling: 1,
-		horizontalMoving: 0,
-		verticalMoving: 0
-	};
-	private _tempTransformation: transformation = null;
-	private _tempDeltaTransformation: {
-		deltaScaling: number,
-		deltaHorizontalMoving: number,
-		deltaVerticalMoving: number
-	} = null;
+	private _canvas: HTMLCanvasElement;
+	private _transformation: Utils.Transformation;
+	private _redrawStage: () => void;
 
-	getTrans() {
-		return this._transformation;
-	}
-	getNewestTrans() {
-		if (this._tempTransformation == null) {
-			return this.getTrans();
-		} else {
-			return this._tempTransformation;
+	private _currPlayerId: number = null;
+	private _planetImgs: HTMLImageElement[] = [];
+
+	constructor(gameStageCanvas: HTMLCanvasElement, redrawStage: () => void) {
+		this._canvas = gameStageCanvas;
+		this._redrawStage = redrawStage;
+
+		for (let i = 1; i <= 5; i++) {
+			let img = new Image();
+			img.src = `/public/images/planets_0${i}.png`;
+			this._planetImgs.push(img);
 		}
 	}
 
-	/**游戏舞台 */
-	constructor(gameStageCanvas: HTMLCanvasElement) {
-		this._gameStageCanvas = gameStageCanvas;
-		this._planetsManager = new PlanetsManager(() => {
-			this.redrawStage();
-		});
-		this._movingShipsManager = new MovingShipsManager(() => {
-			this.redrawStage();
-		});
-
-		this._gameStageCanvas.addEventListener('webkitTransitionEnd', () => {
-			this._endTransition();
-		});
-	}
-
-	private _getMapMainRange(planets: GameProtocols.BasePlanet[]): [Point, Point] {
-		let range = 200;
-		let minPosition: Point = { x: Infinity, y: Infinity };
-		let maxPosition: Point = { x: -Infinity, y: -Infinity };
-		if (planets.length == 0 || this._currPlayerId == null) {
-			return [{ x: 10, y: 10 }, { x: 800, y: 800 }];
-		}
-
-		planets.forEach(p => {
-			if (p.occupiedPlayerId == this._currPlayerId || p.allShips.filter(s => s.playerId == this._currPlayerId).length == 1 ||
-				(p.occupyingStatus != null && p.occupyingStatus.playerId == this._currPlayerId)) {
-				let temp;
-				if ((temp = p.position.x - p.size - range) < minPosition.x) {
-					minPosition.x = temp;
-				}
-				if ((temp = p.position.x + p.size + range) > maxPosition.x) {
-					maxPosition.x = temp;
-				}
-				if ((temp = p.position.y - p.size - range) < minPosition.y) {
-					minPosition.y = temp;
-				}
-				if ((temp = p.position.y + p.size + range) > maxPosition.y) {
-					maxPosition.y = temp;
-				}
-			}
-		});
-
-		return [minPosition, maxPosition];
-	}
-	private _setStageTransformation(minPosition: Point, maxPosition: Point) {
-		let scaling = Math.sqrt((this._gameStageCanvas.width * this._gameStageCanvas.height) / ((maxPosition.x - minPosition.x) * (maxPosition.y - minPosition.y)));
-		let horizontalMoving = -(minPosition.x * scaling - (this._gameStageCanvas.width - (maxPosition.x - minPosition.x) * scaling) / 2);
-		let verticalMoving = -(minPosition.y * scaling - (this._gameStageCanvas.height - (maxPosition.y - minPosition.y) * scaling) / 2);
-		this._transformation = {
-			scaling: scaling,
-			horizontalMoving: horizontalMoving,
-			verticalMoving: verticalMoving
-		};
+	refreshCurrPlayerId(id) {
+		this._currPlayerId = id;
 	}
 
 	getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
-		return this._planetsManager.getPointedPlanet(x, y);
-	}
-
-	initializeMap(protocol: GameProtocols.InitializeMap) {
-		this._currPlayerId = protocol.playerId;
-		this._planetsManager.refreshCurrPlayerId(protocol.playerId);
-		let map: GameProtocols.Map = protocol.map;
-		let [minPosition, maxPosition] = this._getMapMainRange(map.planets);
-		this._setStageTransformation(minPosition, maxPosition);
-
-		this.drawStage(map);
-	}
-
-	zoomStage(deltaScaling: number, deltaHorizontalMoving: number, deltaVerticalMoving: number) {
-		if (this._transformation.scaling + deltaScaling <= 0.5 || (this._tempTransformation != null && this._tempTransformation.scaling + deltaScaling <= 0.5)
-			|| this._transformation.scaling + deltaScaling >= 7 || (this._tempTransformation != null && this._tempTransformation.scaling + deltaScaling >= 7)) {
-			return;
-		}
-
-		if (this._tempTransformation == null) {
-			this._gameStageCanvas.style.transition = 'transform 0.25s';
-			this._tempTransformation = {
-				scaling: this._transformation.scaling,
-				horizontalMoving: this._transformation.horizontalMoving,
-				verticalMoving: this._transformation.verticalMoving
-			}
-		}
-		if (this._tempDeltaTransformation == null) {
-			this._tempDeltaTransformation = {
-				deltaScaling: deltaScaling,
-				deltaHorizontalMoving: deltaHorizontalMoving,
-				deltaVerticalMoving: deltaVerticalMoving
-			}
-		} else {
-			this._tempDeltaTransformation.deltaScaling += deltaScaling;
-			this._tempDeltaTransformation.deltaHorizontalMoving += deltaHorizontalMoving;
-			this._tempDeltaTransformation.deltaVerticalMoving += deltaVerticalMoving;
-		}
-
-		let cssScaling = 1 + this._tempDeltaTransformation.deltaScaling / this._transformation.scaling;
-		let cssHorizontalMoving = this._tempDeltaTransformation.deltaScaling / this._transformation.scaling * (this._gameStageCanvas.width / 2 - this._transformation.horizontalMoving)
-			+ this._tempDeltaTransformation.deltaHorizontalMoving;
-		let cssVerticalMoving = this._tempDeltaTransformation.deltaScaling / this._transformation.scaling * (this._gameStageCanvas.height / 2 - this._transformation.verticalMoving)
-			+ this._tempDeltaTransformation.deltaVerticalMoving;
-		this._gameStageCanvas.style.transform = `matrix(${cssScaling},0,0,${cssScaling},${cssHorizontalMoving},${cssVerticalMoving})`;
-
-		this._tempTransformation.scaling += deltaScaling;
-		this._tempTransformation.horizontalMoving += deltaHorizontalMoving;
-		this._tempTransformation.verticalMoving += deltaVerticalMoving;
-	}
-
-	moveStage(x: number, y: number) {
-		this._transformation.horizontalMoving += x;
-		this._transformation.verticalMoving += y;
-		if (this._tempTransformation == null) {
-			this.redrawStage();
-		} else {
-			this._endTransition();
-		}
-	}
-
-	private _endTransition() {
-		this._gameStageCanvas.style.transition = 'none';
-		this._gameStageCanvas.style.transform = `matrix(1,0,0,1,0,0)`;
-		this._transformation = this._tempTransformation;
-
-		this._tempTransformation = null;
-		this._tempDeltaTransformation = null;
-		this.redrawStage();
-	}
-
-	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
-		this._updatePlayers(protocol.players);
-		this._planetsManager.startOccupyingPlanet(protocol);
-	}
-
-	startMovingShipsQueue(protocol: GameProtocols.StartMovingShips) {
-		this._updatePlayers(protocol.players);
-		this._movingShipsManager.startMovingShips(protocol);
-	}
-
-	changePlanet(protocol: GameProtocols.Planet) {
-		this._updatePlayers(protocol.players);
-		this._planetsManager.changePlanet(protocol);
-	}
-
-	private _updatePlayers(players: GameProtocols.BasePlayer[]) {
-		let isExisted = false;
-		players.forEach((player) => {
-			isExisted = false;
-			this._map.players.forEach((mapPlayer, mapIndex) => {
-				if (mapPlayer.id == player.id) {
-					this._map.players[mapIndex] = player;
-					isExisted = true;
-					return;
+		if (this._map != undefined) {
+			for (let planet of this._map.planets) {
+				if (Math.sqrt(Math.pow(x - planet.position.x, 2) + Math.pow(y - planet.position.y, 2)) < planet.size / 2 + 20) {
+					return planet;
 				}
-			});
-			if (!isExisted) {
-				this._map.players.push(player);
 			}
-		});
-	}
-
-	redrawStage() {
-		if (this._map) {
-			this.drawStage(this._map);
 		}
+		return null;
 	}
-
-	drawStage(map: GameProtocols.Map) {
+	draw(map: GameProtocols.Map, transformation: Utils.Transformation) {
 		this._map = map;
-		let ctx = this._gameStageCanvas.getContext('2d');
+		this._transformation = transformation;
 
-		ctx.clearRect(0, 0, this._gameStageCanvas.width, this._gameStageCanvas.height);
+		let ctx = this._canvas.getContext('2d');
+		ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
 		ctx.save();
 		ctx.setTransform(this._transformation.scaling, 0, 0, this._transformation.scaling, this._transformation.horizontalMoving, this._transformation.verticalMoving);
 
-		this._planetsManager.draw(ctx, map);
-		this._movingShipsManager.draw(ctx, map);
+		map.planets.forEach(planet => {
+			// 绘制星球
+			ctx.save();
+
+			let color = '#ddd';
+			if (planet.occupiedPlayerId != null) {
+				color = map.players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
+			}
+
+			ctx.beginPath();
+			ctx.arc(planet.position.x, planet.position.y, planet.size / 2, 0, Math.PI * 2);
+
+			// setShadow(ctx, 1, 1, 15, color);
+			var grd = ctx.createRadialGradient(planet.position.x - planet.size * 0.2, planet.position.y - planet.size * 0.2, planet.size / 2,
+				planet.position.x - planet.size * 0.2, planet.position.y - planet.size * 0.2, planet.size * 1.5);
+			grd.addColorStop(0, color);
+			grd.addColorStop(1, 'rgba(0,0,0,.5)');
+
+			ctx.fillStyle = grd;
+
+			ctx.fill();
+			ctx.drawImage(this._planetImgs[planet.id % this._planetImgs.length], planet.position.x - planet.size / 2, planet.position.y - planet.size / 2, planet.size, planet.size);
+			ctx.restore();
+
+			// 绘制星球争夺或平静状态
+			ctx.save();
+			ctx.font = '14px Arial,Microsoft YaHei';
+			if (planet.allShips.length == 1) {
+				ctx.textAlign = 'center';
+				let player = map.players.filter(player => player.id == planet.allShips[0].playerId)[0];
+				ctx.fillStyle = player.color;
+				// setShadow(ctx, 1, 1, 15, player.color);
+				ctx.fillText(`${player.name} ${planet.allShips[0].count}`, planet.position.x, planet.position.y + planet.size / 2 + 15);
+			} else if (planet.allShips.length > 1) {
+				let sum = 0;
+				planet.allShips.forEach(p => sum += p.count);
+				if (this._currPlayerId != null) {
+					let index = 0;
+					planet.allShips.forEach((s, i) => {
+						if (s.playerId == this._currPlayerId) {
+							index = i;
+							return;
+						}
+					});
+					let currShips = planet.allShips.splice(index, 1)[0];
+					planet.allShips.unshift(currShips);
+				}
+				let currAngle = -Math.PI / 2 - Math.PI * planet.allShips[0].count / sum;
+				planet.allShips.forEach(ship => {
+					ctx.beginPath();
+					let nextAngle = currAngle + Math.PI * 2 * ship.count / sum;
+					ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 5, currAngle, nextAngle);
+
+					let player = map.players.filter(player => player.id == ship.playerId)[0];
+					ctx.strokeStyle = ctx.fillStyle = player.color;
+					let x = planet.position.x + Math.cos((currAngle + nextAngle) / 2) * (planet.size / 2 + 12);
+					let y = planet.position.y + Math.sin((currAngle + nextAngle) / 2) * (planet.size / 2 + 12);
+					ctx.textAlign = 'center';
+					ctx.textBaseline = 'middle';
+					ctx.fillText(ship.count.toString(), x, y);
+					currAngle = nextAngle;
+
+					setShadow(ctx, 0, 0, 30, player.color);
+					ctx.lineWidth = 2;
+					ctx.stroke();
+				});
+			}
+			ctx.restore();
+
+			// 绘制星球占领中状态
+			if ((planet.allShips.length == 1 || planet.allShips.length == 0)
+				&& planet.occupyingStatus != null && planet.occupyingStatus.percent < 100) {
+				ctx.save();
+				let player = map.players.filter(player => player.id == planet.occupyingStatus.playerId)[0];
+				ctx.beginPath();
+				let angle = Math.PI * 2 * planet.occupyingStatus.percent / 100 - Math.PI / 2;
+				ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 3, -Math.PI / 2, angle);
+
+				setShadow(ctx, 0, 0, 30, player.color);
+				ctx.lineCap = 'round';
+				ctx.strokeStyle = player.color;
+				ctx.lineWidth = 2;
+				ctx.stroke();
+				ctx.restore();
+			}
+		});
 
 		ctx.restore();
+
+		function setShadow(ctx: CanvasRenderingContext2D, x: number, y: number, blur: number, color: string) {
+			ctx.shadowOffsetX = x; // 阴影Y轴偏移
+			ctx.shadowOffsetY = y; // 阴影X轴偏移
+			ctx.shadowBlur = blur; // 模糊尺寸
+			ctx.shadowColor = color; // 颜色
+		}
+	}
+
+	private _occupyingTimers: {
+		planetId: number,
+		timer: NodeJS.Timer
+	}[] = [];
+	private _setOccupyingInterval(planetId: number, timer: NodeJS.Timer) {
+		let occupyingTimer = this._occupyingTimers.filter(p => p.planetId == planetId)[0];
+		if (occupyingTimer == undefined) {
+			this._occupyingTimers.push({
+				planetId: planetId,
+				timer: timer
+			});
+		} else {
+			occupyingTimer.timer = timer;
+		}
+	}
+	private _clearOccupyingInterval(planetId: number) {
+		let occupyingTimer = this._occupyingTimers.filter(p => p.planetId == planetId)[0];
+		if (occupyingTimer != undefined) {
+			clearInterval(occupyingTimer.timer);
+		}
+	}
+	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
+		this.changePlanet(protocol);
+		let planet = this._map.planets.filter(p => p.id == protocol.planet.id)[0];
+		this._clearOccupyingInterval(planet.id);
+		if (protocol.interval == -1) {
+			return;
+		}
+
+		let occupyingPlayerId = planet.allShips[0].playerId;
+
+		if (planet.occupyingStatus == null) {
+			planet.occupyingStatus = {
+				playerId: occupyingPlayerId,
+				percent: 0
+			};
+		}
+
+		// let timeDifference = (new Date().getTime() - protocol.startDateTime.getTime()) / protocol.interval;
+		// if (occupyingPlayerId == planet.occupyingStatus.playerId) {
+		// 	planet.occupyingStatus.percent += timeDifference;
+		// } else {
+		// 	planet.occupyingStatus.percent -= timeDifference;
+		// }
+
+		let smooth = 1 / (planet.size / 10);
+		let timer = setInterval(() => {
+			planet = this._map.planets.filter(p => p.id == protocol.planet.id)[0];
+			if (planet.allShips.length != 1) {
+				this._clearOccupyingInterval(planet.id);
+				return;
+			}
+
+			let occupyingPlayerId = planet.allShips[0].playerId;
+
+			if (occupyingPlayerId == planet.occupyingStatus.playerId) {
+				if ((planet.occupyingStatus.percent += smooth) >= 100) {
+					planet.occupiedPlayerId = occupyingPlayerId;
+
+					this._clearOccupyingInterval(planet.id);
+				}
+			} else {
+				if ((planet.occupyingStatus.percent -= smooth) <= 0) {
+					if (planet.occupiedPlayerId == planet.occupyingStatus.playerId) {
+						planet.occupiedPlayerId = null;
+					}
+					planet.occupyingStatus.playerId = occupyingPlayerId;
+
+					this._clearOccupyingInterval(planet.id);
+				}
+			}
+
+			this.draw(this._map, this._transformation);
+		}, protocol.interval * smooth + 1);
+
+		this._setOccupyingInterval(planet.id, timer);
+	}
+
+	changePlanet(protocol: GameProtocols.Planet) {
+		let isExisted = false;
+		this._map.planets.forEach((mapPlanet, mapIndex) => {
+			if (mapPlanet.id == protocol.planet.id) {
+				this._map.planets[mapIndex] = protocol.planet;
+				isExisted = true;
+				return;
+			}
+		});
+		if (!isExisted) {
+			this._map.planets.push(protocol.planet);
+		}
+
+		this.draw(this._map, this._transformation);
 	}
 }

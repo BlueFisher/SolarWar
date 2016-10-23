@@ -1,12 +1,12 @@
 import * as HttpProtocols from '../shared/http_protocols';
 import * as GameProtocols from '../shared/game_protocols';
-import * as VueData from './vue_data';
+import * as Utils from './utils';
 import DomManager from './dom_manager';
-import GameStage from './game_stage';
+import GameStageManager from './game_stage_manager';
 import UiStage from './ui_stage';
 
 class Main {
-	private _vueIndex: VueData.Index = {
+	private _vueIndex: Utils.VueIndex = {
 		range: 100,
 		gameTime: null,
 		gameReadyTime: null,
@@ -19,24 +19,24 @@ class Main {
 	}
 
 	private _domManager: DomManager;
-	private _gameStage: GameStage;
+	private _gameStageManager: GameStageManager;
 	private _uiStage: UiStage;
-	
+
 	private _ws: WebSocket = null;
 
 	constructor() {
 		this._domManager = new DomManager(this._vueIndex, () => {
 			this._connectWebSocket();
 		});
-		let [gameStageCanvas, uiStageCanvas] = this._domManager.getCanvas();
+		let [gameStageCanvas, gameMovingShipsCanvas, uiStageCanvas] = this._domManager.getCanvas();
 
-		this._gameStage = new GameStage(gameStageCanvas);
-		this._uiStage = new UiStage(uiStageCanvas, this._vueIndex, this._gameStage, (p) => {
+		this._gameStageManager = new GameStageManager(gameStageCanvas, gameMovingShipsCanvas);
+		this._uiStage = new UiStage(uiStageCanvas, this._vueIndex, this._gameStageManager, (p) => {
 			this._webSocketSend(p);
 		});
 
 		$(window).on('resize', () => {
-			this._gameStage.redrawStage();
+			this._gameStageManager.redrawStage();
 		});
 
 		$.getJSON('/websockets').then((data: HttpProtocols.WebSocketResProtocol[]) => {
@@ -45,7 +45,7 @@ class Main {
 			this._domManager.gameInit();
 		});
 	}
-	
+
 	private _connectWebSocket() {
 		let url = `ws://${this._vueIndex.activeWebSocket.ip}:${this._vueIndex.activeWebSocket.port}/`;
 		if (this._ws == null) {
@@ -84,7 +84,7 @@ class Main {
 	private _protocolReceived(protocol: GameProtocols.BaseProtocol) {
 		switch (protocol.type) {
 			case GameProtocols.Type.initializeMap:
-				this._gameStage.initializeMap(<GameProtocols.InitializeMap>protocol);
+				this._gameStageManager.initializeMap(<GameProtocols.InitializeMap>protocol);
 				this._domManager.gameOn();
 				break;
 			case GameProtocols.Type.gameOver:
@@ -92,15 +92,15 @@ class Main {
 				break;
 
 			case GameProtocols.Type.startMovingShips:
-				this._gameStage.startMovingShipsQueue(<GameProtocols.StartMovingShips>protocol);
+				this._gameStageManager.startMovingShipsQueue(<GameProtocols.StartMovingShips>protocol);
 				break;
 			case GameProtocols.Type.planet:
-				this._gameStage.changePlanet(<GameProtocols.Planet>protocol);
+				this._gameStageManager.changePlanet(<GameProtocols.Planet>protocol);
 				break;
 			case GameProtocols.Type.startOccupyingPlanet:
 				let startOccupyingProtocol = <GameProtocols.StartOccupyingPlanet>protocol;
 				startOccupyingProtocol.startDateTime = new Date(startOccupyingProtocol.startDateTime.toString());
-				this._gameStage.startOccupyingPlanet(startOccupyingProtocol);
+				this._gameStageManager.startOccupyingPlanet(startOccupyingProtocol);
 				break;
 			case GameProtocols.Type.readyTime:
 				this._domManager.readyTimeElapse(<GameProtocols.ReadyTimeElapse>protocol);

@@ -1,18 +1,29 @@
 import * as GameProtocols from '../shared/game_protocols';
+import * as Utils from './utils';
 import config from '../shared/config';
 
 export default class MovingShipsManager {
 	private _map: GameProtocols.Map;
+	private _canvas: HTMLCanvasElement;
+	private _transformation: Utils.Transformation;
 	private _redrawStage: () => void;
-	constructor(redrawStage: () => void) {
+
+	constructor(gameMovingShipsStageCanvas: HTMLCanvasElement, redrawStage: () => void) {
+		this._canvas = gameMovingShipsStageCanvas;
 		this._redrawStage = redrawStage;
 	}
 
-	draw(ctx: CanvasRenderingContext2D, map: GameProtocols.Map) {
+	draw(map: GameProtocols.Map, transformation: Utils.Transformation) {
 		this._map = map;
+		this._transformation = transformation;
+
+		let ctx = this._canvas.getContext('2d');
+		ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+
+		ctx.save();
+		ctx.setTransform(this._transformation.scaling, 0, 0, this._transformation.scaling, this._transformation.horizontalMoving, this._transformation.verticalMoving);
 
 		// 绘制飞船移动
-		ctx.save();
 		ctx.font = '14px Arial,Microsoft YaHei';
 		map.movingShipsQueue.forEach(movingShips => {
 			let planetFrom = map.planets.filter(p => p.id == movingShips.planetFromId)[0];
@@ -46,7 +57,7 @@ export default class MovingShipsManager {
 					queue.splice(parseInt(i), 1);
 				}
 			}
-			this._redrawStage();
+			this.draw(this._map, this._transformation);
 		}, config.gameAlgorithm.getMovingShipsInterval());
 	}
 }

@@ -3,13 +3,13 @@ import * as Vue from 'vue';
 import * as toastr from 'toastr';
 import * as HttpProtocols from '../shared/http_protocols';
 import * as GameProtocols from '../shared/game_protocols';
-import * as VueData from './vue_data';
+import * as Utils from './utils';
 
 export default class DomManager {
-	private _vueIndex: VueData.Index;
+	private _vueIndex: Utils.VueIndex;
 	private _connectWebSocket: () => void;
 
-	constructor(vueIndex: VueData.Index, connectWebSocket: () => void) {
+	constructor(vueIndex: Utils.VueIndex, connectWebSocket: () => void) {
 		this._vueIndex = vueIndex;
 		this._connectWebSocket = connectWebSocket;
 
@@ -19,23 +19,25 @@ export default class DomManager {
 	}
 
 	private _initializeCanvas() {
-		let [gameStageCanvas, uiStageCanvas] = this.getCanvas();
+		let canvases = this.getCanvas();
 
-		this._adjustCanvasSize(gameStageCanvas, uiStageCanvas);
+		this._adjustCanvasSize(canvases);
 		$(window).on('resize', () => {
-			this._adjustCanvasSize(gameStageCanvas, uiStageCanvas);
+			this._adjustCanvasSize(canvases);
 		});
 	}
-	private _adjustCanvasSize(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement) {
+	private _adjustCanvasSize(canvases: HTMLCanvasElement[]) {
 		let $window = $(window);
-		gameStageCanvas.height = $window.innerHeight();
-		gameStageCanvas.width = $window.innerWidth();
-		uiStageCanvas.height = $window.innerHeight();
-		uiStageCanvas.width = $window.innerWidth();
+		canvases.forEach(p => {
+			p.height = $window.innerHeight();
+			p.width = $window.innerWidth();
+		});
 	}
 
-	getCanvas(): [HTMLCanvasElement, HTMLCanvasElement] {
-		return [<HTMLCanvasElement>document.querySelector('#game-stage'), <HTMLCanvasElement>document.querySelector('#ui-stage')]
+	getCanvas(): [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement] {
+		return [<HTMLCanvasElement>document.querySelector('#game-stage'),
+		<HTMLCanvasElement>document.querySelector('#game-moving-ships-stage'),
+		<HTMLCanvasElement>document.querySelector('#ui-stage')]
 	}
 
 	private _initializeModals() {
@@ -77,12 +79,12 @@ export default class DomManager {
 
 	private _initializeCountRatio() {
 		let vm = new Vue({
-			el: '#ratio',
+			el: '#range',
 			data: this._vueIndex
 		});
 
-		let div = $('#ratio #indicator');
-		let path = $('#ratio #path');
+		let div = $('#range #indicator');
+		let path = $('#range #path');
 		let [x, y] = [div.width() / 2 + div.offset().left, div.height() / 2 + div.offset().top];
 
 		$(window).on('resize', function () {
@@ -109,13 +111,12 @@ export default class DomManager {
 			}
 
 			this._vueIndex.range = Math.round(-0.33 * angle + 109.9);
-			console.log(this._vueIndex.range);
 
 			path.css('stroke-dasharray', `${565 * (1 - (angle + 30) / 360)} 565`);
 
 			div.css('transform', `rotate(${angle}deg)`);
 		}
-		$('#ratio').on('mousedown', function () {
+		$('#range').on('mousedown', function () {
 			$(document).one('mousedown', function (e) {
 				setAngle(e.pageX, e.pageY)
 			});

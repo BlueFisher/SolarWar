@@ -12,18 +12,22 @@ html, body {
 	background: linear-gradient(to bottom, #08060C, #111123);
 }
 
-#game-stage {
+.stage-container .stage {
 	position: absolute;
 	top: 0;
 	left: 0;
+}
+
+#game-stage {
 	z-index: 1;
 }
 
-#ui-stage {
-	position: absolute;
-	top: 0;
-	left: 0;
+#game-moving-ships-stage {
 	z-index: 2;
+}
+
+#ui-stage {
+	z-index: 3;
 }
 
 .modal .title {
@@ -48,7 +52,7 @@ html, body {
 	transform: none;
 }
 
-.ratio {
+.range {
 	width: 150px;
 	height: 150px;
 	border-radius: 50%;
@@ -68,7 +72,7 @@ html, body {
 	user-select: none;
 }
 
-.ratio > * {
+.range > * {
 	position: absolute;
 	bottom: 0;
 	top: 0;
@@ -77,7 +81,7 @@ html, body {
 	margin: auto;
 }
 
-.ratio .text {
+.range .text {
 	position: absolute;
 	top: -27px;
 	width: 100%;

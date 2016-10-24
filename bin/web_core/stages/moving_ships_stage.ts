@@ -3,6 +3,10 @@ import config from '../../shared/config';
 
 import StageMediator from './stage_mediator';
 
+interface MovingShips extends GameProtocols.BaseMovingShips {
+	shipsPosition?: Point[]
+}
+
 export default class MovingShipsStage {
 	private _canvas: HTMLCanvasElement;
 	private _mediator: StageMediator;
@@ -12,12 +16,9 @@ export default class MovingShipsStage {
 		this._mediator = gameStageMediator;
 	}
 
-	getCanvas(): HTMLCanvasElement {
-		return this._canvas;
-	}
-
 	draw() {
-		let map = this._mediator.map;
+		let planets = this._mediator.getPlanets();
+		let players = this._mediator.players;
 		let transformation = this._mediator.transformation;
 
 		let ctx = this._canvas.getContext('2d');
@@ -27,40 +28,66 @@ export default class MovingShipsStage {
 		ctx.setTransform(transformation.scaling, 0, 0, transformation.scaling, transformation.horizontalMoving, transformation.verticalMoving);
 
 		// 绘制飞船移动
-		ctx.font = '14px Arial,Microsoft YaHei';
-		map.movingShipsQueue.forEach(movingShips => {
-			let planetFrom = map.planets.filter(p => p.id == movingShips.planetFromId)[0];
-			let planetTo = map.planets.filter(p => p.id == movingShips.planetToId)[0];
+		this._queue.forEach(movingShips => {
+			let planetFrom = planets.filter(p => p.id == movingShips.planetFromId)[0];
+			let planetTo = planets.filter(p => p.id == movingShips.planetToId)[0];
 			let x = planetTo.position.x - movingShips.distanceLeft * (planetTo.position.x - planetFrom.position.x) / movingShips.distance;
 			let y = planetTo.position.y - movingShips.distanceLeft * (planetTo.position.y - planetFrom.position.y) / movingShips.distance;
 
-			ctx.fillStyle = map.players.filter(player => player.id == movingShips.playerId)[0].color;
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.fillText(movingShips.count.toString(), x, y);
+			ctx.fillStyle = players.filter(player => player.id == movingShips.playerId)[0].color;
 
+			if (movingShips.shipsPosition == undefined) {
+				movingShips.shipsPosition = [];
+				for (let j = 0; j < Math.ceil(movingShips.count / 2); j++) {
+					movingShips.shipsPosition.push({
+						x: (Math.random() - 0.5) * (planetFrom.size - 10),
+						y: (Math.random() - 0.5) * (planetFrom.size - 10),
+					});
+				}
+			} else {
+				let w = movingShips.distanceLeft / movingShips.distance * (planetFrom.size - planetTo.size) + planetTo.size;
+				console.log(w);
+				for (let j = 0; j < Math.ceil(movingShips.count / 2); j++) {
+					let position = movingShips.shipsPosition[j];
+					// let currd = Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.y, 2));
+					if (planetFrom.size > planetTo.size) {
+						position.x *= 0.995;
+						position.y *= 0.995;
+					} else if (planetFrom.size < planetTo.size) {
+						position.x *= 1.005;
+						position.y *= 1.005;
+					}
+				}
+			}
+			for (let shipPostion of movingShips.shipsPosition) {
+				ctx.beginPath();
+				ctx.arc(x + shipPostion.x, y + shipPostion.y, 1, 0, 2 * Math.PI);
+				ctx.fill();
+			}
 		});
 		ctx.restore();
 	}
 
-	private _timer: NodeJS.Timer;
-	startMovingShips(protocol: GameProtocols.StartMovingShips) {
-		let queue = this._mediator.map.movingShipsQueue = protocol.queue;
-		clearInterval(this._timer);
-		if (protocol.queue.length == 0) {
-			return;
-		}
-
-		this._timer = setInterval(() => {
-			for (let i in queue) {
-				let movingShip = queue[i];
-				let deltaDistance = config.gameAlgorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
-
-				if ((movingShip.distanceLeft -= deltaDistance) <= 0) {
-					queue.splice(parseInt(i), 1);
+	private _queue: MovingShips[] = [];
+	movingShips(queue: GameProtocols.BaseMovingShips[]) {
+		if (queue.length == 0) {
+			this._queue = [];
+		} else {
+			for (let i = 0; i < queue.length; i++) {
+				if (this._queue[i] == undefined) {
+					let m: MovingShips = queue[i];
+					this._queue.push(m);
+				} else if (this._queue[i].id < queue[i].id) {
+					this._queue.splice(i, 1);
+					i--;
+				} else {
+					this._queue[i].count = queue[i].count;
+					this._queue[i].distance = queue[i].distance;
+					this._queue[i].distanceLeft = queue[i].distanceLeft;
 				}
 			}
-			this.draw();
-		}, config.gameAlgorithm.getMovingShipsInterval());
+		}
+
+		this.draw();
 	}
 }

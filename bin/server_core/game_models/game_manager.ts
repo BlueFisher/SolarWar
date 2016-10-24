@@ -73,7 +73,7 @@ export default class GameManager extends events.EventEmitter {
 	/**增加玩家
 	 * @param name 玩家昵称
 	 */
-	addPlayer(name: string): [number, GameProtocols.Planet[]] {
+	addPlayer(name: string): [number, GameProtocols.ChangedPlanet[]] {
 		let player = new Player(this._getNextPlayerId(), name, 0);
 		this._players.push(player);
 
@@ -88,9 +88,9 @@ export default class GameManager extends events.EventEmitter {
 			});
 		}
 
-		let newPlanetProtocols: GameProtocols.Planet[] = newPlanets.map(p => {
+		let newPlanetProtocols: GameProtocols.ChangedPlanet[] = newPlanets.map(p => {
 			this._planets.push(p);
-			return new GameProtocols.Planet(p.getBasePlanetProtocol(), [player.getBasePlayerProtocol()]);
+			return new GameProtocols.ChangedPlanet(p.getBasePlanetProtocol(), [player.getBasePlayerProtocol()]);
 		});
 
 		return [player.id, newPlanetProtocols];
@@ -109,7 +109,7 @@ export default class GameManager extends events.EventEmitter {
 		return ++this._currPlayerId;
 	}
 
-	private _planetChanged(planetProtocol: GameProtocols.Planet) {
+	private _planetChanged(planetProtocol: GameProtocols.ChangedPlanet) {
 		planetProtocol.players.forEach((player) => {
 			if (player.currShipsCount == 0) {
 				let isGameOver = true;

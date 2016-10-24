@@ -20,7 +20,11 @@ export default class StageMediator {
 	private _movingShipsStage: MovingShipsStage;
 	private _uiStage: UiStage;
 
-	map: GameProtocols.Map;
+	players: GameProtocols.BasePlayer[];
+	// map: {
+	// 	players: GameProtocols.BasePlayer[],
+	// 	planets: GameProtocols.BasePlanet[],
+	// };
 	currPlayerId: number;
 
 	transformation: Transformation = {
@@ -107,13 +111,19 @@ export default class StageMediator {
 		return this._gameStage.getPointedPlanet(x, y);
 	}
 
+	getPlanets(): GameProtocols.BasePlanet[] {
+		return this._gameStage.getPlanets();
+	}
+
 	initializeMap(protocol: GameProtocols.InitializeMap) {
 		this.currPlayerId = protocol.playerId;
 		let map: GameProtocols.Map = protocol.map;
 		let [minPosition, maxPosition] = this._getMapMainRange(map.planets);
 		this._setStageTransformation(minPosition, maxPosition);
 
-		this.drawStage(map);
+		this.players = map.players;
+		this._gameStage.changePlanets(map.planets);
+		this._movingShipsStage.movingShips(map.movingShipsQueue);
 	}
 
 	zoomStage(deltaScaling: number, deltaHorizontalMoving: number, deltaVerticalMoving: number) {
@@ -187,42 +197,34 @@ export default class StageMediator {
 		this._gameStage.startOccupyingPlanet(protocol);
 	}
 
-	startMovingShipsQueue(protocol: GameProtocols.StartMovingShips) {
+	movingShipsQueue(protocol: GameProtocols.MovingShips) {
 		this._updatePlayers(protocol.players);
-		this._movingShipsStage.startMovingShips(protocol);
+		this._movingShipsStage.movingShips(protocol.queue);
 	}
 
-	changePlanet(protocol: GameProtocols.Planet) {
+	changePlanet(protocol: GameProtocols.ChangedPlanet) {
 		this._updatePlayers(protocol.players);
-		this._gameStage.changePlanet(protocol);
+		this._gameStage.changePlanets([protocol.planet]);
 	}
 
 	private _updatePlayers(players: GameProtocols.BasePlayer[]) {
 		let isExisted = false;
 		players.forEach((player) => {
 			isExisted = false;
-			this.map.players.forEach((mapPlayer, mapIndex) => {
+			this.players.forEach((mapPlayer, mapIndex) => {
 				if (mapPlayer.id == player.id) {
-					this.map.players[mapIndex] = player;
+					this.players[mapIndex] = player;
 					isExisted = true;
 					return;
 				}
 			});
 			if (!isExisted) {
-				this.map.players.push(player);
+				this.players.push(player);
 			}
 		});
 	}
 
 	redrawStage() {
-		if (this.map) {
-			this.drawStage(this.map);
-		}
-	}
-
-	drawStage(map: GameProtocols.Map) {
-		this.map = map;
-
 		this._gameStage.draw();
 		this._movingShipsStage.draw();
 	}

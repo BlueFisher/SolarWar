@@ -20,11 +20,11 @@ html, body {
 	left: 0;
 }
 
-#game-stage {
+#game-moving-ships-stage {
 	z-index: 1;
 }
 
-#game-moving-ships-stage {
+#game-stage {
 	z-index: 2;
 }
 

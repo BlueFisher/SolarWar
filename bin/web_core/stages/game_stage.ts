@@ -19,13 +19,9 @@ export default class GameStage {
 		}
 	}
 
-	getCanvas(): HTMLCanvasElement {
-		return this._canvas;
-	}
-
 	getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
-		if (this._mediator.map != undefined) {
-			for (let planet of this._mediator.map.planets) {
+		if (this._planets.length != 0) {
+			for (let planet of this._planets) {
 				if (Math.sqrt(Math.pow(x - planet.position.x, 2) + Math.pow(y - planet.position.y, 2)) < planet.size / 2 + 20) {
 					return planet;
 				}
@@ -33,8 +29,9 @@ export default class GameStage {
 		}
 		return null;
 	}
+	
 	draw() {
-		let map = this._mediator.map;
+		let players = this._mediator.players;
 		let transformation = this._mediator.transformation;
 
 		let ctx = this._canvas.getContext('2d');
@@ -43,13 +40,13 @@ export default class GameStage {
 		ctx.save();
 		ctx.setTransform(transformation.scaling, 0, 0, transformation.scaling, transformation.horizontalMoving, transformation.verticalMoving);
 
-		map.planets.forEach(planet => {
+		this._planets.forEach(planet => {
 			// 绘制星球
 			ctx.save();
 
 			let color = '#ddd';
 			if (planet.occupiedPlayerId != null) {
-				color = map.players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
+				color = players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
 			}
 
 			ctx.beginPath();
@@ -69,13 +66,13 @@ export default class GameStage {
 
 			// 绘制星球争夺或平静状态
 			ctx.save();
-			ctx.font = '14px Arial,Microsoft YaHei';
+			ctx.font = '10px Arial,Microsoft YaHei';
 			if (planet.allShips.length == 1) {
 				ctx.textAlign = 'center';
-				let player = map.players.filter(player => player.id == planet.allShips[0].playerId)[0];
+				let player = players.filter(player => player.id == planet.allShips[0].playerId)[0];
 				ctx.fillStyle = player.color;
 				// setShadow(ctx, 1, 1, 15, player.color);
-				ctx.fillText(`${player.name} ${planet.allShips[0].count}`, planet.position.x, planet.position.y + planet.size / 2 + 15);
+				ctx.fillText(`${player.name} ${planet.allShips[0].count}`, planet.position.x, planet.position.y + planet.size / 2 + 12);
 			} else if (planet.allShips.length > 1) {
 				let sum = 0;
 				planet.allShips.forEach(p => sum += p.count);
@@ -96,7 +93,7 @@ export default class GameStage {
 					let nextAngle = currAngle + Math.PI * 2 * ship.count / sum;
 					ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 5, currAngle, nextAngle);
 
-					let player = map.players.filter(player => player.id == ship.playerId)[0];
+					let player = players.filter(player => player.id == ship.playerId)[0];
 					ctx.strokeStyle = ctx.fillStyle = player.color;
 					let x = planet.position.x + Math.cos((currAngle + nextAngle) / 2) * (planet.size / 2 + 12);
 					let y = planet.position.y + Math.sin((currAngle + nextAngle) / 2) * (planet.size / 2 + 12);
@@ -116,7 +113,7 @@ export default class GameStage {
 			if ((planet.allShips.length == 1 || planet.allShips.length == 0)
 				&& planet.occupyingStatus != null && planet.occupyingStatus.percent < 100) {
 				ctx.save();
-				let player = map.players.filter(player => player.id == planet.occupyingStatus.playerId)[0];
+				let player = players.filter(player => player.id == planet.occupyingStatus.playerId)[0];
 				ctx.beginPath();
 				let angle = Math.PI * 2 * planet.occupyingStatus.percent / 100 - Math.PI / 2;
 				ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 3, -Math.PI / 2, angle);
@@ -162,8 +159,8 @@ export default class GameStage {
 		}
 	}
 	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
-		this.changePlanet(protocol);
-		let planet = this._mediator.map.planets.filter(p => p.id == protocol.planet.id)[0];
+		this.changePlanets([protocol.planet]);
+		let planet = this._planets.filter(p => p.id == protocol.planet.id)[0];
 		this._clearOccupyingInterval(planet.id);
 		if (protocol.interval == -1) {
 			return;
@@ -178,15 +175,8 @@ export default class GameStage {
 			};
 		}
 
-		// let timeDifference = (new Date().getTime() - protocol.startDateTime.getTime()) / protocol.interval;
-		// if (occupyingPlayerId == planet.occupyingStatus.playerId) {
-		// 	planet.occupyingStatus.percent += timeDifference;
-		// } else {
-		// 	planet.occupyingStatus.percent -= timeDifference;
-		// }
-
 		let timer = setInterval(() => {
-			planet = this._mediator.map.planets.filter(p => p.id == protocol.planet.id)[0];
+			planet = this._planets.filter(p => p.id == protocol.planet.id)[0];
 			if (planet.allShips.length != 1) {
 				this._clearOccupyingInterval(planet.id);
 				return;
@@ -217,18 +207,19 @@ export default class GameStage {
 		this._setOccupyingInterval(planet.id, timer);
 	}
 
-	changePlanet(protocol: GameProtocols.Planet) {
-		let map = this._mediator.map;
-		let isExisted = false;
-		map.planets.forEach((mapPlanet, mapIndex) => {
-			if (mapPlanet.id == protocol.planet.id) {
-				map.planets[mapIndex] = protocol.planet;
-				isExisted = true;
-				return;
+	private _planets: GameProtocols.BasePlanet[] = [];
+
+	getPlanets(): GameProtocols.BasePlanet[] {
+		return this._planets;
+	}
+
+	changePlanets(planets: GameProtocols.BasePlanet[]) {
+		for (let i = 0; i < planets.length; i++) {
+			if (this._planets[planets[i].id - 1] == undefined) {
+				this._planets.push(planets[i]);
+			} else {
+				this._planets[planets[i].id - 1] = planets[i];
 			}
-		});
-		if (!isExisted) {
-			map.planets.push(protocol.planet);
 		}
 
 		this.draw();

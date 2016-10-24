@@ -38,11 +38,11 @@ export default class GameManager {
 				this._domManager.gameOver(<GameProtocols.GameOver>protocol);
 				break;
 
-			case GameProtocols.Type.startMovingShips:
-				this._stageMediator.startMovingShipsQueue(<GameProtocols.StartMovingShips>protocol);
+			case GameProtocols.Type.movingShips:
+				this._stageMediator.movingShipsQueue(<GameProtocols.MovingShips>protocol);
 				break;
-			case GameProtocols.Type.planet:
-				this._stageMediator.changePlanet(<GameProtocols.Planet>protocol);
+			case GameProtocols.Type.planetChanged:
+				this._stageMediator.changePlanet(<GameProtocols.ChangedPlanet>protocol);
 				break;
 			case GameProtocols.Type.startOccupyingPlanet:
 				let startOccupyingProtocol = <GameProtocols.StartOccupyingPlanet>protocol;

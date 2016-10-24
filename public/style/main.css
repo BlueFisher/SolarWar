@@ -9,11 +9,13 @@ html, body {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-	background: linear-gradient(to bottom, #08060C, #111123);
+	background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%)
 }
 
 .stage-container .stage {
 	position: absolute;
+	width: 100%;
+	height: 100%;
 	top: 0;
 	left: 0;
 }
@@ -28,6 +30,16 @@ html, body {
 
 #ui-stage {
 	z-index: 3;
+}
+
+#star-bg {
+	background-image: url('../images/star1.png');
+	background-repeat: repeat;
+}
+
+#star-bg2 {
+	background-image: url('../images/star2.png');
+	background-repeat: repeat;
 }
 
 .modal .title {

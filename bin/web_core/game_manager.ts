@@ -15,8 +15,7 @@ export default class GameManager {
 	constructor(webSocketConnect: () => void, webSocketSend: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._domManager = new DomManager(webSocketConnect);
 
-		let [gameStageCanvas, gameMovingShipsStageCanvas, uiStageCanvas] = this._domManager.getCanvases();
-		this._stageMediator = new StageMediator(gameStageCanvas, gameMovingShipsStageCanvas, uiStageCanvas, webSocketSend);
+		this._stageMediator = new StageMediator(this._domManager.getCanvases(), this._domManager.getBackgrounds(), webSocketSend);
 
 		$.getJSON('/websockets').then(data => {
 			this._setWebSockets(data);

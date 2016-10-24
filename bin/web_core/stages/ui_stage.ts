@@ -7,10 +7,15 @@ export default class UiStage {
 	private _mediator: StageMediator;
 	private _uiStageCanvas: HTMLCanvasElement;
 
+	private _bg1: HTMLElement;
+	private _bg2: HTMLElement;
+
 	private _sendProtocol: (protocol: GameProtocols.BaseProtocol) => void;
 
-	constructor(uiStageCanvas: HTMLCanvasElement, gameStageMediator: StageMediator, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
+	constructor(uiStageCanvas: HTMLCanvasElement, backgrounds: HTMLElement[], gameStageMediator: StageMediator, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._uiStageCanvas = uiStageCanvas;
+
+		[this._bg1, this._bg2] = backgrounds;
 
 		this._mediator = gameStageMediator;
 		this._sendProtocol = sendProtocol;
@@ -80,6 +85,9 @@ export default class UiStage {
 				x: e.pageX - $canvas.offset().left,
 				y: e.pageY - $canvas.offset().top
 			};
+
+			this._bg1.style.backgroundPosition = `${(this._uiStageCanvas.width / 2 - point.x) / 100}px ${(this._uiStageCanvas.height / 2 - point.y) / 100}px`;
+			this._bg2.style.backgroundPosition = `${(this._uiStageCanvas.width / 2 - point.x) / 50}px ${(this._uiStageCanvas.height / 2 - point.y) / 50}px`;
 
 			if (isMouseDown) {
 				if (mousedownPlanet && mouseWhich == 1) { // 如果鼠标左键点击在星球上

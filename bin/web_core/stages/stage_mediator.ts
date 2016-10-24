@@ -35,15 +35,12 @@ export default class StageMediator {
 		deltaVerticalMoving: number
 	} = null;
 
-	constructor(gameStageCanvas: HTMLCanvasElement, movingShipsStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement, webSocketSend) {
-		this._gameStageCanvas = gameStageCanvas;
-		this._movingShipsStageCanvas = movingShipsStageCanvas;
-		this._uiStageCanvas = uiStageCanvas;
+	constructor(canvases: HTMLCanvasElement[], backgrounds: HTMLElement[], webSocketSend: (protocol: GameProtocols.BaseProtocol) => void) {
+		[this._gameStageCanvas, this._movingShipsStageCanvas, this._uiStageCanvas] = canvases;
 
-
-		this._gameStage = new GameStage(gameStageCanvas, this);
-		this._movingShipsStage = new MovingShipsStage(movingShipsStageCanvas, this);
-		this._uiStage = new UiStage(uiStageCanvas, this, (p) => {
+		this._gameStage = new GameStage(this._gameStageCanvas, this);
+		this._movingShipsStage = new MovingShipsStage(this._movingShipsStageCanvas, this);
+		this._uiStage = new UiStage(this._uiStageCanvas, backgrounds, this, (p) => {
 			webSocketSend(p);
 		});
 

@@ -38,6 +38,10 @@ export default class DomManager {
 		<HTMLCanvasElement>document.querySelector('#game-moving-ships-stage'),
 		<HTMLCanvasElement>document.querySelector('#ui-stage')]
 	}
+	getBackgrounds(): [HTMLElement, HTMLElement] {
+		return [<HTMLElement>document.querySelector('#star-bg'),
+		<HTMLElement>document.querySelector('#star-bg2')];
+	}
 
 	private _initializeModals() {
 		new Vue({

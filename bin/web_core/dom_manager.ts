@@ -45,6 +45,11 @@ export default class DomManager {
 
 	private _initializeModals() {
 		new Vue({
+			el: '#player',
+			data: Utils.vueIndex
+		});
+
+		new Vue({
 			el: '#modal-gameinit',
 			data: Utils.vueIndex,
 			methods: {

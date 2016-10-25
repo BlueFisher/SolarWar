@@ -42,6 +42,14 @@ html, body {
 	background-repeat: repeat;
 }
 
+.player {
+	position: absolute;
+	top: 0;
+	left: 0;
+	background: #fff;
+	z-index: 4;
+}
+
 .modal .title {
 	margin-top: 10px;
 	margin-bottom: 10px;

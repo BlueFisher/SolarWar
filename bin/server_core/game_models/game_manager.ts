@@ -123,18 +123,6 @@ export default class GameManager extends events.EventEmitter {
 				});
 				if (isGameOver) {
 					this.emit(GameManagerEvents.gameOver, player.id);
-
-					let index: number;
-					this._players.forEach((p, i) => {
-						if (p.id == player.id) {
-							index = i;
-							return;
-						}
-					});
-
-					if (index != undefined) {
-						this._players.splice(index, 1);
-					}
 				}
 			}
 		});

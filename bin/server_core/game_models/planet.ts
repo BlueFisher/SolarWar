@@ -143,6 +143,7 @@ class Planet {
 	// Occupying
 	private _isOccupying = false;
 	private _timerDuration = 0;
+	private _newStart = false;
 
 	private _sendstartingOccupying(players: Player[], interval: number) {
 		this._timerDuration = 0;
@@ -169,9 +170,7 @@ class Planet {
 	}
 
 	private _startOccupying() {
-		if (this._canOccupy()) {
-			this._sendstartingOccupying([], this._getOccupyingInterval());
-		}
+		this._newStart = true;
 		if (!this._isOccupying) {
 			this._occupy();
 		}
@@ -182,6 +181,11 @@ class Planet {
 			return;
 		}
 
+		if (this._newStart) {
+			this._sendstartingOccupying([], this._getOccupyingInterval());
+			this._newStart = false;
+		}
+		
 		if (this.occupyingStatus == null) {
 			this.occupyingStatus = {
 				player: this.allShips[0].player,
@@ -243,7 +247,7 @@ class Planet {
 
 	private _startCombat() {
 		if (!this._isCombatting)
-			this._combat();4
+			this._combat(); 4
 	}
 
 	private _combat() {

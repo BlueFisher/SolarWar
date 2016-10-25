@@ -1,5 +1,6 @@
 import * as HttpProtocols from '../../shared/http_protocols';
 import * as GameProtocols from '../../shared/game_protocols';
+import * as Utils from '../utils';
 
 import GameStage from './game_stage';
 import MovingShipsStage from './moving_ships_stage';
@@ -20,11 +21,7 @@ export default class StageMediator {
 	private _movingShipsStage: MovingShipsStage;
 	private _uiStage: UiStage;
 
-	players: GameProtocols.BasePlayer[];
-	// map: {
-	// 	players: GameProtocols.BasePlayer[],
-	// 	planets: GameProtocols.BasePlanet[],
-	// };
+	players: GameProtocols.BasePlayer[] = [];
 	currPlayerId: number;
 
 	transformation: Transformation = {
@@ -121,7 +118,7 @@ export default class StageMediator {
 		let [minPosition, maxPosition] = this._getMapMainRange(map.planets);
 		this._setStageTransformation(minPosition, maxPosition);
 
-		this.players = map.players;
+		this._updatePlayers(map.players);
 		this._gameStage.changePlanets(map.planets);
 		this._movingShipsStage.movingShips(map.movingShipsQueue);
 	}
@@ -211,6 +208,10 @@ export default class StageMediator {
 		let isExisted = false;
 		players.forEach((player) => {
 			isExisted = false;
+			if (player.id == this.currPlayerId) {
+				Utils.vueIndex.currShipsCount = player.currShipsCount;
+				Utils.vueIndex.maxShipsCount = player.maxShipsCount;
+			}
 			this.players.forEach((mapPlayer, mapIndex) => {
 				if (mapPlayer.id == player.id) {
 					this.players[mapIndex] = player;

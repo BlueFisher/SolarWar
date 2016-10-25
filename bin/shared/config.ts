@@ -11,7 +11,10 @@ export default {
 
 	gameAlgorithm: {
 		getOccupyingInterval: function (size: number, count: number): number {
-			return (3 * Math.pow(size / count, 2) + 2) * 10;
+			let interval = (3 * Math.pow(size / count, 2) + 2) * 10;
+			if (interval > 500)
+				interval = 500;
+			return interval;
 		},
 		getCombatInterval: function (): number {
 			return 50;

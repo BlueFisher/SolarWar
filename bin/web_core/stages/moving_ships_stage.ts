@@ -4,7 +4,10 @@ import config from '../../shared/config';
 import StageMediator from './stage_mediator';
 
 interface MovingShips extends GameProtocols.BaseMovingShips {
-	shipsPosition?: Point[]
+	planetFrom?: GameProtocols.BasePlanet,
+	planetTo?: GameProtocols.BasePlanet,
+	shipsPosition?: Point[],
+	lastBorder?: number
 }
 
 export default class MovingShipsStage {
@@ -29,14 +32,14 @@ export default class MovingShipsStage {
 
 		// 绘制飞船移动
 		this._queue.forEach(movingShips => {
-			let planetFrom = planets.filter(p => p.id == movingShips.planetFromId)[0];
-			let planetTo = planets.filter(p => p.id == movingShips.planetToId)[0];
+			let planetFrom = movingShips.planetFrom;
+			let planetTo = movingShips.planetTo;
 			let x = planetTo.position.x - movingShips.distanceLeft * (planetTo.position.x - planetFrom.position.x) / movingShips.distance;
 			let y = planetTo.position.y - movingShips.distanceLeft * (planetTo.position.y - planetFrom.position.y) / movingShips.distance;
 
 			ctx.fillStyle = players.filter(player => player.id == movingShips.playerId)[0].color;
 
-			if (movingShips.shipsPosition == undefined) {
+			if (!movingShips.shipsPosition) {
 				movingShips.shipsPosition = [];
 				for (let j = 0; j < Math.ceil(movingShips.count / 2); j++) {
 					movingShips.shipsPosition.push({
@@ -45,19 +48,15 @@ export default class MovingShipsStage {
 					});
 				}
 			} else {
-				let w = movingShips.distanceLeft / movingShips.distance * (planetFrom.size - planetTo.size) + planetTo.size;
-				console.log(w);
+				let currBorder = movingShips.distanceLeft / movingShips.distance * (planetFrom.size - planetTo.size) + planetTo.size;
+				let ratio = currBorder / movingShips.lastBorder;
+
 				for (let j = 0; j < Math.ceil(movingShips.count / 2); j++) {
 					let position = movingShips.shipsPosition[j];
-					// let currd = Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.y, 2));
-					if (planetFrom.size > planetTo.size) {
-						position.x *= 0.995;
-						position.y *= 0.995;
-					} else if (planetFrom.size < planetTo.size) {
-						position.x *= 1.005;
-						position.y *= 1.005;
-					}
+					position.x *= ratio;
+					position.y *= ratio;
 				}
+				movingShips.lastBorder = currBorder;
 			}
 			for (let shipPostion of movingShips.shipsPosition) {
 				ctx.beginPath();
@@ -74,8 +73,11 @@ export default class MovingShipsStage {
 			this._queue = [];
 		} else {
 			for (let i = 0; i < queue.length; i++) {
-				if (this._queue[i] == undefined) {
+				if (!this._queue[i]) {
 					let m: MovingShips = queue[i];
+					m.planetFrom = this._mediator.getPlanets().filter(p => p.id == m.planetFromId)[0];
+					m.planetTo = this._mediator.getPlanets().filter(p => p.id == m.planetToId)[0];
+					m.lastBorder = m.planetFrom.size;
 					this._queue.push(m);
 				} else if (this._queue[i].id < queue[i].id) {
 					this._queue.splice(i, 1);

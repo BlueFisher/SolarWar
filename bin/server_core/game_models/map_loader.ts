@@ -49,16 +49,8 @@ export class MapLoader {
 		let quadrant = Math.ceil((index / (circleIndex * 2 - 1)));
 		let n = index - (quadrant - 1) * (circleIndex * 2 - 1);
 
-		let tempN = n;
-		if (n < circleIndex) {
-			tempN = circleIndex;
-		}
-		let y = (this._areaWidth + this._padding) * (1 / 2 + (circleIndex * 2 - tempN - 1));
-		tempN = n;
-		if (n > circleIndex) {
-			tempN = circleIndex;
-		}
-		let x = (this._areaWidth + this._padding) * (1 / 2 + (tempN - 1));
+		let x = (this._areaWidth + this._padding) * (Math.min(n, circleIndex) - 1 / 2);
+		let y = (this._areaWidth + this._padding) * (circleIndex * 2 - Math.max(n, circleIndex) - 1 / 2);
 
 		if (quadrant == 2) {
 			y = -y;

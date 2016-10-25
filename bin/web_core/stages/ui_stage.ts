@@ -1,17 +1,23 @@
-import * as GameProtocols from '../shared/game_protocols';
-import GameStage from './game_stage';
+import * as GameProtocols from '../../shared/game_protocols';
+import * as Utils from '../utils';
+
+import StageMediator from './stage_mediator';
 
 export default class UiStage {
-	private _gameStage: GameStage;
+	private _mediator: StageMediator;
 	private _uiStageCanvas: HTMLCanvasElement;
-	private _countRatioData: { range: number };
+
+	private _bg1: HTMLElement;
+	private _bg2: HTMLElement;
 
 	private _sendProtocol: (protocol: GameProtocols.BaseProtocol) => void;
 
-	constructor(uiStageCanvas: HTMLCanvasElement, countRatioData: { range: number }, gameStage: GameStage, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
+	constructor(uiStageCanvas: HTMLCanvasElement, backgrounds: HTMLElement[], gameStageMediator: StageMediator, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._uiStageCanvas = uiStageCanvas;
-		this._countRatioData = countRatioData;
-		this._gameStage = gameStage;
+
+		[this._bg1, this._bg2] = backgrounds;
+
+		this._mediator = gameStageMediator;
 		this._sendProtocol = sendProtocol;
 
 		this._handleMovingShips();
@@ -19,7 +25,7 @@ export default class UiStage {
 
 	private _handleMovingShips() {
 		let $canvas = $(this._uiStageCanvas);
-		let ctx = this._uiStageCanvas.getContext('2d');
+
 		$canvas.on('contextmenu', function () {
 			return false;
 		});
@@ -39,12 +45,12 @@ export default class UiStage {
 				deltaHorizontalMoving = -deltaScaling * planet.position.x;
 				deltaVerticalMoving = -deltaScaling * planet.position.y;
 			} else {
-				let trans = this._gameStage.getTrans();
+				let trans = this._mediator.getTrans();
 				deltaHorizontalMoving = -deltaScaling * (point.x - trans.horizontalMoving) / trans.scaling;
 				deltaVerticalMoving = -deltaScaling * (point.y - trans.verticalMoving) / trans.scaling;
 			}
 
-			this._gameStage.zoomStage(deltaScaling, deltaHorizontalMoving, deltaVerticalMoving);
+			this._mediator.zoomStage(deltaScaling, deltaHorizontalMoving, deltaVerticalMoving);
 			// 触发鼠标移动事件来重绘星球激活效果
 			$canvas.trigger(new $.Event('mousemove', {
 				pageX: e.pageX,
@@ -52,13 +58,18 @@ export default class UiStage {
 			}));
 		});
 
+		let ctx = this._uiStageCanvas.getContext('2d');
 		// 绘制星球激活特效
 		let drawActivePlanet = (planet: GameProtocols.BasePlanet) => {
-			let trans = this._gameStage.getNewestTrans();
+			let trans = this._mediator.getNewestTrans();
 			ctx.save();
 			ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
 			ctx.beginPath();
-			ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 10, 0, Math.PI * 2);
+			ctx.arc(planet.position.x, planet.position.y, planet.size / 2 - 1, 0, Math.PI * 2);
+			ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+			ctx.lineWidth = 2;
+			ctx.shadowBlur = 30; // 模糊尺寸
+			ctx.shadowColor = '#fff'; // 颜色
 			ctx.stroke();
 			ctx.restore();
 		};
@@ -75,6 +86,9 @@ export default class UiStage {
 				y: e.pageY - $canvas.offset().top
 			};
 
+			this._bg1.style.backgroundPosition = `${(this._uiStageCanvas.width / 2 - point.x) / 100}px ${(this._uiStageCanvas.height / 2 - point.y) / 100}px`;
+			this._bg2.style.backgroundPosition = `${(this._uiStageCanvas.width / 2 - point.x) / 50}px ${(this._uiStageCanvas.height / 2 - point.y) / 50}px`;
+
 			if (isMouseDown) {
 				if (mousedownPlanet && mouseWhich == 1) { // 如果鼠标左键点击在星球上
 					ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
@@ -84,7 +98,7 @@ export default class UiStage {
 					mouseupPlanet = this._getPointedPlanet(point.x, point.y);
 					ctx.save();
 					ctx.beginPath();
-					let trans = this._gameStage.getNewestTrans();
+					let trans = this._mediator.getNewestTrans();
 					ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
 					// 路径线从点击的星球开始绘制
 					ctx.moveTo(mousedownPlanet.position.x, mousedownPlanet.position.y);
@@ -96,6 +110,12 @@ export default class UiStage {
 						ctx.setTransform(1, 0, 0, 1, 0, 0);
 						ctx.lineTo(point.x, point.y);
 					}
+
+					ctx.lineCap = 'round';
+					ctx.strokeStyle = '#fff';
+					ctx.lineWidth = 2;
+					ctx.shadowBlur = 15; // 模糊尺寸
+					ctx.shadowColor = '#fff'; // 颜色
 					ctx.stroke();
 					ctx.restore();
 
@@ -110,7 +130,7 @@ export default class UiStage {
 						drawActivePlanet(mousedownPlanet);
 					}
 
-					this._gameStage.moveStage(point.x - mousedownPoint.x, point.y - mousedownPoint.y);
+					this._mediator.moveStage(point.x - mousedownPoint.x, point.y - mousedownPoint.y);
 					mousedownPoint = point;
 				}
 			} else {
@@ -147,7 +167,7 @@ export default class UiStage {
 			$canvas.css({ cursor: 'default' });
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {
-				let protocol = new GameProtocols.RequestMovingShips(mousedownPlanet.id, mouseupPlanet.id, this._countRatioData.range / 100);
+				let protocol = new GameProtocols.RequestMovingShips(mousedownPlanet.id, mouseupPlanet.id, Utils.vueIndex.ratio / 100);
 				this._sendProtocol(protocol);
 			}
 
@@ -158,9 +178,9 @@ export default class UiStage {
 	}
 
 	private _getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
-		let trans = this._gameStage.getTrans();
+		let trans = this._mediator.getTrans();
 		x = (x - trans.horizontalMoving) / trans.scaling;
 		y = (y - trans.verticalMoving) / trans.scaling;
-		return this._gameStage.getPointedPlanet(x, y);
+		return this._mediator.getPointedPlanet(x, y);
 	}
 }

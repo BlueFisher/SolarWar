@@ -10,6 +10,7 @@ export default class MovingShipsManager {
 	private _emit: FuncEmit;
 
 	private _movingShipsQueue: {
+		id: number,
 		planetFrom: Planet,
 		planetTo: Planet,
 		player: Player,
@@ -47,6 +48,7 @@ export default class MovingShipsManager {
 	getMovingShipsQueue(): GameProtocols.BaseMovingShips[] {
 		return this._movingShipsQueue.map(elem => {
 			return {
+				id: elem.id,
 				planetFromId: elem.planetFrom.id,
 				planetToId: elem.planetTo.id,
 				playerId: elem.player.id,
@@ -62,8 +64,13 @@ export default class MovingShipsManager {
 	}
 
 	private _sendStartingMovingShips() {
-		let protocol = new GameProtocols.StartMovingShips([], this.getMovingShipsQueue());
+		let protocol = new GameProtocols.MovingShips([], this.getMovingShipsQueue());
 		this._emit(GameManagerEvents.sendToAllDirectly, protocol);
+	}
+
+	private _currMovingId = 0;
+	private _getNextMovingId(): number {
+		return ++this._currMovingId;
 	}
 
 	private _isMovingShips = false;
@@ -76,6 +83,7 @@ export default class MovingShipsManager {
 	}
 	private _startMovingShips(player: Player, planetFrom: Planet, planetTo: Planet, count: number, distance: number) {
 		this._movingShipsQueue.push({
+			id: this._getNextMovingId(),
 			player: player,
 			planetFrom: planetFrom,
 			planetTo: planetTo,
@@ -83,7 +91,6 @@ export default class MovingShipsManager {
 			distance: distance,
 			distanceLeft: distance
 		});
-		this._sendStartingMovingShips();
 
 		if (!this._isMovingShips) {
 			this._moveShips();
@@ -95,17 +102,17 @@ export default class MovingShipsManager {
 			return;
 
 		setTimeout(() => {
-			for (let i in this._movingShipsQueue) {
+			for (let i = this._movingShipsQueue.length - 1; i >= 0; i--) {
 				let movingShip = this._movingShipsQueue[i];
 				let deltaDistance = config.gameAlgorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
-
 				// 如果已到目的星球，则调用shipsArrived，并从飞行队列中移除
 				if ((movingShip.distanceLeft -= deltaDistance) <= 0) {
 					movingShip.planetTo.shipsArrived(movingShip.player, movingShip.count);
-					this._movingShipsQueue.splice(parseInt(i), 1);
-					this._sendStartingMovingShips();
+					this._movingShipsQueue.splice(i, 1);
+					
 				}
 			}
+			this._sendStartingMovingShips();
 			this._moveShips();
 		}, config.gameAlgorithm.getMovingShipsInterval());
 	}

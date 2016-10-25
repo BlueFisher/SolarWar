@@ -17,12 +17,30 @@
 
 <body>
 	<div class="stage-container">
-		<canvas id="game-stage"></canvas>
-		<canvas id="ui-stage"></canvas>
+		<div class="stage" id="star-bg"></div>
+		<div class="stage" id="star-bg2"></div>
+		<canvas class="stage" id="game-moving-ships-stage"></canvas>
+		<canvas class="stage" id="game-stage"></canvas>
+		<canvas class="stage" id="ui-stage"></canvas>
 	</div>
 
-	<div id="count-ratio">
-		<input type="range" min="1" max="100" step="1" data-rangeslider v-model="range">
+	<div id="ratio" class="ratio">
+		<svg class="outline" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+			<defs>
+				<linearGradient x1="16.291%" y1="13.917%" x2="88.893%" y2="80.425%" id="a">
+					<stop stop-color="#B0DBDD" offset="0%" />
+					<stop stop-color="#0AA3C9" offset="100%" />
+				</linearGradient>
+			</defs>
+			<g fill="none" fill-rule="evenodd">
+				<circle class="path-bg" cx="100" cy="100" r="90" stroke="rgba(0,0,0,.4)" stroke-linecap="round" stroke-width="10" />
+				<circle id="path" class='path' cx="100" cy="100" r="90" stroke="url(#a)" stroke-linecap="round" stroke-width="6" />
+			</g>
+		</svg>
+		<div class="wheel">
+			<div class="text">{{ratio}}%</div>
+			<div id="indicator" class="indicator"></div>
+		</div>
 	</div>
 
 	<div class="modal fade" id="modal-gameinit">

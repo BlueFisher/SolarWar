@@ -11,9 +11,9 @@ export enum Type {
 	requestRefereshOccupyingPlanet,
 	requestRefreshMovingShips,
 
-	planet,
+	planetChanged,
 	startOccupyingPlanet,
-	startMovingShips,
+	movingShips,
 
 	readyTime,
 	time,
@@ -45,6 +45,7 @@ export interface BasePlanet {
 	}
 }
 export interface BaseMovingShips {
+	id: number,
 	planetFromId: number,
 	planetToId: number,
 	playerId: number,
@@ -66,9 +67,9 @@ export class BaseProtocol {
 	type: Type;
 }
 
-export class Planet extends BaseProtocol {
+export class ChangedPlanet extends BaseProtocol {
 	constructor(planet: BasePlanet, players: BasePlayer[]) {
-		super(Type.planet);
+		super(Type.planetChanged);
 		this.planet = planet;
 		this.players = players;
 	}
@@ -76,7 +77,7 @@ export class Planet extends BaseProtocol {
 	planet: BasePlanet;
 	players: BasePlayer[];
 }
-export class StartOccupyingPlanet extends Planet {
+export class StartOccupyingPlanet extends ChangedPlanet {
 	constructor(planet: BasePlanet, players: BasePlayer[], interval: number) {
 		super(planet, players);
 		this.type = Type.startOccupyingPlanet;
@@ -88,9 +89,9 @@ export class StartOccupyingPlanet extends Planet {
 	interval: number;
 }
 
-export class StartMovingShips extends BaseProtocol {
+export class MovingShips extends BaseProtocol {
 	constructor(players: BasePlayer[], queue: BaseMovingShips[]) {
-		super(Type.startMovingShips);
+		super(Type.movingShips);
 		this.players = players;
 		this.queue = queue;
 	}

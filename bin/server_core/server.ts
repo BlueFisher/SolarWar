@@ -45,6 +45,7 @@ class Server {
 		}));
 		app.use(session({
 			secret: 'I6zoBZ0LVYPi9Ujt',
+			name: 'sid',
 			resave: false,
 			saveUninitialized: true,
 		}));
@@ -67,10 +68,10 @@ class Server {
 		});
 		let logger = log4js.getLogger();
 
-		app.use(log4js.connectLogger(logger, {
-			level: log4js.levels.INFO,
-			format: ':remote-addr :method :url :status - :response-time ms'
-		}));
+		// app.use(log4js.connectLogger(logger, {
+		// 	level: log4js.levels.INFO,
+		// 	format: ':remote-addr :method :url :status - :response-time ms'
+		// }));
 
 		app.use('/public', express.static('public'));
 

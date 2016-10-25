@@ -12,7 +12,7 @@ interface occupyingStatus {
 	// 该占领比率属于的玩家
 	player: Player
 }
-type funcPlanetChanged = (planet: GameProtocols.Planet) => void;
+type funcPlanetChanged = (planet: GameProtocols.ChangedPlanet) => void;
 
 class Planet {
 	private _planetChanged: funcPlanetChanged;
@@ -86,11 +86,9 @@ class Planet {
 	}
 
 	private _changePlanet(players: Player[]) {
-		let protocol = new GameProtocols.Planet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()));
+		let protocol = new GameProtocols.ChangedPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()));
 		this._planetChanged(protocol);
 	}
-
-
 
 	/**飞船到达 */
 	shipsArrived(player: Player, count: number) {
@@ -224,7 +222,7 @@ class Planet {
 			}
 
 			this._timerDuration += interval;
-			if (this._timerDuration >= 2000) {
+			if (this._timerDuration >= 1000) {
 				this._sendstartingOccupying(changedPlayer == null ? [] : [changedPlayer], interval);
 			}
 
@@ -245,7 +243,7 @@ class Planet {
 
 	private _startCombat() {
 		if (!this._isCombatting)
-			this._combat();
+			this._combat();4
 	}
 
 	private _combat() {
@@ -258,13 +256,14 @@ class Planet {
 
 			let changedPlayers: Player[] = this.allShips.map(p => p.player);
 
-			this.allShips.forEach((elem, index) => {
-				elem.player.currShipsCount--;
-				elem.count--;
-				if (elem.count <= 0) {
-					this.allShips.splice(index, 1);
+			for (let i = this.allShips.length - 1; i >= 0; i--) {
+				let ships = this.allShips[i];
+				ships.player.currShipsCount--;
+				ships.count--;
+				if (ships.count <= 0) {
+					this.allShips.splice(i, 1);
 				}
-			});
+			}
 
 			this._changePlanet(changedPlayers);
 			this._combat();

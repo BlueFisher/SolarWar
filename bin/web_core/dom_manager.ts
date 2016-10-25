@@ -1,16 +1,15 @@
 import * as $ from 'jquery';
 import * as Vue from 'vue';
 import * as toastr from 'toastr';
+
 import * as HttpProtocols from '../shared/http_protocols';
 import * as GameProtocols from '../shared/game_protocols';
-import * as VueData from './vue_data';
+import * as Utils from './utils';
 
 export default class DomManager {
-	private _vueIndex: VueData.Index;
 	private _connectWebSocket: () => void;
 
-	constructor(vueIndex: VueData.Index, connectWebSocket: () => void) {
-		this._vueIndex = vueIndex;
+	constructor(connectWebSocket: () => void) {
 		this._connectWebSocket = connectWebSocket;
 
 		this._initializeCanvas();
@@ -19,29 +18,35 @@ export default class DomManager {
 	}
 
 	private _initializeCanvas() {
-		let [gameStageCanvas, uiStageCanvas] = this.getCanvas();
+		let canvases = this.getCanvases();
 
-		this._adjustCanvasSize(gameStageCanvas, uiStageCanvas);
+		this._adjustCanvasSize(canvases);
 		$(window).on('resize', () => {
-			this._adjustCanvasSize(gameStageCanvas, uiStageCanvas);
+			this._adjustCanvasSize(canvases);
 		});
 	}
-	private _adjustCanvasSize(gameStageCanvas: HTMLCanvasElement, uiStageCanvas: HTMLCanvasElement) {
+	private _adjustCanvasSize(canvases: HTMLCanvasElement[]) {
 		let $window = $(window);
-		gameStageCanvas.height = $window.innerHeight();
-		gameStageCanvas.width = $window.innerWidth();
-		uiStageCanvas.height = $window.innerHeight();
-		uiStageCanvas.width = $window.innerWidth();
+		canvases.forEach(p => {
+			p.height = $window.innerHeight();
+			p.width = $window.innerWidth();
+		});
 	}
 
-	getCanvas(): [HTMLCanvasElement, HTMLCanvasElement] {
-		return [<HTMLCanvasElement>document.querySelector('#game-stage'), <HTMLCanvasElement>document.querySelector('#ui-stage')]
+	getCanvases(): [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement] {
+		return [<HTMLCanvasElement>document.querySelector('#game-stage'),
+		<HTMLCanvasElement>document.querySelector('#game-moving-ships-stage'),
+		<HTMLCanvasElement>document.querySelector('#ui-stage')]
+	}
+	getBackgrounds(): [HTMLElement, HTMLElement] {
+		return [<HTMLElement>document.querySelector('#star-bg'),
+		<HTMLElement>document.querySelector('#star-bg2')];
 	}
 
 	private _initializeModals() {
 		new Vue({
 			el: '#modal-gameinit',
-			data: this._vueIndex,
+			data: Utils.vueIndex,
 			methods: {
 				onSubmit: () => {
 					this._connectWebSocket();
@@ -56,12 +61,12 @@ export default class DomManager {
 
 		new Vue({
 			el: '#modal-gameready',
-			data: this._vueIndex
+			data: Utils.vueIndex
 		});
 
 		new Vue({
 			el: '#modal-gameover',
-			data: this._vueIndex,
+			data: Utils.vueIndex,
 			methods: {
 				onSubmit: () => {
 					this._connectWebSocket();
@@ -77,20 +82,54 @@ export default class DomManager {
 
 	private _initializeCountRatio() {
 		let vm = new Vue({
-			el: '#count-ratio',
-			data: this._vueIndex
+			el: '#ratio',
+			data: Utils.vueIndex
 		});
 
-		let $countRatio = $('#count-ratio').find('input[type="range"]');
-		$countRatio.rangeslider({
-			polyfill: false
+		let div = $('#ratio #indicator');
+		let path = $('#ratio #path');
+		let [x, y] = [div.width() / 2 + div.offset().left, div.height() / 2 + div.offset().top];
+
+		$(window).on('resize', function () {
+			[x, y] = [div.width() / 2 + div.offset().left, div.height() / 2 + div.offset().top];
 		});
 
-		let $rangesliderHandle = $('.rangeslider__handle');
-		$rangesliderHandle.text(`${$countRatio.val()}%`);
-		$(document).on('input', $countRatio, () => {
-			this._vueIndex.range = parseInt($countRatio.val());
-			$rangesliderHandle.text(`${$countRatio.val()}%`);
+		let setAngle = (pageX, pageY) => {
+			let width = pageX - x;
+			let height = y - pageY;
+
+			let angle = Math.atan(width / height);
+			if (isNaN(angle)) {
+				angle = 0;
+			} else if (height < 0) {
+				angle += Math.PI;
+			} else if (width < 0) {
+				angle += Math.PI * 2;
+			}
+
+			angle = angle * 180 / Math.PI;
+
+			if (angle < 30 || angle > 330) {
+				return;
+			}
+
+			Utils.vueIndex.ratio = Math.round(-0.33 * angle + 109.9);
+
+			path.css('stroke-dasharray', `${565 * (1 - (angle + 30) / 360)} 565`);
+
+			div.css('transform', `rotate(${angle}deg)`);
+		}
+		$('#ratio').on('mousedown', function () {
+			$(document).one('mousedown', function (e) {
+				setAngle(e.pageX, e.pageY)
+			});
+			$(document).on('mousemove', function (e) {
+				setAngle(e.pageX, e.pageY)
+			});
+		});
+
+		$(document).on('mouseup', function () {
+			$(document).off('mousemove')
 		});
 	}
 
@@ -108,7 +147,7 @@ export default class DomManager {
 	}
 
 	gameOver(protocol: GameProtocols.GameOver) {
-		this._vueIndex.historyMaxShipsCount = protocol.historyMaxShipsCount;
+		Utils.vueIndex.historyMaxShipsCount = protocol.historyMaxShipsCount;
 
 		$('#modal-gameover').modal({
 			backdrop: 'static',
@@ -119,6 +158,6 @@ export default class DomManager {
 	}
 
 	readyTimeElapse(protocol: GameProtocols.ReadyTimeElapse) {
-		this._vueIndex.gameReadyTime = protocol.time;
+		Utils.vueIndex.gameReadyTime = protocol.time;
 	}
 }

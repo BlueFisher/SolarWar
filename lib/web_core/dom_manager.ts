@@ -48,6 +48,10 @@ export default class DomManager {
 			el: '#player',
 			data: Utils.vueIndex
 		});
+		new Vue({
+			el: '#ranklist',
+			data: Utils.vueIndex
+		});
 
 		new Vue({
 			el: '#modal-gameinit',

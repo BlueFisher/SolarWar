@@ -205,24 +205,24 @@ export default class StageMediator {
 	}
 
 	private _updatePlayers(players: GameProtocols.BasePlayer[]) {
-		let isExisted = false;
-		players.forEach((player) => {
-			isExisted = false;
-			if (player.id == this.currPlayerId) {
-				Utils.vueIndex.currShipsCount = player.currShipsCount;
-				Utils.vueIndex.maxShipsCount = player.maxShipsCount;
+		players.forEach(p => {
+			if (p.id == this.currPlayerId) {
+				Utils.vueIndex.currShipsCount = p.currShipsCount;
+				Utils.vueIndex.maxShipsCount = p.maxShipsCount;
 			}
-			this.players.forEach((mapPlayer, mapIndex) => {
-				if (mapPlayer.id == player.id) {
-					this.players[mapIndex] = player;
-					isExisted = true;
-					return;
-				}
-			});
-			if (!isExisted) {
-				this.players.push(player);
+
+			if (!this.players[p.id - 1]) {
+				this.players.push(p);
+			} else {
+				this.players[p.id - 1] = p;
 			}
 		});
+
+		if (players.length > 0) {
+			Utils.vueIndex.ranklist = this.players.slice().sort(function (a, b) {
+				return a.maxShipsCount >= b.maxShipsCount ? -1 : 1;
+			}).slice(0, 10);
+		}
 	}
 
 	redrawStage() {

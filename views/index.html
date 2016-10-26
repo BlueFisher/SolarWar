@@ -28,6 +28,12 @@
 		{{currShipsCount}} / {{maxShipsCount}}
 	</div>
 
+	<div id="ranklist" class="ranklist">
+		<p v-for="(player, index) in ranklist" v-bind:style="{color:player.color}">
+			{{index+1}} {{player.name}} {{player.maxShipsCount}}
+		</p>
+	</div>
+
 	<div id="ratio" class="ratio">
 		<svg class="outline" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
 			<defs>

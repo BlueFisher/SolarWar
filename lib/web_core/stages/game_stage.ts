@@ -29,7 +29,7 @@ export default class GameStage {
 		}
 		return null;
 	}
-	
+
 	draw() {
 		let players = this._mediator.players;
 		let transformation = this._mediator.transformation;
@@ -214,14 +214,14 @@ export default class GameStage {
 	}
 
 	changePlanets(planets: GameProtocols.BasePlanet[]) {
-		for (let i = 0; i < planets.length; i++) {
-			if (this._planets[planets[i].id - 1] == undefined) {
-				this._planets.push(planets[i]);
+		planets.forEach(p => {
+			if (!this._planets[p.id - 1]) {
+				this._planets.push(p);
 			} else {
-				this._planets[planets[i].id - 1] = planets[i];
+				this._planets[p.id - 1] = p;
 			}
-		}
 
+		});
 		this.draw();
 	}
 }

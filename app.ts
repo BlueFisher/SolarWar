@@ -2,7 +2,7 @@
  * SolarWar入口
  */
 
-import Server from './bin/server_core/server';
+import Server from './lib/server_core/server';
 
 // 初始化HTTP服务器WebSocket服务器
 let httpServer = new Server((isHttp, port) => {

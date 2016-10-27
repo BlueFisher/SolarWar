@@ -101,12 +101,14 @@ export class MovingShips extends BaseProtocol {
 }
 
 export class RequestInitializeMap extends BaseProtocol {
-	constructor(name: string) {
+	constructor(name: string, resumeGame: boolean) {
 		super(Type.requestInitializeMap);
 		this.name = name;
+		this.resumeGame = resumeGame;
 	}
 
-	name: string
+	name: string;
+	resumeGame: boolean;
 }
 
 export class InitializeMap extends BaseProtocol {

@@ -82,8 +82,8 @@ export default class GameManager extends events.EventEmitter {
 
 		if (mapPlanets.length) {
 			mapPlanets.forEach(p => {
-				newPlanets.push(new Planet(this._getNextPlanetId(), p.size, p.position, (planet) => {
-					this._planetChanged(planet);
+				newPlanets.push(new Planet(this._getNextPlanetId(), p.size, p.position, (planet, players, interval) => {
+					this._planetChanged(planet, players, interval);
 				}, p.type == GameProtocols.PlanetType.Occupied ? player : null));
 			});
 		}
@@ -96,7 +96,14 @@ export default class GameManager extends events.EventEmitter {
 		return [player.id, newPlanetProtocols];
 	}
 	getPlayerHistoryMaxShipsCount(id: number): number {
+		let player = this._players.filter(p => p.id == id)[0];
+		if (!player)
+			return null;
 		return this._players.filter(p => p.id == id)[0].historyMaxShipsCount;
+	}
+	isPlayerOnGame(id: number): boolean {
+		let player = this._players.filter(p => p.id == id)[0];
+		return player && !player.isGameOver;
 	}
 
 	private _currPlanetId = 0;
@@ -109,23 +116,30 @@ export default class GameManager extends events.EventEmitter {
 		return ++this._currPlayerId;
 	}
 
-	private _planetChanged(planetProtocol: GameProtocols.ChangedPlanet) {
-		planetProtocol.players.forEach((player) => {
+	private _planetChanged(planet: Planet, players: Player[], interval?: number) {
+		players.forEach((basePlayer) => {
+			let player = this._players.filter(p => p.id == basePlayer.id)[0];
+
 			if (player.currShipsCount == 0) {
-				let isGameOver = true;
+				player.isGameOver = true;
 				this._planets.forEach((planet) => {
 					if (planet.occupyingStatus != null) {
 						if ((planet.occupiedPlayer != null && planet.occupiedPlayer.id == player.id) || planet.occupyingStatus.player.id == player.id) {
-							isGameOver = false;
+							player.isGameOver = false;
 							return;
 						}
 					}
 				});
-				if (isGameOver) {
+				if (player.isGameOver) {
 					this.emit(GameManagerEvents.gameOver, player.id);
 				}
 			}
 		});
-		this.emit(GameManagerEvents.sendToAllDirectly, planetProtocol);
+
+		if (interval) {
+			this.emit(GameManagerEvents.sendToAllDirectly, new GameProtocols.StartOccupyingPlanet(planet.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), interval));
+		} else {
+			this.emit(GameManagerEvents.sendToAllDirectly, new GameProtocols.ChangedPlanet(planet.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol())));
+		}
 	}
 }

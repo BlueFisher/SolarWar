@@ -7,6 +7,8 @@ interface VueIndex {
     gameReadyTime: number,
 
     name: string,
+    resumeGame: boolean,
+
     currShipsCount: number,
     maxShipsCount: number,
     historyMaxShipsCount: number,
@@ -23,6 +25,8 @@ export let vueIndex: VueIndex = {
     gameReadyTime: null,
 
     name: 'Default Player',
+    resumeGame: true,
+
     currShipsCount: 0,
     maxShipsCount: 0,
     historyMaxShipsCount: 0,

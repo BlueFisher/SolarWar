@@ -12,7 +12,7 @@ interface occupyingStatus {
 	// 该占领比率属于的玩家
 	player: Player
 }
-type funcPlanetChanged = (planet: GameProtocols.ChangedPlanet) => void;
+type funcPlanetChanged = (planet: Planet, players: Player[], interval?: number) => void;
 
 class Planet {
 	private _planetChanged: funcPlanetChanged;
@@ -86,8 +86,8 @@ class Planet {
 	}
 
 	private _changePlanet(players: Player[]) {
-		let protocol = new GameProtocols.ChangedPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()));
-		this._planetChanged(protocol);
+		// let protocol = new GameProtocols.ChangedPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()));
+		this._planetChanged(this, players);
 	}
 
 	/**飞船到达 */
@@ -147,8 +147,7 @@ class Planet {
 
 	private _sendstartingOccupying(players: Player[], interval: number) {
 		this._timerDuration = 0;
-		let protocol = new GameProtocols.StartOccupyingPlanet(this.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), interval);
-		this._planetChanged(protocol);
+		this._planetChanged(this, players, interval);
 	}
 
 	private _sendstopingOccupying(players: Player[]) {
@@ -185,7 +184,7 @@ class Planet {
 			this._sendstartingOccupying([], this._getOccupyingInterval());
 			this._newStart = false;
 		}
-		
+
 		if (this.occupyingStatus == null) {
 			this.occupyingStatus = {
 				player: this.allShips[0].player,

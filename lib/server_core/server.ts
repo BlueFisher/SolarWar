@@ -13,6 +13,13 @@ import GameServer from './game_server';
 class Server {
 	private _gameServers: GameServer[] = [];
 
+	private _sessionParser = session({
+		secret: 'I6zoBZ0LVYPi9Ujt',
+		name: 'sid',
+		resave: false,
+		saveUninitialized: true,
+	});
+
 	/**
 	 * 主后台服务，管理HTTP服务与游戏服务
 	 *
@@ -30,12 +37,11 @@ class Server {
 		});
 
 		config.webSocketServers.forEach(s => {
-			this._gameServers.push(new GameServer(s.port, () => {
+			this._gameServers.push(new GameServer(s.port, this._sessionParser, () => {
 				callback(false, s.port);
 			}));
 		});
 	}
-
 	private _configExpress(app: express.Express) {
 		app.use(bodyParser.json({
 			limit: '1mb'
@@ -43,12 +49,8 @@ class Server {
 		app.use(bodyParser.urlencoded({
 			extended: true
 		}));
-		app.use(session({
-			secret: 'I6zoBZ0LVYPi9Ujt',
-			name: 'sid',
-			resave: false,
-			saveUninitialized: true,
-		}));
+
+		app.use(this._sessionParser);
 
 		app.engine('.html', require('ejs').__express);
 		app.set('views', path.resolve(__dirname, '../../') + '/views');

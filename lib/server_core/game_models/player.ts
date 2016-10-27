@@ -8,6 +8,8 @@ export default class Player {
 	maxShipsCount: number;
 	currShipsCount: number;
 
+	isGameOver = false;
+
 	constructor(id: number, name: string, maxShipsCount: number) {
 		this.id = id;
 		this.name = name;

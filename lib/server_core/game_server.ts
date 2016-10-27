@@ -1,15 +1,18 @@
 import * as WebSocketServer from 'ws';
+import * as express from 'express';
 import GameManager from './game_models/game_manager';
 import * as GameProtocols from '../shared/game_protocols';
 import GameManagerEvents from './game_models//game_manager_events';
 
 interface SocketPlayerMap {
+	sessionId: number,
 	socket: WebSocketServer,
 	playerId: number
 }
 
 export default class GameServer {
 	private _gameManager: GameManager;
+	private _sessionParser: express.RequestHandler;
 	/**用户Socket键值对 */
 	private _socketPlayerMap: SocketPlayerMap[] = [];
 
@@ -19,16 +22,18 @@ export default class GameServer {
 	 * @param webSocketPort WebSocket端口号
 	 * @param callback 监听成功回调函数
 	 */
-	constructor(webSocketPort: number, callback?: () => void) {
+	constructor(webSocketPort: number, sessionParser: express.RequestHandler, callback?: () => void) {
 		let wss = new WebSocketServer.Server({
 			port: webSocketPort
 		}, () => {
-			if (callback != null) callback();
+			if (callback) callback();
 		});
 
 		wss.on('connection', socket => {
 			this._onWebSocketConnection(socket);
 		});
+
+		this._sessionParser = sessionParser;
 
 		this._initializeGameManager();
 	}
@@ -37,8 +42,8 @@ export default class GameServer {
 		this._gameManager = new GameManager();
 		this._gameManager.on(GameManagerEvents.sendToAllDirectly, (protocol: any) => {
 			let json = JSON.stringify(protocol);
-			this._socketPlayerMap.filter(p => p.playerId != null).forEach(p => {
-				p.socket.send(json);
+			this._socketPlayerMap.filter(p => p.playerId).forEach(p => {
+				this._send(json, p.socket);
 			});
 		});
 
@@ -46,7 +51,7 @@ export default class GameServer {
 			let json = new GameProtocols.InitializeMap(this._gameManager.getMap(), null);
 			this._socketPlayerMap.filter(p => p.playerId != null).forEach(p => {
 				json.playerId = p.playerId;
-				p.socket.send(JSON.stringify(json));
+				this._send(JSON.stringify(json), p.socket);
 			})
 		});
 
@@ -59,7 +64,7 @@ export default class GameServer {
 				if (pair.playerId != null) {
 					let historyMaxShipsCount = this._gameManager.getPlayerHistoryMaxShipsCount(pair.playerId);
 					let json = JSON.stringify(new GameProtocols.GameOver(historyMaxShipsCount));
-					pair.socket.send(json);
+					this._send(json, pair.socket);
 				}
 			});
 
@@ -75,9 +80,19 @@ export default class GameServer {
 	}
 
 	private _onWebSocketConnection(socket: WebSocketServer) {
-		this._socketPlayerMap.push({
-			socket: socket,
-			playerId: null
+		this._sessionParser(<express.Request>socket.upgradeReq, <express.Response>{}, () => {
+			let sessionId: number = (socket.upgradeReq as any).sessionID;
+			let socketPlayer = this._socketPlayerMap.filter(p => p.sessionId == sessionId)[0];
+			if (socketPlayer) {
+				socketPlayer.socket.close();
+				socketPlayer.socket = socket;
+			} else {
+				this._socketPlayerMap.push({
+					sessionId: sessionId,
+					socket: socket,
+					playerId: null
+				});
+			}
 		});
 
 		socket.on('message', message => {
@@ -101,38 +116,46 @@ export default class GameServer {
 	}
 
 	private _onSocketClose(socket: WebSocketServer) {
-		this._socketPlayerMap.forEach((elem, index) => {
-			if (elem.socket == socket) {
-				this._socketPlayerMap.splice(index, 1);
-				return;
-			}
-		});
+		let socketPlayer = this._socketPlayerMap.filter(p => p.socket == socket)[0];
+		if (socketPlayer) {
+			console.warn(`${socketPlayer.sessionId} ${socketPlayer.playerId} disconnected`);
+		}
+	}
+
+	private _send(msg: string, socket: WebSocketServer) {
+		if (socket.readyState == WebSocketServer.OPEN) {
+			socket.send(msg);
+		}
 	}
 
 	private _onInitializeMap(protocol: GameProtocols.RequestInitializeMap, socket: WebSocketServer) {
 		let socketPlayer = this._socketPlayerMap.filter(p => p.socket == socket)[0];
-		if (socketPlayer != undefined) {
-			let [id, newPlanetProtocols] = this._gameManager.addPlayer(protocol.name);
-			socketPlayer.playerId = id;
+		if (socketPlayer) {
+			if (socketPlayer.playerId && protocol.resumeGame && this._gameManager.isPlayerOnGame(socketPlayer.playerId)) {
+
+			} else {
+				let [id, newPlanetProtocols] = this._gameManager.addPlayer(protocol.name);
+				socketPlayer.playerId = id;
+
+				if (this._gameManager.isGameStarted()) {
+					let jsons = newPlanetProtocols.map(p => JSON.stringify(p));
+					this._socketPlayerMap.filter(p => p.playerId && p.socket != socket).forEach(sp => {
+						jsons.forEach(json => {
+							this._send(json, socket);
+						});
+					});
+				}
+			}
 
 			if (this._gameManager.isGameStarted()) {
-				let json = new GameProtocols.InitializeMap(this._gameManager.getMap(), id);
-				socket.send(JSON.stringify(json));
-
-				let jsons = newPlanetProtocols.map(p => JSON.stringify(p));
-				this._socketPlayerMap.filter(p => p.playerId != null).forEach(sp => {
-					if (sp.socket != socket) {
-						jsons.forEach(json => {
-							sp.socket.send(json);
-						});
-					}
-				});
+				let json = new GameProtocols.InitializeMap(this._gameManager.getMap(), socketPlayer.playerId);
+				this._send(JSON.stringify(json), socket);
 			}
 		}
 	}
 	private _onMovePlayerShips(protocol: GameProtocols.RequestMovingShips, socket: WebSocketServer) {
 		let socketPlayer = this._socketPlayerMap.filter(p => p.playerId != null).filter(p => p.socket == socket)[0];
-		if (socketPlayer != undefined) {
+		if (socketPlayer) {
 			this._gameManager.movePlayerShips(socketPlayer.playerId, protocol.planetFromId, protocol.planetToId, protocol.countRatio);
 		}
 	}

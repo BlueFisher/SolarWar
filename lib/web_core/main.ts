@@ -20,7 +20,7 @@ class Main {
 			this._ws.close();
 			this._connect(url);
 		} else {
-			this._webSocketSend(new GameProtocols.RequestInitializeMap(Utils.vueIndex.name));
+			this._webSocketSend(new GameProtocols.RequestInitializeMap(Utils.vueIndex.name, Utils.vueIndex.resumeGame));
 		}
 	}
 	private _connect(url: string) {
@@ -30,7 +30,7 @@ class Main {
 		this._ws.onopen = () => {
 			toastr.clear();
 			toastr.success('服务器连接成功');
-			this._webSocketSend(new GameProtocols.RequestInitializeMap(Utils.vueIndex.name));
+			this._webSocketSend(new GameProtocols.RequestInitializeMap(Utils.vueIndex.name, Utils.vueIndex.resumeGame));
 		};
 
 		this._ws.onmessage = (e) => {

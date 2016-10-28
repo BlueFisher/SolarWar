@@ -12,68 +12,45 @@ export default class DomManager {
 	constructor(connectWebSocket: () => void) {
 		this._connectWebSocket = connectWebSocket;
 
-		this._initializeCanvas();
 		this._initializeModals();
+		this._initializeCanvas();
 		this._initializeCountRatio();
-	}
-
-	private _initializeCanvas() {
-		let canvases = this.getCanvases();
-
-		this._adjustCanvasSize(canvases);
-		$(window).on('resize', () => {
-			this._adjustCanvasSize(canvases);
-		});
-	}
-	private _adjustCanvasSize(canvases: HTMLCanvasElement[]) {
-		let $window = $(window);
-		canvases.forEach(p => {
-			p.height = $window.innerHeight();
-			p.width = $window.innerWidth();
-		});
-	}
-
-	getCanvases(): [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement] {
-		return [<HTMLCanvasElement>document.querySelector('#game-stage'),
-		<HTMLCanvasElement>document.querySelector('#game-moving-ships-stage'),
-		<HTMLCanvasElement>document.querySelector('#ui-stage')]
-	}
-	getBackgrounds(): [HTMLElement, HTMLElement] {
-		return [<HTMLElement>document.querySelector('#star-bg'),
-		<HTMLElement>document.querySelector('#star-bg2')];
+		this._initializeGame();
 	}
 
 	private _initializeModals() {
 		new Vue({
-			el: '#player',
-			data: Utils.vueIndex
-		});
-		new Vue({
-			el: '#ranklist',
-			data: Utils.vueIndex
+			el: '#ui',
+			data: Utils.vueIndex,
+			computed: {
+				gameTime: function (): string {
+					if (!Utils.vueIndex.gameTime || Utils.vueIndex.gameTime < 0) {
+						return '00 : 00';
+					}
+					let sec = Utils.vueIndex.gameTime;
+					let min = 0;
+					if (sec > 60) {
+						min = Math.floor(sec / 60);
+						sec = Math.floor(sec % 60);
+					}
+					return `${min} : ${sec}`;
+				}
+			},
 		});
 
 		new Vue({
 			el: '#modal-gameinit',
 			data: Utils.vueIndex,
 			methods: {
-				onSubmit: () => {
+				startGame: () => {
 					Utils.vueIndex.resumeGame = false;
-					this._connectWebSocket();
 					$('#modal-gameinit').modal('hide');
-					$('#modal-gameready').modal({
-						backdrop: 'static',
-						keyboard: false
-					});
+					gameOn();
 				},
 				resumeGame: () => {
 					Utils.vueIndex.resumeGame = true;
-					this._connectWebSocket();
 					$('#modal-gameinit').modal('hide');
-					$('#modal-gameready').modal({
-						backdrop: 'static',
-						keyboard: false
-					});
+					gameOn();
 				}
 			}
 		});
@@ -88,25 +65,42 @@ export default class DomManager {
 			data: Utils.vueIndex,
 			methods: {
 				onSubmit: () => {
-					this._connectWebSocket();
 					$('#modal-gameover').modal('hide');
-					$('#modal-gameready').modal({
-						backdrop: 'static',
-						keyboard: false
-					});
+					gameOn();
 				}
 			}
 		});
+
+		let gameOn = () => {
+			this._connectWebSocket();
+
+			$('#modal-gameready').modal({
+				backdrop: 'static',
+				keyboard: false
+			});
+		}
+	}
+
+	private _initializeCanvas() {
+		let canvases = this.getCanvases();
+
+		adjustCanvasSize();
+		$(window).on('resize', () => {
+			adjustCanvasSize();
+		});
+
+		function adjustCanvasSize() {
+			let $window = $(window);
+			canvases.forEach(p => {
+				p.height = $window.innerHeight();
+				p.width = $window.innerWidth();
+			});
+		}
 	}
 
 	private _initializeCountRatio() {
-		let vm = new Vue({
-			el: '#ratio',
-			data: Utils.vueIndex
-		});
-
-		let div = $('#ratio #indicator');
-		let path = $('#ratio #path');
+		let div = $('.ratio #indicator');
+		let path = $('.ratio #path');
 		let [x, y] = [div.width() / 2 + div.offset().left, div.height() / 2 + div.offset().top];
 
 		$(window).on('resize', function () {
@@ -138,7 +132,7 @@ export default class DomManager {
 
 			div.css('transform', `rotate(${angle}deg)`);
 		}
-		$('#ratio').on('mousedown', function () {
+		$('.ratio').on('mousedown', function () {
 			$(document).one('mousedown', function (e) {
 				setAngle(e.pageX, e.pageY)
 			});
@@ -152,18 +146,28 @@ export default class DomManager {
 		});
 	}
 
-	gameInit() {
+	private _initializeGame() {
 		$.getJSON('/websockets').then((protocol: HttpProtocols.WebSocketResponse[]) => {
 			Utils.vueIndex.webSockets = protocol;
 			Utils.vueIndex.activeWebSocket = Utils.vueIndex.webSockets[0];
+
+			$('#modal-gameinit').find('.form-control').focus();
 		});
 
 		$('#modal-gameinit').modal({
 			backdrop: 'static',
 			keyboard: false
-		}).on('shown.bs.modal', function () {
-			$('#modal-gameinit').find('.form-control').focus();
 		});
+	}
+
+	getCanvases(): [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement] {
+		return [<HTMLCanvasElement>document.querySelector('#game-stage'),
+		<HTMLCanvasElement>document.querySelector('#game-moving-ships-stage'),
+		<HTMLCanvasElement>document.querySelector('#ui-stage')]
+	}
+	getBackgrounds(): [HTMLElement, HTMLElement] {
+		return [<HTMLElement>document.querySelector('#star-bg'),
+		<HTMLElement>document.querySelector('#star-bg2')];
 	}
 
 	gameOn() {
@@ -183,5 +187,8 @@ export default class DomManager {
 
 	readyTimeElapse(protocol: GameProtocols.ReadyTimeElapse) {
 		Utils.vueIndex.gameReadyTime = protocol.time;
+	}
+	timeElapse(protocol: GameProtocols.TimeElapse) {
+		Utils.vueIndex.gameTime = protocol.time;
 	}
 }

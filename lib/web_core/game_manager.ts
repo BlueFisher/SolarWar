@@ -16,8 +16,6 @@ export default class GameManager {
 		this._domManager = new DomManager(webSocketConnect);
 
 		this._stageMediator = new StageMediator(this._domManager.getCanvases(), this._domManager.getBackgrounds(), webSocketSend);
-
-		this._domManager.gameInit();
 	}
 
 	protocolReceived(protocol: GameProtocols.BaseProtocol) {
@@ -43,6 +41,10 @@ export default class GameManager {
 				break;
 			case GameProtocols.Type.readyTime:
 				this._domManager.readyTimeElapse(<GameProtocols.ReadyTimeElapse>protocol);
+				break;
+			case GameProtocols.Type.time:
+				this._domManager.timeElapse(<GameProtocols.TimeElapse>protocol);
+				break;
 		}
 	}
 }

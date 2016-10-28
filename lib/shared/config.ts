@@ -7,7 +7,7 @@ export default {
 	],
 
 	gameReadyTime: 10,
-	gameTime: -1,
+	gameTime: 60 * 15,
 
 	gameAlgorithm: {
 		getOccupyingInterval: function (size: number, count: number): number {

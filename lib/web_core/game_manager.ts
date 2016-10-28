@@ -17,14 +17,6 @@ export default class GameManager {
 
 		this._stageMediator = new StageMediator(this._domManager.getCanvases(), this._domManager.getBackgrounds(), webSocketSend);
 
-		$.getJSON('/websockets').then(data => {
-			this._setWebSockets(data);
-		});
-	}
-
-	private _setWebSockets(data: HttpProtocols.WebSocketResProtocol[]) {
-		Utils.vueIndex.webSockets = data;
-		Utils.vueIndex.activeWebSocket = Utils.vueIndex.webSockets[0];
 		this._domManager.gameInit();
 	}
 

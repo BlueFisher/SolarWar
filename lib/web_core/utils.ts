@@ -15,8 +15,8 @@ interface VueIndex {
 
     ranklist: GameProtocols.BasePlayer[],
 
-    activeWebSocket: HttpProtocols.WebSocketResProtocol,
-    webSockets: HttpProtocols.WebSocketResProtocol[]
+    activeWebSocket: HttpProtocols.WebSocketResponse,
+    webSockets: HttpProtocols.WebSocketResponse[]
 }
 
 export let vueIndex: VueIndex = {

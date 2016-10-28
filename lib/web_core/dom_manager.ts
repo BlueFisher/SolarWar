@@ -58,6 +58,16 @@ export default class DomManager {
 			data: Utils.vueIndex,
 			methods: {
 				onSubmit: () => {
+					Utils.vueIndex.resumeGame = false;
+					this._connectWebSocket();
+					$('#modal-gameinit').modal('hide');
+					$('#modal-gameready').modal({
+						backdrop: 'static',
+						keyboard: false
+					});
+				},
+				resumeGame: () => {
+					Utils.vueIndex.resumeGame = true;
 					this._connectWebSocket();
 					$('#modal-gameinit').modal('hide');
 					$('#modal-gameready').modal({
@@ -143,6 +153,11 @@ export default class DomManager {
 	}
 
 	gameInit() {
+		$.getJSON('/websockets').then((protocol: HttpProtocols.WebSocketResponse[]) => {
+			Utils.vueIndex.webSockets = protocol;
+			Utils.vueIndex.activeWebSocket = Utils.vueIndex.webSockets[0];
+		});
+
 		$('#modal-gameinit').modal({
 			backdrop: 'static',
 			keyboard: false

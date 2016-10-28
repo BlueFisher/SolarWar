@@ -5,12 +5,14 @@ import * as GameProtocols from '../shared/game_protocols';
 import GameManagerEvents from './game_models//game_manager_events';
 
 interface SocketPlayerMap {
-	sessionId: number,
+	sessionId: string,
 	socket: WebSocketServer,
 	playerId: number
 }
 
 export default class GameServer {
+	ip: string;
+	port: number;
 	private _gameManager: GameManager;
 	private _sessionParser: express.RequestHandler;
 	/**用户Socket键值对 */
@@ -22,9 +24,12 @@ export default class GameServer {
 	 * @param webSocketPort WebSocket端口号
 	 * @param callback 监听成功回调函数
 	 */
-	constructor(webSocketPort: number, sessionParser: express.RequestHandler, callback?: () => void) {
+	constructor(ip: string, port: number, sessionParser: express.RequestHandler, callback?: () => void) {
+		this.ip = ip;
+		this.port = port;
+		
 		let wss = new WebSocketServer.Server({
-			port: webSocketPort
+			port: port
 		}, () => {
 			if (callback) callback();
 		});
@@ -36,6 +41,11 @@ export default class GameServer {
 		this._sessionParser = sessionParser;
 
 		this._initializeGameManager();
+	}
+
+	isPlayerOnGame(sessionId: string): boolean {
+		let socketPlayer = this._socketPlayerMap.filter(p => p.sessionId == sessionId)[0];
+		return socketPlayer ? this._gameManager.isPlayerOnGame(socketPlayer.playerId) : false;
 	}
 
 	private _initializeGameManager() {
@@ -81,7 +91,7 @@ export default class GameServer {
 
 	private _onWebSocketConnection(socket: WebSocketServer) {
 		this._sessionParser(<express.Request>socket.upgradeReq, <express.Response>{}, () => {
-			let sessionId: number = (socket.upgradeReq as any).sessionID;
+			let sessionId: string = (socket.upgradeReq as any).sessionID;
 			let socketPlayer = this._socketPlayerMap.filter(p => p.sessionId == sessionId)[0];
 			if (socketPlayer) {
 				socketPlayer.socket.close();
@@ -118,7 +128,7 @@ export default class GameServer {
 	private _onSocketClose(socket: WebSocketServer) {
 		let socketPlayer = this._socketPlayerMap.filter(p => p.socket == socket)[0];
 		if (socketPlayer) {
-			console.warn(`${socketPlayer.sessionId} ${socketPlayer.playerId} disconnected`);
+			console.warn(`player ${socketPlayer.playerId} disconnected`);
 		}
 	}
 
@@ -132,10 +142,11 @@ export default class GameServer {
 		let socketPlayer = this._socketPlayerMap.filter(p => p.socket == socket)[0];
 		if (socketPlayer) {
 			if (socketPlayer.playerId && protocol.resumeGame && this._gameManager.isPlayerOnGame(socketPlayer.playerId)) {
-
+				console.info(`player ${socketPlayer.playerId} resume game`);
 			} else {
 				let [id, newPlanetProtocols] = this._gameManager.addPlayer(protocol.name);
 				socketPlayer.playerId = id;
+				console.info(`player ${socketPlayer.playerId} added in game`);
 
 				if (this._gameManager.isGameStarted()) {
 					let jsons = newPlanetProtocols.map(p => JSON.stringify(p));

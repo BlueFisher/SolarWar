@@ -37,7 +37,7 @@ class Server {
 		});
 
 		config.webSocketServers.forEach(s => {
-			this._gameServers.push(new GameServer(s.port, this._sessionParser, () => {
+			this._gameServers.push(new GameServer(s.ip, s.port, this._sessionParser, () => {
 				callback(false, s.port);
 			}));
 		});
@@ -81,7 +81,11 @@ class Server {
 			res.render('index');
 		});
 		app.get('/websockets', (req, res) => {
-			res.json(config.webSocketServers);
+			let protocol: HttpProtocols.WebSocketResponse[] = [];
+			this._gameServers.forEach(s => {
+				protocol.push(new HttpProtocols.WebSocketResponse(s.ip, s.port, s.isPlayerOnGame(req.sessionID)));
+			})
+			res.json(protocol);
 		});
 	}
 }

@@ -23,42 +23,6 @@ export default class MovingShipsManager {
 		this._emit = emit;
 	}
 
-	dispose() {
-		this._movingShipsQueue = [];
-	}
-
-	movePlayerShips(player: Player, planetFrom: Planet, planetTo: Planet, countRatio: number) {
-		if (planetFrom == planetTo) {
-			return;
-		}
-		if (planetFrom == undefined || planetTo == undefined || player == undefined) {
-			return;
-		}
-		if (countRatio > 1 || countRatio < 0) {
-			return;
-		}
-		let count = planetFrom.shipsLeft(player, countRatio);
-		if (count > 0) {
-			// 计算连个星球之间距离，加入到飞行队列中，开始飞船移动计时器
-			let distance = this._getTwoPlanetsDistance(planetFrom, planetTo);
-			this._startMovingShips(player, planetFrom, planetTo, count, distance);
-		}
-	}
-
-	getMovingShipsQueue(): GameProtocols.BaseMovingShips[] {
-		return this._movingShipsQueue.map(elem => {
-			return {
-				id: elem.id,
-				planetFromId: elem.planetFrom.id,
-				planetToId: elem.planetTo.id,
-				playerId: elem.player.id,
-				count: elem.count,
-				distance: elem.distance,
-				distanceLeft: elem.distanceLeft
-			}
-		});
-	}
-
 	private _getTwoPlanetsDistance(planet1: Planet, planet2: Planet) {
 		return Math.sqrt(Math.pow(planet1.position.x - planet2.position.x, 2) + Math.pow(planet1.position.y - planet2.position.y, 2)) - planet1.size / 2 - planet2.size / 2;
 	}
@@ -115,5 +79,41 @@ export default class MovingShipsManager {
 			this._sendStartingMovingShips();
 			this._moveShips();
 		}, config.gameAlgorithm.getMovingShipsInterval());
+	}
+
+	dispose() {
+		this._movingShipsQueue = [];
+	}
+
+	movePlayerShips(player: Player, planetFrom: Planet, planetTo: Planet, countRatio: number) {
+		if (planetFrom == planetTo) {
+			return;
+		}
+		if (planetFrom == undefined || planetTo == undefined || player == undefined) {
+			return;
+		}
+		if (countRatio > 1 || countRatio < 0) {
+			return;
+		}
+		let count = planetFrom.shipsLeft(player, countRatio);
+		if (count > 0) {
+			// 计算连个星球之间距离，加入到飞行队列中，开始飞船移动计时器
+			let distance = this._getTwoPlanetsDistance(planetFrom, planetTo);
+			this._startMovingShips(player, planetFrom, planetTo, count, distance);
+		}
+	}
+
+	getMovingShipsQueue(): GameProtocols.BaseMovingShips[] {
+		return this._movingShipsQueue.map(elem => {
+			return {
+				id: elem.id,
+				planetFromId: elem.planetFrom.id,
+				planetToId: elem.planetTo.id,
+				playerId: elem.player.id,
+				count: elem.count,
+				distance: elem.distance,
+				distanceLeft: elem.distanceLeft
+			}
+		});
 	}
 }

@@ -64,7 +64,7 @@ export default class DomManager {
 			el: '#modal-gameover',
 			data: Utils.vueIndex,
 			methods: {
-				onSubmit: () => {
+				startGameFromGameOver: () => {
 					$('#modal-gameover').modal('hide');
 					gameOn();
 				}

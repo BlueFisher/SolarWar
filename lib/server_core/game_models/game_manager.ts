@@ -3,7 +3,6 @@ import * as events from 'events';
 import config from '../../shared/config';
 import * as GameProtocols from '../../shared/game_protocols';
 
-import GameManagerEvents from './game_manager_events';
 import * as Map from './map_loader';
 import MovingShipsManager from './game_manager_moving_ships';
 import TimeManager from './game_manager_timer';
@@ -12,6 +11,12 @@ import Planet from './planet';
 
 
 export default class GameManager extends events.EventEmitter {
+	static events = {
+		sendToAllDirectly: 'sendToAllDirectly',
+		gameStarted: 'gameStarted',
+		gameOver: 'gameOver'
+	}
+
 	private _players: Player[] = [];
 	private _planets: Planet[] = [];
 	private _movingShipsManager: MovingShipsManager;
@@ -131,15 +136,15 @@ export default class GameManager extends events.EventEmitter {
 					}
 				});
 				if (player.isGameOver) {
-					this.emit(GameManagerEvents.gameOver, player.id);
+					this.emit(GameManager.events.gameOver, player.id);
 				}
 			}
 		});
 
 		if (interval) {
-			this.emit(GameManagerEvents.sendToAllDirectly, new GameProtocols.StartOccupyingPlanet(planet.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), interval));
+			this.emit(GameManager.events.sendToAllDirectly, new GameProtocols.StartOccupyingPlanet(planet.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), interval));
 		} else {
-			this.emit(GameManagerEvents.sendToAllDirectly, new GameProtocols.ChangedPlanet(planet.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol())));
+			this.emit(GameManager.events.sendToAllDirectly, new GameProtocols.ChangedPlanet(planet.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol())));
 		}
 	}
 }

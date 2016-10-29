@@ -1,7 +1,7 @@
 import config from '../../shared/config';
 import * as GameProtocols from '../../shared/game_protocols';
 
-import GameManagerEvents from './game_manager_events';
+import GameManager from './game_manager';
 
 export default class TimeManager {
 	private _emit: FuncEmit;
@@ -21,11 +21,11 @@ export default class TimeManager {
 	private _gameReadyTimeElapse() {
 
 		this._gameReadyTime--;
-		this._emit(GameManagerEvents.sendToAllDirectly, new GameProtocols.ReadyTimeElapse(this._gameReadyTime));
+		this._emit(GameManager.events.sendToAllDirectly, new GameProtocols.ReadyTimeElapse(this._gameReadyTime));
 
 		if (this._gameReadyTime == 0) {
 			this._gameTimeElapse();
-			this._emit(GameManagerEvents.gameStarted);
+			this._emit(GameManager.events.gameStarted);
 			return;
 		}
 
@@ -36,10 +36,10 @@ export default class TimeManager {
 
 	private _gameTimeElapse() {
 		this._gameTime--;
-		this._emit(GameManagerEvents.sendToAllDirectly, new GameProtocols.TimeElapse(this._gameTime));
+		this._emit(GameManager.events.sendToAllDirectly, new GameProtocols.TimeElapse(this._gameTime));
 
 		if (this._gameTime == 0) {
-			this._emit(GameManagerEvents.gameOver);
+			this._emit(GameManager.events.gameOver);
 			return;
 		}
 

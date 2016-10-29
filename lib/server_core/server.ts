@@ -3,8 +3,8 @@ import * as path from 'path';
 import * as express from 'express';
 import * as session from 'express-session';
 import * as bodyParser from 'body-parser';
-
 import * as log4js from 'log4js';
+import { useLogger } from './log';
 
 import config from '../shared/config';
 import * as HttpProtocols from '../shared/http_protocols';
@@ -56,24 +56,7 @@ class Server {
 		app.set('views', path.resolve(__dirname, '../../') + '/views');
 		app.set('view engine', 'html');
 
-		log4js.configure({
-			appenders: [
-				{
-					type: 'console',
-					layout: {
-						type: 'pattern',
-						pattern: '%[[%r] [%p]%] - %m'
-					}
-				}
-			],
-			replaceConsole: true
-		});
-		let logger = log4js.getLogger();
-
-		// app.use(log4js.connectLogger(logger, {
-		// 	level: log4js.levels.INFO,
-		// 	format: ':remote-addr :method :url :status - :response-time ms'
-		// }));
+		// app.use(useLogger);
 
 		app.use('/public', express.static('public'));
 

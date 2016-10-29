@@ -1,7 +1,7 @@
 import config from '../../shared/config';
 import * as GameProtocols from '../../shared/game_protocols';
 
-import GameManagerEvents from './game_manager_events';
+import GameManager from './game_manager';
 
 import Player from './player';
 import Planet from './planet';
@@ -65,7 +65,7 @@ export default class MovingShipsManager {
 
 	private _sendStartingMovingShips() {
 		let protocol = new GameProtocols.MovingShips([], this.getMovingShipsQueue());
-		this._emit(GameManagerEvents.sendToAllDirectly, protocol);
+		this._emit(GameManager.events.sendToAllDirectly, protocol);
 	}
 
 	private _currMovingId = 0;

@@ -164,6 +164,7 @@ export default class UiStage {
 		$canvas.on('mouseup', e => {
 			e.preventDefault();
 
+			this._mediator.moveStageDone();
 			$canvas.css({ cursor: 'default' });
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {

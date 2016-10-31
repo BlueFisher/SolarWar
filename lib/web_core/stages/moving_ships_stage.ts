@@ -22,7 +22,7 @@ export default class MovingShipsStage {
 	draw() {
 		let planets = this._mediator.getPlanets();
 		let players = this._mediator.players;
-		let transformation = this._mediator.transformation;
+		let transformation = this._mediator.getTrans();
 
 		let ctx = this._canvas.getContext('2d');
 		ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);

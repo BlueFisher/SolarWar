@@ -32,7 +32,7 @@ export default class GameStage {
 
 	draw() {
 		let players = this._mediator.players;
-		let transformation = this._mediator.transformation;
+		let transformation = this._mediator.getTrans();
 
 		let ctx = this._canvas.getContext('2d');
 		ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
@@ -76,18 +76,22 @@ export default class GameStage {
 			} else if (planet.allShips.length > 1) {
 				let sum = 0;
 				planet.allShips.forEach(p => sum += p.count);
-				if (this._mediator != null) {
-					let index = 0;
-					planet.allShips.forEach((s, i) => {
-						if (s.playerId == this._mediator.currPlayerId) {
-							index = i;
-							return;
-						}
-					});
-					let currShips = planet.allShips.splice(index, 1)[0];
-					planet.allShips.unshift(currShips);
-				}
+
+				// 将当前玩家移至数组第一位
+				let index = 0;
+				planet.allShips.forEach((s, i) => {
+					if (s.playerId == this._mediator.currPlayerId) {
+						index = i;
+						return;
+					}
+				});
+				let currShips = planet.allShips.splice(index, 1)[0];
+				planet.allShips.unshift(currShips);
+
 				let currAngle = -Math.PI / 2 - Math.PI * planet.allShips[0].count / sum;
+				ctx.textAlign = 'center';
+				ctx.textBaseline = 'middle';
+				ctx.lineWidth = 2;
 				planet.allShips.forEach(ship => {
 					ctx.beginPath();
 					let nextAngle = currAngle + Math.PI * 2 * ship.count / sum;
@@ -97,13 +101,10 @@ export default class GameStage {
 					ctx.strokeStyle = ctx.fillStyle = player.color;
 					let x = planet.position.x + Math.cos((currAngle + nextAngle) / 2) * (planet.size / 2 + 12);
 					let y = planet.position.y + Math.sin((currAngle + nextAngle) / 2) * (planet.size / 2 + 12);
-					ctx.textAlign = 'center';
-					ctx.textBaseline = 'middle';
+
 					ctx.fillText(ship.count.toString(), x, y);
 					currAngle = nextAngle;
-
 					setShadow(ctx, 0, 0, 30, player.color);
-					ctx.lineWidth = 2;
 					ctx.stroke();
 				});
 			}

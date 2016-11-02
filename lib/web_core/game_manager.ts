@@ -3,7 +3,7 @@ import * as $ from 'jquery';
 import * as HttpProtocols from '../shared/http_protocols';
 import * as GameProtocols from '../shared/game_protocols';
 
-import * as Utils from './utils';
+import * as vueData from './vueData';
 import DomManager from './dom_manager';
 import StageMediator from './stages/stage_mediator';
 

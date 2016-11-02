@@ -58,6 +58,7 @@ class Server {
 
 		app.get('/', (req, res) => {
 			let render = {
+				useCDN: config.useCDN,
 				user: null
 			}
 			let userId: string = req.session['userId'];

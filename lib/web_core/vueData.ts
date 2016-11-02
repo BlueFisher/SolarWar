@@ -8,7 +8,6 @@ export let vueIndex = {
 	ratio: 100,
 	gameTime: null,
 
-	gameReadyTime: null,
 	currShipsCount: 0,
 	maxShipsCount: 0,
 
@@ -38,4 +37,8 @@ export let vueGameInitModal = {
 export let vueGameOverModal = {
 	common: vueIndexCommon,
 	historyMaxShipsCount: 0
+}
+
+export let vueGameReadyModal = {
+	gameReadyTime: null
 }

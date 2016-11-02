@@ -31,7 +31,7 @@ export default class GameServer {
 	constructor(ip: string, port: number, sessionParser: express.RequestHandler, callback?: () => void) {
 		this.ip = ip;
 		this.port = port;
-		this._sessionParser = sessionParser;
+		this._sessionParser = sessionParser; 
 
 		let wss = new WebSocketServer.Server({
 			port: port

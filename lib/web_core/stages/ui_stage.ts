@@ -1,5 +1,5 @@
 import * as GameProtocols from '../../shared/game_protocols';
-import * as Utils from '../utils';
+import * as vueData from '../vueData';
 
 import StageMediator from './stage_mediator';
 
@@ -168,7 +168,7 @@ export default class UiStage {
 			$canvas.css({ cursor: 'default' });
 
 			if (mousedownPlanet != null && mouseupPlanet != null) {
-				let protocol = new GameProtocols.RequestMovingShips(mousedownPlanet.id, mouseupPlanet.id, Utils.vueIndex.ratio / 100);
+				let protocol = new GameProtocols.RequestMovingShips(mousedownPlanet.id, mouseupPlanet.id, vueData.vueIndex.ratio / 100);
 				this._sendProtocol(protocol);
 			}
 

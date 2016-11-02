@@ -8,7 +8,7 @@ export default {
 	mongodbServer: 'mongodb://localhost:27017/solarwar',
 
 	gameReadyTime: 10,
-	gameTime: 10,
+	gameTime: -1,
 
 	gameAlgorithm: {
 		getOccupyingInterval: function (size: number, count: number): number {

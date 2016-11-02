@@ -1,5 +1,3 @@
-// import * as path from 'path';
-
 import * as express from 'express';
 import * as session from 'express-session';
 import * as bodyParser from 'body-parser';
@@ -52,8 +50,6 @@ class Server {
 
 		app.use(this._sessionParser);
 
-		// app.engine('.html', require('ejs').__express);
-		// app.set('views', path.resolve(__dirname, '../../') + '/views');
 		app.set('view engine', 'ejs');
 
 		app.use(useLogger);
@@ -64,7 +60,7 @@ class Server {
 			let render = {
 				user: null
 			}
-			let userId: string = (req.session as any).userId;
+			let userId: string = req.session['userId'];
 			if (userId) {
 				DAO.findUser(userId).then(function (user) {
 					render.user = user;
@@ -80,7 +76,7 @@ class Server {
 				protocol.push({
 					ip: s.ip,
 					port: s.port,
-					canResumeGame: s.isPlayerOnGame(req.sessionID)
+					canResumeGame: s.isPlayerOnGame(req.session['userId'], req.sessionID)
 				});
 			})
 			res.json(protocol);
@@ -95,7 +91,7 @@ class Server {
 				};
 				if (user) {
 					delete user.passwordHash;
-					(req.session as any).userId = user._id;
+					req.session['userId'] = user._id;
 				}
 				res.json(protocol);
 			});
@@ -110,7 +106,7 @@ class Server {
 				};
 				if (user) {
 					delete user.passwordHash;
-					(req.session as any).userId = user._id;
+					req.session['userId'] = user._id;
 				}
 				res.json(protocol);
 			});

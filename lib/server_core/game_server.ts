@@ -1,5 +1,7 @@
 import * as WebSocketServer from 'ws';
 import * as express from 'express';
+import * as session from 'express-session';
+
 import { logger } from './log';
 import GameManager from './game_models/game_manager';
 import * as GameProtocols from '../shared/game_protocols';
@@ -12,6 +14,7 @@ export default class GameServer {
 	private _sessionParser: express.RequestHandler;
 	/**用户Socket键值对 */
 	private _socketPlayerMap: {
+		userId?: string,
 		sessionId: string,
 		socket: WebSocketServer,
 		playerId: number
@@ -20,6 +23,7 @@ export default class GameServer {
 	/**
 	 * 发送和接收WebSocket信息，提交和处理后台游戏逻辑
 	 * 
+	 * @param ip WebSocket IP地址
 	 * @param webSocketPort WebSocket端口号
 	 * @param sessionParser Session处理器
 	 * @param callback 监听成功回调函数
@@ -42,8 +46,16 @@ export default class GameServer {
 
 	private _onWebSocketConnection(socket: WebSocketServer) {
 		// 处理WebSocket连接请求中的session
-		this._sessionParser(<express.Request>socket.upgradeReq, <express.Response>{}, () => {
-			let sessionId: string = (socket.upgradeReq as any).sessionID;
+		let req = socket.upgradeReq as express.Request;
+		this._sessionParser(req, <express.Response>{}, () => {
+			let userId = req.session['userId'];
+			if (userId) {
+				logger.info(`user ${userId} connected`);
+			} else {
+				logger.info(`anonymous user connected`);
+			}
+
+			let sessionId: string = req.sessionID;
 			let pair = this._socketPlayerMap.filter(p => p.sessionId == sessionId)[0];
 			if (pair) {
 				// 如果已经连接，则断开原来的连接
@@ -51,10 +63,16 @@ export default class GameServer {
 					pair.socket.close();
 					logger.warn(`player ${pair.playerId} origin disconnected`);
 				}
+				// 如果已经有用户登陆过且现在登录的不是原用户，则删除原来的用户绑定的玩家
+				if (pair.userId && pair.userId != userId) {
+					pair.playerId = null;
+				}
+				pair.userId = userId;
 				pair.socket = socket;
 			} else {
-				// 否则添加新的连接
+				// 添加新的连接
 				this._socketPlayerMap.push({
+					userId: userId,
 					sessionId: sessionId,
 					socket: socket,
 					playerId: null
@@ -170,8 +188,17 @@ export default class GameServer {
 		}
 	}
 
-	isPlayerOnGame(sessionId: string): boolean {
+	isPlayerOnGame(userId: string, sessionId: string): boolean {
 		let pair = this._socketPlayerMap.filter(p => p.sessionId == sessionId)[0];
-		return pair ? this._gameManager.isPlayerOnGame(pair.playerId) : false;
+		if (pair) {
+			let isOnGame = this._gameManager.isPlayerOnGame(pair.playerId);
+			if (pair.userId) {
+				return pair.userId == userId && isOnGame;
+			} else {
+				return isOnGame;
+			}
+		} else {
+			return false;
+		}
 	}
 }

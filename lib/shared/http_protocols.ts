@@ -1,7 +1,6 @@
-export interface CommonResponse {
-	succeeded: boolean
+export interface ErrorResponse {
+	message: string
 }
-
 export interface WebSocketResponse {
 	ip: string,
 	port: number,
@@ -12,7 +11,7 @@ export interface AccountRequest {
 	email: string,
 	password: string
 }
-export interface AccountResponse extends CommonResponse {
+export interface AccountResponse {
 	user: {
 		_id?: string,
 		email: string

@@ -62,10 +62,10 @@ export default class DomManager {
 						contentType: "application/json",
 						data: JSON.stringify(protocol)
 					}).then(function (data: HttpProtocols.AccountResponse) {
-						if (data.succeeded) {
-							location.reload();
-						}
-					});
+						location.reload();
+					}, (function (xhr) {
+						toastr.error((xhr.responseJSON as HttpProtocols.ErrorResponse).message);
+					}));
 				},
 				signup: () => {
 					let protocol: HttpProtocols.AccountRequest = {
@@ -77,10 +77,10 @@ export default class DomManager {
 						contentType: "application/json",
 						data: JSON.stringify(protocol)
 					}).then(function (data: HttpProtocols.AccountResponse) {
-						if (data.succeeded) {
-							location.reload();
-						}
-					});
+						location.reload();
+					}, (function (xhr) {
+						toastr.error((xhr.responseJSON as HttpProtocols.ErrorResponse).message);
+					}));
 				}
 			}
 		});

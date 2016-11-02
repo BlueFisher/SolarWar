@@ -85,30 +85,40 @@ class Server {
 		app.post('/signup', (req, res) => {
 			let body = req.body as HttpProtocols.AccountRequest;
 			DAO.signup(body.email, body.password).then(user => {
-				let protocol: HttpProtocols.AccountResponse = {
-					succeeded: user != null,
-					user: user
-				};
 				if (user) {
 					delete user.passwordHash;
 					req.session['userId'] = user._id;
+					let protocol: HttpProtocols.AccountResponse = {
+						user: user
+					};
+					res.json(protocol);
+				} else {
+					res.status(403);
+					let protocol: HttpProtocols.ErrorResponse = {
+						message: '无法注册'
+					};
+					res.json(protocol);
 				}
-				res.json(protocol);
 			});
 		});
 
 		app.post('/signin', (req, res) => {
 			let body = req.body as HttpProtocols.AccountRequest;
 			DAO.signin(body.email, body.password).then(user => {
-				let protocol: HttpProtocols.AccountResponse = {
-					succeeded: user != null,
-					user: user
-				};
 				if (user) {
 					delete user.passwordHash;
 					req.session['userId'] = user._id;
+					let protocol: HttpProtocols.AccountResponse = {
+						user: user
+					};
+					res.json(protocol);
+				} else {
+					res.status(403);
+					let protocol: HttpProtocols.ErrorResponse = {
+						message: '登录失败'
+					};
+					res.json(protocol);
 				}
-				res.json(protocol);
 			});
 		});
 	}

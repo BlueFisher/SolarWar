@@ -40,17 +40,47 @@ export default class DomManager {
 
 		new Vue({
 			el: '#modal-gameinit',
-			data: Utils.vueIndex,
+			data: Utils.vueGameInitModal,
 			methods: {
 				startGame: () => {
-					Utils.vueIndex.resumeGame = false;
+					Utils.vueGameInitModal.resumeGame = false;
 					$('#modal-gameinit').modal('hide');
 					gameOn();
 				},
 				resumeGame: () => {
-					Utils.vueIndex.resumeGame = true;
+					Utils.vueGameInitModal.resumeGame = true;
 					$('#modal-gameinit').modal('hide');
 					gameOn();
+				},
+				signin: () => {
+					let protocol: HttpProtocols.AccountRequest = {
+						email: Utils.vueGameInitModal.email,
+						password: Utils.vueGameInitModal.password
+					};
+					$.ajax('/signin', {
+						method: 'POST',
+						contentType: "application/json",
+						data: JSON.stringify(protocol)
+					}).then(function (data: HttpProtocols.AccountResponse) {
+						if (data.succeeded) {
+							location.reload();
+						}
+					});
+				},
+				signup: () => {
+					let protocol: HttpProtocols.AccountRequest = {
+						email: Utils.vueGameInitModal.email,
+						password: Utils.vueGameInitModal.password
+					};
+					$.ajax('/signup', {
+						method: 'POST',
+						contentType: "application/json",
+						data: JSON.stringify(protocol)
+					}).then(function (data: HttpProtocols.AccountResponse) {
+						if (data.succeeded) {
+							location.reload();
+						}
+					});
 				}
 			}
 		});
@@ -62,7 +92,7 @@ export default class DomManager {
 
 		new Vue({
 			el: '#modal-gameover',
-			data: Utils.vueIndex,
+			data: Utils.vueGameOverModal,
 			methods: {
 				startGameFromGameOver: () => {
 					$('#modal-gameover').modal('hide');
@@ -148,8 +178,8 @@ export default class DomManager {
 
 	private _initializeGame() {
 		$.getJSON('/websockets').then((protocol: HttpProtocols.WebSocketResponse[]) => {
-			Utils.vueIndex.webSockets = protocol;
-			Utils.vueIndex.activeWebSocket = Utils.vueIndex.webSockets[0];
+			Utils.vueIndexCommon.webSockets = protocol;
+			Utils.vueIndexCommon.activeWebSocket = protocol[0];
 
 			$('#modal-gameinit').find('.form-control').focus();
 		});
@@ -175,7 +205,7 @@ export default class DomManager {
 	}
 
 	gameOver(protocol: GameProtocols.GameOver) {
-		Utils.vueIndex.historyMaxShipsCount = protocol.historyMaxShipsCount;
+		Utils.vueGameOverModal.historyMaxShipsCount = protocol.historyMaxShipsCount;
 
 		$('#modal-gameover').modal({
 			backdrop: 'static',

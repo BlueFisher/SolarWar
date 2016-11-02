@@ -20,6 +20,7 @@
     "express": "^4.14.0",
     "express-session": "^1.14.1",
     "log4js": "^0.6.38",
+    "mongodb": "^2.2.11",
     "ws": "^1.1.1"
   },
   "devDependencies": {

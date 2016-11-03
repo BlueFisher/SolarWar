@@ -41,15 +41,15 @@ export default class StageMediator {
 		});
 	}
 
-	private _getMapMainRange(planets: GameProtocols.BasePlanet[]): [Point, Point] {
+	private _getMapMainRange(objs: GameProtocols.BaseSolarObject[]): [Point, Point] {
 		let range = 200;
 		let minPosition: Point = { x: Infinity, y: Infinity };
 		let maxPosition: Point = { x: -Infinity, y: -Infinity };
-		if (planets.length == 0 || this.currPlayerId == null) {
+		if (objs.length == 0 || this.currPlayerId == null) {
 			return [{ x: 10, y: 10 }, { x: 800, y: 800 }];
 		}
 
-		planets.forEach(p => {
+		objs.forEach(p => {
 			if (p.occupiedPlayerId == this.currPlayerId || p.allShips.filter(s => s.playerId == this.currPlayerId).length == 1 ||
 				(p.occupyingStatus != null && p.occupyingStatus.playerId == this.currPlayerId)) {
 				let temp;
@@ -95,11 +95,11 @@ export default class StageMediator {
 	initializeMap(protocol: GameProtocols.InitializeMap) {
 		this.currPlayerId = protocol.playerId;
 		let map: GameProtocols.Map = protocol.map;
-		let [minPosition, maxPosition] = this._getMapMainRange(map.planets);
+		let [minPosition, maxPosition] = this._getMapMainRange(map.objects);
 		this._stageTransformation.setStageTransformation(minPosition, maxPosition);
 
 		this._updatePlayers(map.players);
-		this._gameStage.changePlanets(map.planets);
+		this._gameStage.changeSolarObjects(map.objects);
 		this._movingShipsStage.movingShips(map.movingShipsQueue);
 	}
 
@@ -119,16 +119,16 @@ export default class StageMediator {
 		return this._stageTransformation.getNewestTrans();
 	}
 
-	getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
-		return this._gameStage.getPointedPlanet(x, y);
+	getPointedSolarObject(x: number, y: number): GameProtocols.BaseSolarObject {
+		return this._gameStage.getPointedSolarObject(x, y);
 	}
-	getPlanets(): GameProtocols.BasePlanet[] {
-		return this._gameStage.getPlanets();
+	getSolarObjects(): GameProtocols.BaseSolarObject[] {
+		return this._gameStage.getSolarObjects();
 	}
 
-	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
+	startOccupyingSolarObject(protocol: GameProtocols.StartOccupyingSolarObject) {
 		this._updatePlayers(protocol.players);
-		this._gameStage.startOccupyingPlanet(protocol);
+		this._gameStage.startOccupyingSolarObject(protocol);
 	}
 
 	movingShipsQueue(protocol: GameProtocols.MovingShips) {
@@ -136,9 +136,9 @@ export default class StageMediator {
 		this._movingShipsStage.movingShips(protocol.queue);
 	}
 
-	changePlanet(protocol: GameProtocols.ChangedPlanet) {
+	changeSolarObject(protocol: GameProtocols.ChangedSolarObject) {
 		this._updatePlayers(protocol.players);
-		this._gameStage.changePlanets([protocol.planet]);
+		this._gameStage.changeSolarObjects([protocol.object]);
 	}
 
 	redrawStage() {

@@ -4,8 +4,8 @@ import config from '../../shared/config';
 import StageMediator from './stage_mediator';
 
 interface MovingShips extends GameProtocols.BaseMovingShips {
-	planetFrom?: GameProtocols.BasePlanet,
-	planetTo?: GameProtocols.BasePlanet,
+	objFrom?: GameProtocols.BaseSolarObject,
+	objTo?: GameProtocols.BaseSolarObject,
 	shipsPosition?: Point[],
 	lastBorder?: number
 }
@@ -20,7 +20,7 @@ export default class MovingShipsStage {
 	}
 
 	draw() {
-		let planets = this._mediator.getPlanets();
+		let objects = this._mediator.getSolarObjects();
 		let players = this._mediator.players;
 		let transformation = this._mediator.getTrans();
 
@@ -32,10 +32,10 @@ export default class MovingShipsStage {
 
 		// 绘制飞船移动
 		this._queue.forEach(movingShips => {
-			let planetFrom = movingShips.planetFrom;
-			let planetTo = movingShips.planetTo;
-			let x = planetTo.position.x - movingShips.distanceLeft * (planetTo.position.x - planetFrom.position.x) / movingShips.distance;
-			let y = planetTo.position.y - movingShips.distanceLeft * (planetTo.position.y - planetFrom.position.y) / movingShips.distance;
+			let objFrom = movingShips.objFrom;
+			let objTo = movingShips.objTo;
+			let x = objTo.position.x - movingShips.distanceLeft * (objTo.position.x - objFrom.position.x) / movingShips.distance;
+			let y = objTo.position.y - movingShips.distanceLeft * (objTo.position.y - objFrom.position.y) / movingShips.distance;
 
 			ctx.fillStyle = players.filter(player => player.id == movingShips.playerId)[0].color;
 
@@ -43,12 +43,12 @@ export default class MovingShipsStage {
 				movingShips.shipsPosition = [];
 				for (let j = 0; j < Math.ceil(movingShips.count / 2); j++) {
 					movingShips.shipsPosition.push({
-						x: (Math.random() - 0.5) * (planetFrom.size - 10),
-						y: (Math.random() - 0.5) * (planetFrom.size - 10),
+						x: (Math.random() - 0.5) * (objFrom.size - 10),
+						y: (Math.random() - 0.5) * (objFrom.size - 10),
 					});
 				}
 			} else {
-				let currBorder = movingShips.distanceLeft / movingShips.distance * (planetFrom.size - planetTo.size) + planetTo.size;
+				let currBorder = movingShips.distanceLeft / movingShips.distance * (objFrom.size - objTo.size) + objTo.size;
 				let ratio = currBorder / movingShips.lastBorder;
 
 				for (let j = 0; j < Math.ceil(movingShips.count / 2); j++) {
@@ -75,9 +75,9 @@ export default class MovingShipsStage {
 			for (let i = 0; i < queue.length; i++) {
 				if (!this._queue[i]) {
 					let m: MovingShips = queue[i];
-					m.planetFrom = this._mediator.getPlanets().filter(p => p.id == m.planetFromId)[0];
-					m.planetTo = this._mediator.getPlanets().filter(p => p.id == m.planetToId)[0];
-					m.lastBorder = m.planetFrom.size;
+					m.objFrom = this._mediator.getSolarObjects().filter(p => p.id == m.objectFromId)[0];
+					m.objTo = this._mediator.getSolarObjects().filter(p => p.id == m.objectToId)[0];
+					m.lastBorder = m.objFrom.size;
 					this._queue.push(m);
 				} else if (this._queue[i].id < queue[i].id) {
 					this._queue.splice(i, 1);

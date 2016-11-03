@@ -60,7 +60,7 @@ export default class UiStage {
 
 		let ctx = this._uiStageCanvas.getContext('2d');
 		// 绘制星球激活特效
-		let drawActivePlanet = (planet: GameProtocols.BasePlanet) => {
+		let drawActivePlanet = (planet: GameProtocols.BaseSolarObject) => {
 			let trans = this._mediator.getNewestTrans();
 			ctx.save();
 			ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
@@ -74,8 +74,8 @@ export default class UiStage {
 			ctx.restore();
 		};
 		let mousedownPoint: Point;
-		let mousedownPlanet: GameProtocols.BasePlanet;
-		let mouseupPlanet: GameProtocols.BasePlanet;
+		let mousedownPlanet: GameProtocols.BaseSolarObject;
+		let mouseupPlanet: GameProtocols.BaseSolarObject;
 		let isMouseDown = false;
 		let mouseWhich = 1;
 		$canvas.on('mousemove', e => {
@@ -178,10 +178,10 @@ export default class UiStage {
 		});
 	}
 
-	private _getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
+	private _getPointedPlanet(x: number, y: number): GameProtocols.BaseSolarObject {
 		let trans = this._mediator.getTrans();
 		x = (x - trans.horizontalMoving) / trans.scaling;
 		y = (y - trans.verticalMoving) / trans.scaling;
-		return this._mediator.getPointedPlanet(x, y);
+		return this._mediator.getPointedSolarObject(x, y);
 	}
 }

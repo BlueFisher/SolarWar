@@ -1,6 +1,8 @@
 import * as GameProtocols from '../../shared/game_protocols'
 
 export default class Player {
+	private static currId = 1;
+
 	id: number;
 	name: string;
 	color: string;
@@ -10,8 +12,8 @@ export default class Player {
 
 	isGameOver = false;
 
-	constructor(id: number, name: string, maxShipsCount: number) {
-		this.id = id;
+	constructor(name: string, maxShipsCount: number) {
+		this.id = Player.currId++;
 		this.name = name;
 		this.color = this._getRandomColor();
 		this.historyMaxShipsCount = this.maxShipsCount = this.currShipsCount = maxShipsCount;

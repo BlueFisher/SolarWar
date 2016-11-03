@@ -1,4 +1,4 @@
-import { PlanetType } from '../shared/game_protocols';
+import { PlanetType } from '../server_core/game_models/map_loader';
 
 export default {
 	httpPort: 80,

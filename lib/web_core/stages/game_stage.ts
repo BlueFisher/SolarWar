@@ -6,6 +6,7 @@ export default class GameStage {
 	private _canvas: HTMLCanvasElement;
 	private _mediator: StageMediator;
 
+	private _solarObjects: GameProtocols.BaseSolarObject[] = [];
 	private _planetImgs: HTMLImageElement[] = [];
 
 	constructor(gameStageCanvas: HTMLCanvasElement, gameStageMediator: StageMediator) {
@@ -19,11 +20,11 @@ export default class GameStage {
 		}
 	}
 
-	getPointedPlanet(x: number, y: number): GameProtocols.BasePlanet {
-		if (this._planets.length != 0) {
-			for (let planet of this._planets) {
-				if (Math.sqrt(Math.pow(x - planet.position.x, 2) + Math.pow(y - planet.position.y, 2)) < planet.size / 2 + 20) {
-					return planet;
+	getPointedSolarObject(x: number, y: number): GameProtocols.BaseSolarObject {
+		if (this._solarObjects.length != 0) {
+			for (let obj of this._solarObjects) {
+				if (Math.sqrt(Math.pow(x - obj.position.x, 2) + Math.pow(y - obj.position.y, 2)) < obj.size / 2 + 20) {
+					return obj;
 				}
 			}
 		}
@@ -40,67 +41,75 @@ export default class GameStage {
 		ctx.save();
 		ctx.setTransform(transformation.scaling, 0, 0, transformation.scaling, transformation.horizontalMoving, transformation.verticalMoving);
 
-		this._planets.forEach(planet => {
+		this._solarObjects.forEach(obj => {
 			// 绘制星球
 			ctx.save();
 
 			let color = '#ddd';
-			if (planet.occupiedPlayerId != null) {
-				color = players.filter(player => player.id == planet.occupiedPlayerId)[0].color;
+			if (obj.occupiedPlayerId != null) {
+				color = players.filter(player => player.id == obj.occupiedPlayerId)[0].color;
 			}
-
-			ctx.beginPath();
-			ctx.arc(planet.position.x, planet.position.y, planet.size / 2, 0, Math.PI * 2);
-
-			// setShadow(ctx, 1, 1, 15, color);
-			var grd = ctx.createRadialGradient(planet.position.x - planet.size * 0.2, planet.position.y - planet.size * 0.2, planet.size / 2,
-				planet.position.x - planet.size * 0.2, planet.position.y - planet.size * 0.2, planet.size * 1.5);
+			
+			var grd = ctx.createRadialGradient(obj.position.x - obj.size * 0.2, obj.position.y - obj.size * 0.2, obj.size / 2,
+				obj.position.x - obj.size * 0.2, obj.position.y - obj.size * 0.2, obj.size * 1.5);
 			grd.addColorStop(0, color);
 			grd.addColorStop(1, 'rgba(0,0,0,.5)');
 
 			ctx.fillStyle = grd;
+			ctx.strokeStyle = grd;
+			// setShadow(ctx, 1, 1, 15, color);
 
-			ctx.fill();
-			ctx.drawImage(this._planetImgs[planet.id % this._planetImgs.length], planet.position.x - planet.size / 2, planet.position.y - planet.size / 2, planet.size, planet.size);
+			if (obj.type == GameProtocols.SolarObjectType.planet) {
+				ctx.beginPath();
+				ctx.arc(obj.position.x, obj.position.y, obj.size / 2, 0, Math.PI * 2);
+				ctx.fill();
+				ctx.drawImage(this._planetImgs[obj.id % this._planetImgs.length], obj.position.x - obj.size / 2, obj.position.y - obj.size / 2, obj.size, obj.size);
+			} else {
+				ctx.beginPath();
+				ctx.arc(obj.position.x, obj.position.y, obj.size / 2 - 5, 0, Math.PI * 2);
+				ctx.lineWidth = 10;
+				ctx.stroke();
+			}
+
 			ctx.restore();
 
 			// 绘制星球争夺或平静状态
 			ctx.save();
 			ctx.font = '10px Arial,Microsoft YaHei';
-			if (planet.allShips.length == 1) {
+			if (obj.allShips.length == 1) {
 				ctx.textAlign = 'center';
-				let player = players.filter(player => player.id == planet.allShips[0].playerId)[0];
+				let player = players.filter(player => player.id == obj.allShips[0].playerId)[0];
 				ctx.fillStyle = player.color;
 				// setShadow(ctx, 1, 1, 15, player.color);
-				ctx.fillText(`${player.name} ${planet.allShips[0].count}`, planet.position.x, planet.position.y + planet.size / 2 + 12);
-			} else if (planet.allShips.length > 1) {
+				ctx.fillText(`${player.name} ${obj.allShips[0].count}`, obj.position.x, obj.position.y + obj.size / 2 + 12);
+			} else if (obj.allShips.length > 1) {
 				let sum = 0;
-				planet.allShips.forEach(p => sum += p.count);
+				obj.allShips.forEach(p => sum += p.count);
 
 				// 将当前玩家移至数组第一位
 				let index = 0;
-				planet.allShips.forEach((s, i) => {
+				obj.allShips.forEach((s, i) => {
 					if (s.playerId == this._mediator.currPlayerId) {
 						index = i;
 						return;
 					}
 				});
-				let currShips = planet.allShips.splice(index, 1)[0];
-				planet.allShips.unshift(currShips);
+				let currShips = obj.allShips.splice(index, 1)[0];
+				obj.allShips.unshift(currShips);
 
-				let currAngle = -Math.PI / 2 - Math.PI * planet.allShips[0].count / sum;
+				let currAngle = -Math.PI / 2 - Math.PI * obj.allShips[0].count / sum;
 				ctx.textAlign = 'center';
 				ctx.textBaseline = 'middle';
 				ctx.lineWidth = 2;
-				planet.allShips.forEach(ship => {
+				obj.allShips.forEach(ship => {
 					ctx.beginPath();
 					let nextAngle = currAngle + Math.PI * 2 * ship.count / sum;
-					ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 5, currAngle, nextAngle);
+					ctx.arc(obj.position.x, obj.position.y, obj.size / 2 + 5, currAngle, nextAngle);
 
 					let player = players.filter(player => player.id == ship.playerId)[0];
 					ctx.strokeStyle = ctx.fillStyle = player.color;
-					let x = planet.position.x + Math.cos((currAngle + nextAngle) / 2) * (planet.size / 2 + 12);
-					let y = planet.position.y + Math.sin((currAngle + nextAngle) / 2) * (planet.size / 2 + 12);
+					let x = obj.position.x + Math.cos((currAngle + nextAngle) / 2) * (obj.size / 2 + 12);
+					let y = obj.position.y + Math.sin((currAngle + nextAngle) / 2) * (obj.size / 2 + 12);
 
 					ctx.fillText(ship.count.toString(), x, y);
 					currAngle = nextAngle;
@@ -111,13 +120,13 @@ export default class GameStage {
 			ctx.restore();
 
 			// 绘制星球占领中状态
-			if ((planet.allShips.length == 1 || planet.allShips.length == 0)
-				&& planet.occupyingStatus != null && planet.occupyingStatus.percent < 100) {
+			if ((obj.allShips.length == 1 || obj.allShips.length == 0)
+				&& obj.occupyingStatus != null && obj.occupyingStatus.percent < 100) {
 				ctx.save();
-				let player = players.filter(player => player.id == planet.occupyingStatus.playerId)[0];
+				let player = players.filter(player => player.id == obj.occupyingStatus.playerId)[0];
 				ctx.beginPath();
-				let angle = Math.PI * 2 * planet.occupyingStatus.percent / 100 - Math.PI / 2;
-				ctx.arc(planet.position.x, planet.position.y, planet.size / 2 + 3, -Math.PI / 2, angle);
+				let angle = Math.PI * 2 * obj.occupyingStatus.percent / 100 - Math.PI / 2;
+				ctx.arc(obj.position.x, obj.position.y, obj.size / 2 + 3, -Math.PI / 2, angle);
 
 				setShadow(ctx, 0, 0, 30, player.color);
 				ctx.lineCap = 'round';
@@ -139,87 +148,87 @@ export default class GameStage {
 	}
 
 	private _occupyingTimers: {
-		planetId: number,
+		objId: number,
 		timer: NodeJS.Timer
 	}[] = [];
-	private _setOccupyingInterval(planetId: number, timer: NodeJS.Timer) {
-		let occupyingTimer = this._occupyingTimers.filter(p => p.planetId == planetId)[0];
+	private _setOccupyingInterval(objId: number, timer: NodeJS.Timer) {
+		let occupyingTimer = this._occupyingTimers.filter(p => p.objId == objId)[0];
 		if (occupyingTimer == undefined) {
 			this._occupyingTimers.push({
-				planetId: planetId,
+				objId: objId,
 				timer: timer
 			});
 		} else {
 			occupyingTimer.timer = timer;
 		}
 	}
-	private _clearOccupyingInterval(planetId: number) {
-		let occupyingTimer = this._occupyingTimers.filter(p => p.planetId == planetId)[0];
+	private _clearOccupyingInterval(objId: number) {
+		let occupyingTimer = this._occupyingTimers.filter(p => p.objId == objId)[0];
 		if (occupyingTimer != undefined) {
 			clearInterval(occupyingTimer.timer);
 		}
 	}
-	startOccupyingPlanet(protocol: GameProtocols.StartOccupyingPlanet) {
-		this.changePlanets([protocol.planet]);
-		let planet = this._planets.filter(p => p.id == protocol.planet.id)[0];
-		this._clearOccupyingInterval(planet.id);
+	startOccupyingSolarObject(protocol: GameProtocols.StartOccupyingSolarObject) {
+		this.changeSolarObjects([protocol.object]);
+		let obj = this._solarObjects.filter(p => p.id == protocol.object.id)[0];
+		this._clearOccupyingInterval(obj.id);
 		if (protocol.interval == -1) {
 			return;
 		}
 
-		let occupyingPlayerId = planet.allShips[0].playerId;
+		let occupyingPlayerId = obj.allShips[0].playerId;
 
-		if (planet.occupyingStatus == null) {
-			planet.occupyingStatus = {
+		if (obj.occupyingStatus == null) {
+			obj.occupyingStatus = {
 				playerId: occupyingPlayerId,
 				percent: 0
 			};
 		}
 
 		let timer = setInterval(() => {
-			planet = this._planets.filter(p => p.id == protocol.planet.id)[0];
-			if (planet.allShips.length != 1) {
-				this._clearOccupyingInterval(planet.id);
+			obj = this._solarObjects.filter(p => p.id == protocol.object.id)[0];
+			if (obj.allShips.length != 1) {
+				this._clearOccupyingInterval(obj.id);
 				return;
 			}
 
-			let occupyingPlayerId = planet.allShips[0].playerId;
+			let occupyingPlayerId = obj.allShips[0].playerId;
 
-			if (occupyingPlayerId == planet.occupyingStatus.playerId) {
-				if ((planet.occupyingStatus.percent += 0.5) >= 100) {
-					planet.occupiedPlayerId = occupyingPlayerId;
+			if (occupyingPlayerId == obj.occupyingStatus.playerId) {
+				if ((obj.occupyingStatus.percent += 0.5) >= 100) {
+					obj.occupiedPlayerId = occupyingPlayerId;
 
-					this._clearOccupyingInterval(planet.id);
+					this._clearOccupyingInterval(obj.id);
 				}
 			} else {
-				if ((planet.occupyingStatus.percent -= 0.5) <= 0) {
-					if (planet.occupiedPlayerId == planet.occupyingStatus.playerId) {
-						planet.occupiedPlayerId = null;
+				if ((obj.occupyingStatus.percent -= 0.5) <= 0) {
+					if (obj.occupiedPlayerId == obj.occupyingStatus.playerId) {
+						obj.occupiedPlayerId = null;
 					}
-					planet.occupyingStatus.playerId = occupyingPlayerId;
+					obj.occupyingStatus.playerId = occupyingPlayerId;
 
-					this._clearOccupyingInterval(planet.id);
+					this._clearOccupyingInterval(obj.id);
 				}
 			}
 
 			this.draw();
 		}, Math.ceil(protocol.interval * 0.5));
 
-		this._setOccupyingInterval(planet.id, timer);
+		this._setOccupyingInterval(obj.id, timer);
 	}
 
-	private _planets: GameProtocols.BasePlanet[] = [];
 
-	getPlanets(): GameProtocols.BasePlanet[] {
-		return this._planets;
+
+	getSolarObjects(): GameProtocols.BaseSolarObject[] {
+		return this._solarObjects;
 	}
 
-	changePlanets(planets: GameProtocols.BasePlanet[]) {
-		planets.forEach(p => {
-			if (!this._planets[p.id - 1]) {
-				this._planets.push(p);
+	changeSolarObjects(objs: GameProtocols.BaseSolarObject[]) {
+		objs.forEach(p => {
+			if (!this._solarObjects[p.id - 1]) {
+				this._solarObjects.push(p);
 			} else {
-				this._planets[p.id - 1] = p;
+				this._solarObjects[p.id - 1] = p;
 			}
 		});
 		this.draw();

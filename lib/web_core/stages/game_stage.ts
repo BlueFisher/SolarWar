@@ -221,7 +221,6 @@ export default class GameStage {
 			} else {
 				this._planets[p.id - 1] = p;
 			}
-
 		});
 		this.draw();
 	}

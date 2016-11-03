@@ -1,6 +1,6 @@
 import * as HttpProtocols from '../../shared/http_protocols';
 import * as GameProtocols from '../../shared/game_protocols';
-import * as Utils from '../utils';
+import * as vueData from '../vueData';
 
 import GameStage from './game_stage';
 import MovingShipsStage from './moving_ships_stage';

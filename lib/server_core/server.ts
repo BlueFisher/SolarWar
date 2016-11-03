@@ -1,10 +1,10 @@
-import * as path from 'path';
-
 import * as express from 'express';
 import * as session from 'express-session';
 import * as bodyParser from 'body-parser';
 import * as log4js from 'log4js';
 import { useLogger } from './log';
+
+import * as DAO from './db_access_funcs';
 
 import config from '../shared/config';
 import * as HttpProtocols from '../shared/http_protocols';
@@ -23,8 +23,6 @@ class Server {
 	/**
 	 * 主后台服务，管理HTTP服务与游戏服务
 	 *
-	 * @param httpPort HTTP端口号
-	 * @param webSocketPort WebSocket端口号
 	 * @param callback 监听成功回调函数 isHttp: 是否为HTTP服务器, port: 端口号
 	 */
 	constructor(callback: (isHttp: boolean, port: number) => void) {
@@ -52,23 +50,77 @@ class Server {
 
 		app.use(this._sessionParser);
 
-		app.engine('.html', require('ejs').__express);
-		app.set('views', path.resolve(__dirname, '../../') + '/views');
-		app.set('view engine', 'html');
+		app.set('view engine', 'ejs');
 
-		// app.use(useLogger);
+		app.use(useLogger);
 
 		app.use('/public', express.static('public'));
 
 		app.get('/', (req, res) => {
-			res.render('index');
+			let render = {
+				useCDN: config.useCDN,
+				user: null
+			}
+			let userId: string = req.session['userId'];
+			if (userId) {
+				DAO.findUser(userId).then(function (user) {
+					render.user = user;
+					res.render('index', render);
+				});
+			} else {
+				res.render('index', render);
+			}
 		});
 		app.get('/websockets', (req, res) => {
 			let protocol: HttpProtocols.WebSocketResponse[] = [];
 			this._gameServers.forEach(s => {
-				protocol.push(new HttpProtocols.WebSocketResponse(s.ip, s.port, s.isPlayerOnGame(req.sessionID)));
+				protocol.push({
+					ip: s.ip,
+					port: s.port,
+					canResumeGame: s.isPlayerOnGame(req.session['userId'], req.sessionID)
+				});
 			})
 			res.json(protocol);
+		});
+
+		app.post('/signup', (req, res) => {
+			let body = req.body as HttpProtocols.AccountRequest;
+			DAO.signup(body.email, body.password).then(user => {
+				if (user) {
+					delete user.passwordHash;
+					req.session['userId'] = user._id;
+					let protocol: HttpProtocols.AccountResponse = {
+						user: user
+					};
+					res.json(protocol);
+				} else {
+					res.status(403);
+					let protocol: HttpProtocols.ErrorResponse = {
+						message: '无法注册'
+					};
+					res.json(protocol);
+				}
+			});
+		});
+
+		app.post('/signin', (req, res) => {
+			let body = req.body as HttpProtocols.AccountRequest;
+			DAO.signin(body.email, body.password).then(user => {
+				if (user) {
+					delete user.passwordHash;
+					req.session['userId'] = user._id;
+					let protocol: HttpProtocols.AccountResponse = {
+						user: user
+					};
+					res.json(protocol);
+				} else {
+					res.status(403);
+					let protocol: HttpProtocols.ErrorResponse = {
+						message: '登录失败'
+					};
+					res.json(protocol);
+				}
+			});
 		});
 	}
 }

@@ -1,6 +1,6 @@
 import * as toastr from 'toastr';
 import * as GameProtocols from '../shared/game_protocols';
-import * as Utils from './utils';
+import * as vueData from './vueData';
 import GameManager from './game_manager';
 
 class Main {
@@ -13,14 +13,14 @@ class Main {
 	}
 
 	private _connectWebSocket() {
-		let url = `ws://${Utils.vueIndex.activeWebSocket.ip}:${Utils.vueIndex.activeWebSocket.port}/`;
+		let url = `ws://${vueData.vueIndexCommon.activeWebSocket.ip}:${vueData.vueIndexCommon.activeWebSocket.port}/`;
 		if (this._ws == null) {
 			this._connect(url);
 		} else if (this._ws.url != url) {
 			this._ws.close();
 			this._connect(url);
 		} else {
-			this._webSocketSend(new GameProtocols.RequestInitializeMap(Utils.vueIndex.name, Utils.vueIndex.resumeGame));
+			this._webSocketSend(new GameProtocols.RequestInitializeMap(vueData.vueIndexCommon.name, vueData.vueGameInitModal.resumeGame));
 		}
 	}
 	private _connect(url: string) {
@@ -30,7 +30,7 @@ class Main {
 		this._ws.onopen = () => {
 			toastr.clear();
 			toastr.success('服务器连接成功');
-			this._webSocketSend(new GameProtocols.RequestInitializeMap(Utils.vueIndex.name, Utils.vueIndex.resumeGame));
+			this._webSocketSend(new GameProtocols.RequestInitializeMap(vueData.vueIndexCommon.name, vueData.vueGameInitModal.resumeGame));
 		};
 
 		this._ws.onmessage = (e) => {

@@ -1,6 +1,6 @@
 import * as HttpProtocols from '../../shared/http_protocols';
 import * as GameProtocols from '../../shared/game_protocols';
-import * as Utils from '../utils';
+import * as vueData from '../vueData';
 
 import StageTransformation from './stage_transformation';
 import GameStage from './game_stage';
@@ -74,8 +74,8 @@ export default class StageMediator {
 	private _updatePlayers(players: GameProtocols.BasePlayer[]) {
 		players.forEach(p => {
 			if (p.id == this.currPlayerId) {
-				Utils.vueIndex.currShipsCount = p.currShipsCount;
-				Utils.vueIndex.maxShipsCount = p.maxShipsCount;
+				vueData.vueIndex.currShipsCount = p.currShipsCount;
+				vueData.vueIndex.maxShipsCount = p.maxShipsCount;
 			}
 
 			if (!this.players[p.id - 1]) {
@@ -86,7 +86,7 @@ export default class StageMediator {
 		});
 
 		if (players.length > 0) {
-			Utils.vueIndex.ranklist = this.players.slice().sort(function (a, b) {
+			vueData.vueIndex.ranklist = this.players.slice().sort(function (a, b) {
 				return a.maxShipsCount >= b.maxShipsCount ? -1 : 1;
 			}).slice(0, 10);
 		}

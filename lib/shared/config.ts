@@ -5,9 +5,11 @@ export default {
 	webSocketServers: [
 		{ ip: 'localhost', port: 8080 }
 	],
+	mongodbServer: 'mongodb://localhost:27017/solarwar',
+	useCDN: true,
 
 	gameReadyTime: 10,
-	gameTime: 60 * 15,
+	gameTime: -1,
 
 	gameAlgorithm: {
 		getOccupyingInterval: function (size: number, count: number): number {

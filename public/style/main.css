@@ -68,6 +68,10 @@ html, body {
 	margin-bottom: 10px;
 }
 
+.modal .form-group:last-child {
+	margin-bottom: 0;
+}
+
 .modal.fade .modal-dialog {
 	-webkit-transition: none;
 	-o-transition: none;

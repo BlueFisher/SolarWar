@@ -23,7 +23,7 @@ export default class GameStage {
 	getPointedSolarObject(x: number, y: number): GameProtocols.BaseSolarObject {
 		if (this._solarObjects.length != 0) {
 			for (let obj of this._solarObjects) {
-				if (Math.sqrt(Math.pow(x - obj.position.x, 2) + Math.pow(y - obj.position.y, 2)) < obj.size / 2 + 20) {
+				if (Math.sqrt((x - obj.position.x) ** 2 + (y - obj.position.y) ** 2) < obj.size / 2 + 20) {
 					return obj;
 				}
 			}
@@ -49,7 +49,7 @@ export default class GameStage {
 			if (obj.occupiedPlayerId != null) {
 				color = players.filter(player => player.id == obj.occupiedPlayerId)[0].color;
 			}
-			
+
 			var grd = ctx.createRadialGradient(obj.position.x - obj.size * 0.2, obj.position.y - obj.size * 0.2, obj.size / 2,
 				obj.position.x - obj.size * 0.2, obj.position.y - obj.size * 0.2, obj.size * 1.5);
 			grd.addColorStop(0, color);

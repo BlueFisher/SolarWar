@@ -26,7 +26,7 @@ export default class MovingShipsManager {
 	}
 
 	private _getTwoSolarObjectsDistance(obj1: SolarObject, obj2: SolarObject) {
-		return Math.sqrt(Math.pow(obj1.position.x - obj2.position.x, 2) + Math.pow(obj1.position.y - obj2.position.y, 2)) - obj1.size / 2 - obj2.size / 2;
+		return Math.sqrt((obj1.position.x - obj2.position.x) ** 2 + (obj1.position.y - obj2.position.y) ** 2) - obj1.size / 2 - obj2.size / 2;
 	}
 
 	private _sendStartingMovingShips() {

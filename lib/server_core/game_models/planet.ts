@@ -1,7 +1,7 @@
 import config from '../../shared/config';
 import Player from './player';
 import * as GameProtocols from '../../shared/game_protocols'
-import { SolarObject, funcSolarObjectChanged } from './solar_object';
+import { SolarObject, FuncSolarObjectChanged } from './solar_object';
 
 class Planet extends SolarObject {
 	private _buildingShipsTimer: NodeJS.Timer;
@@ -16,7 +16,7 @@ class Planet extends SolarObject {
 	 * @param occupiedPlayer 星球初始化时就占领的玩家
 	 */
 	constructor(size: number, position: Point,
-		planetChanged: funcSolarObjectChanged,
+		planetChanged: FuncSolarObjectChanged,
 		occupiedPlayer: Player = null) {
 		super(size, position, planetChanged);
 

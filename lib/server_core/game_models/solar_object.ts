@@ -13,12 +13,12 @@ interface occupyingStatus {
 	player: Player
 }
 
-export type funcSolarObjectChanged = (obj: SolarObject, players: Player[], interval?: number) => void;
+export type FuncSolarObjectChanged = (obj: SolarObject, players: Player[], interval?: number) => void;
 
 export abstract class SolarObject {
 	private static currId = 1;
 
-	protected _solarObjectChanged: funcSolarObjectChanged;
+	protected _solarObjectChanged: FuncSolarObjectChanged;
 
 	id: number;
 	size: number;
@@ -27,7 +27,7 @@ export abstract class SolarObject {
 	occupiedPlayer: Player;
 	occupyingStatus: occupyingStatus;
 
-	constructor(size: number, position: Point, solarObjectChanged: funcSolarObjectChanged) {
+	constructor(size: number, position: Point, solarObjectChanged: FuncSolarObjectChanged) {
 		this.id = SolarObject.currId++;
 		this.size = size;
 		this.position = position;

@@ -1,11 +1,11 @@
 import config from '../../shared/config';
 import Player from './player';
 import * as GameProtocols from '../../shared/game_protocols'
-import { SolarObject, funcSolarObjectChanged } from './solar_object';
+import { SolarObject, FuncSolarObjectChanged } from './solar_object';
 
 export default class Portal extends SolarObject {
 	constructor(size: number, position: Point,
-		protalChanged: funcSolarObjectChanged) {
+		protalChanged: FuncSolarObjectChanged) {
 		super(size, position, protalChanged);
 	}
 

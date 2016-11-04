@@ -184,7 +184,7 @@ export default class GameServer {
 	private _onMovePlayerShips(protocol: GameProtocols.RequestMovingShips, socket: WebSocketServer) {
 		let pair = this._socketPlayerMap.filter(p => p.playerId && p.socket == socket)[0];
 		if (pair) {
-			this._gameManager.movePlayerShips(pair.playerId, protocol.planetFromId, protocol.planetToId, protocol.countRatio);
+			this._gameManager.movePlayerShips(pair.playerId, protocol.objectFromId, protocol.objectToId, protocol.countRatio);
 		}
 	}
 

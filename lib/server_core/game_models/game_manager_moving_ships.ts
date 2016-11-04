@@ -3,7 +3,9 @@ import * as GameProtocols from '../../shared/game_protocols';
 
 import GameManager from './game_manager';
 
+import { SolarObject } from './solar_object';
 import Player from './player';
+import Portal from './portal';
 import Planet from './planet';
 
 export default class MovingShipsManager {
@@ -11,8 +13,8 @@ export default class MovingShipsManager {
 
 	private _movingShipsQueue: {
 		id: number,
-		planetFrom: Planet,
-		planetTo: Planet,
+		objFrom: SolarObject,
+		objTo: SolarObject,
 		player: Player,
 		count: number,
 		distance: number,
@@ -23,8 +25,8 @@ export default class MovingShipsManager {
 		this._emit = emit;
 	}
 
-	private _getTwoPlanetsDistance(planet1: Planet, planet2: Planet) {
-		return Math.sqrt(Math.pow(planet1.position.x - planet2.position.x, 2) + Math.pow(planet1.position.y - planet2.position.y, 2)) - planet1.size / 2 - planet2.size / 2;
+	private _getTwoSolarObjectsDistance(obj1: SolarObject, obj2: SolarObject) {
+		return Math.sqrt((obj1.position.x - obj2.position.x) ** 2 + (obj1.position.y - obj2.position.y) ** 2) - obj1.size / 2 - obj2.size / 2;
 	}
 
 	private _sendStartingMovingShips() {
@@ -45,12 +47,12 @@ export default class MovingShipsManager {
 		}
 		return true;
 	}
-	private _startMovingShips(player: Player, planetFrom: Planet, planetTo: Planet, count: number, distance: number) {
+	private _startMovingShips(player: Player, objFrom: SolarObject, objTo: SolarObject, count: number, distance: number) {
 		this._movingShipsQueue.push({
 			id: this._getNextMovingId(),
 			player: player,
-			planetFrom: planetFrom,
-			planetTo: planetTo,
+			objFrom: objFrom,
+			objTo: objTo,
 			count: count,
 			distance: distance,
 			distanceLeft: distance
@@ -71,9 +73,8 @@ export default class MovingShipsManager {
 				let deltaDistance = config.gameAlgorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
 				// 如果已到目的星球，则调用shipsArrived，并从飞行队列中移除
 				if ((movingShip.distanceLeft -= deltaDistance) <= 0) {
-					movingShip.planetTo.shipsArrived(movingShip.player, movingShip.count);
+					movingShip.objTo.shipsArrived(movingShip.player, movingShip.count);
 					this._movingShipsQueue.splice(i, 1);
-					
 				}
 			}
 			this._sendStartingMovingShips();
@@ -85,21 +86,26 @@ export default class MovingShipsManager {
 		this._movingShipsQueue = [];
 	}
 
-	movePlayerShips(player: Player, planetFrom: Planet, planetTo: Planet, countRatio: number) {
-		if (planetFrom == planetTo) {
+	movePlayerShips(player: Player, objFrom: SolarObject, objTo: SolarObject, countRatio: number) {
+		if (objFrom == objTo) {
 			return;
 		}
-		if (planetFrom == undefined || planetTo == undefined || player == undefined) {
+		if (!objFrom || !objTo || !player) {
 			return;
 		}
 		if (countRatio > 1 || countRatio < 0) {
 			return;
 		}
-		let count = planetFrom.shipsLeft(player, countRatio);
+		let count = objFrom.shipsLeft(player, countRatio);
 		if (count > 0) {
-			// 计算连个星球之间距离，加入到飞行队列中，开始飞船移动计时器
-			let distance = this._getTwoPlanetsDistance(planetFrom, planetTo);
-			this._startMovingShips(player, planetFrom, planetTo, count, distance);
+			// 如果出发星球为传送门且传送门被当前玩家占领，则立即传送
+			if (objFrom instanceof Portal && objFrom.occupiedPlayer == player) {
+				objTo.shipsArrived(player, count);
+			} else {
+				// 计算两个星球之间距离，加入到飞行队列中，开始飞船移动计时器
+				let distance = this._getTwoSolarObjectsDistance(objFrom, objTo);
+				this._startMovingShips(player, objFrom, objTo, count, distance);
+			}
 		}
 	}
 
@@ -107,8 +113,8 @@ export default class MovingShipsManager {
 		return this._movingShipsQueue.map(elem => {
 			return {
 				id: elem.id,
-				planetFromId: elem.planetFrom.id,
-				planetToId: elem.planetTo.id,
+				objectFromId: elem.objFrom.id,
+				objectToId: elem.objTo.id,
 				playerId: elem.player.id,
 				count: elem.count,
 				distance: elem.distance,

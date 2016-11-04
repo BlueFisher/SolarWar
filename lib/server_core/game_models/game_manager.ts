@@ -6,9 +6,10 @@ import * as GameProtocols from '../../shared/game_protocols';
 import * as Map from './map_loader';
 import MovingShipsManager from './game_manager_moving_ships';
 import TimeManager from './game_manager_timer';
+import { SolarObject } from './solar_object';
 import Player from './player';
 import Planet from './planet';
-
+import Portal from './portal';
 
 export default class GameManager extends events.EventEmitter {
 	static events = {
@@ -18,7 +19,8 @@ export default class GameManager extends events.EventEmitter {
 	}
 
 	private _players: Player[] = [];
-	private _planets: Planet[] = [];
+	private _solarObjects: SolarObject[] = [];
+
 	private _movingShipsManager: MovingShipsManager;
 	private _timeManager: TimeManager;
 
@@ -29,28 +31,21 @@ export default class GameManager extends events.EventEmitter {
 	 */
 	constructor() {
 		super();
+
+		this._solarObjects.push(new Portal(50, { x: 0, y: 0 }, this._solarObjectChanged.bind(this)));
+
 		this._mapLoader = new Map.MapLoader();
 		this._movingShipsManager = new MovingShipsManager(this.emit.bind(this));
 		this._timeManager = new TimeManager(this.emit.bind(this));
 	}
 
-	private _currPlanetId = 0;
-	private _getNextPlanetId(): number {
-		return ++this._currPlanetId;
-	}
-
-	private _currPlayerId = 0;
-	private _getNextPlayerId(): number {
-		return ++this._currPlayerId;
-	}
-
-	private _planetChanged(planet: Planet, players: Player[], interval?: number) {
+	private _solarObjectChanged(obj: SolarObject, players: Player[], interval?: number) {
 		players.forEach((basePlayer) => {
 			let player = this._players.filter(p => p.id == basePlayer.id)[0];
 
 			if (player.currShipsCount == 0) {
 				// 查找有没有星球上还有当前玩家的残留，如果没有则该玩家游戏结束
-				if (this._planets.find(p => p.occupyingStatus &&
+				if (this._solarObjects.find(p => p.occupyingStatus &&
 					(p.occupiedPlayer && p.occupiedPlayer.id == player.id || p.occupyingStatus.player.id == player.id))) {
 					player.isGameOver = false;
 				} else {
@@ -61,17 +56,17 @@ export default class GameManager extends events.EventEmitter {
 		});
 
 		if (interval) {
-			this.emit(GameManager.events.sendToAllDirectly, new GameProtocols.StartOccupyingPlanet(planet.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol()), interval));
+			this.emit(GameManager.events.sendToAllDirectly, new GameProtocols.StartOccupyingSolarObject(obj.getBaseSolarObjectProtocol(), players.map(p => p.getBasePlayerProtocol()), interval));
 		} else {
-			this.emit(GameManager.events.sendToAllDirectly, new GameProtocols.ChangedPlanet(planet.getBasePlanetProtocol(), players.map(p => p.getBasePlayerProtocol())));
+			this.emit(GameManager.events.sendToAllDirectly, new GameProtocols.ChangedSolarObject(obj.getBaseSolarObjectProtocol(), players.map(p => p.getBasePlayerProtocol())));
 		}
 	}
 
 	dispose() {
-		this._planets.forEach(p => p.dispose());
+		this._solarObjects.forEach(p => p.dispose());
 
 		this._players = [];
-		this._planets = [];
+		this._solarObjects = [];
 		this._movingShipsManager.dispose();
 		this._mapLoader = null;
 	}
@@ -86,8 +81,8 @@ export default class GameManager extends events.EventEmitter {
 			players: this._players.map(p => {
 				return p.getBasePlayerProtocol();
 			}),
-			planets: this._planets.map(p => {
-				return p.getBasePlanetProtocol();
+			objects: this._solarObjects.map(p => {
+				return p.getBaseSolarObjectProtocol();
 			}),
 			movingShipsQueue: this._movingShipsManager.getMovingShipsQueue()
 		};
@@ -97,22 +92,20 @@ export default class GameManager extends events.EventEmitter {
 	 * @param name 玩家昵称
 	 * @return [玩家id, 新增的星球]
 	 */
-	addPlayer(name: string): [number, GameProtocols.ChangedPlanet[]] {
-		let player = new Player(this._getNextPlayerId(), name, 0);
+	addPlayer(name: string): [number, GameProtocols.ChangedSolarObject[]] {
+		let player = new Player(name, 0);
 		this._players.push(player);
 
 		let newPlanets: Planet[] = [];
 		let mapPlanets = this._mapLoader.getNextPlanets();
 
 		mapPlanets.forEach(p => {
-			newPlanets.push(new Planet(this._getNextPlanetId(), p.size, p.position, (planet, players, interval) => {
-				this._planetChanged(planet, players, interval);
-			}, p.type == GameProtocols.PlanetType.Occupied ? player : null));
+			newPlanets.push(new Planet(p.size, p.position, this._solarObjectChanged.bind(this), p.type == Map.PlanetType.Occupied ? player : null));
 		});
 
-		let newPlanetProtocols: GameProtocols.ChangedPlanet[] = newPlanets.map(p => {
-			this._planets.push(p);
-			return new GameProtocols.ChangedPlanet(p.getBasePlanetProtocol(), [player.getBasePlayerProtocol()]);
+		let newPlanetProtocols: GameProtocols.ChangedSolarObject[] = newPlanets.map(p => {
+			this._solarObjects.push(p);
+			return new GameProtocols.ChangedSolarObject(p.getBaseSolarObjectProtocol(), [player.getBasePlayerProtocol()]);
 		});
 
 		return [player.id, newPlanetProtocols];
@@ -124,11 +117,11 @@ export default class GameManager extends events.EventEmitter {
 	 * @param planetToId 目的星球id
 	 * @param countRatio 从源星球移动的飞船比例
 	 */
-	movePlayerShips(id: number, planetFromId: number, planetToId: number, countRatio: number) {
-		let planetFrom = this._planets.filter(p => p.id == planetFromId)[0];
-		let planetTo = this._planets.filter(p => p.id == planetToId)[0];
+	movePlayerShips(id: number, objFromId: number, objToId: number, countRatio: number) {
+		let objFrom = this._solarObjects.filter(p => p.id == objFromId)[0];
+		let objTo = this._solarObjects.filter(p => p.id == objToId)[0];
 		let player = this._players.filter(p => p.id == id)[0];
-		this._movingShipsManager.movePlayerShips(player, planetFrom, planetTo, countRatio);
+		this._movingShipsManager.movePlayerShips(player, objFrom, objTo, countRatio);
 	}
 	/**
 	 * 获取玩家历史最高的人口飞船数

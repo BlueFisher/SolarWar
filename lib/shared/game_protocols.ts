@@ -1,6 +1,6 @@
-export enum PlanetType {
-	None = 0,
-	Occupied
+export enum SolarObjectType{
+	planet,
+	portal
 }
 
 export enum Type {
@@ -8,11 +8,9 @@ export enum Type {
 	initializeMap,
 
 	requestMoveShips,
-	requestRefereshOccupyingPlanet,
-	requestRefreshMovingShips,
 
-	planetChanged,
-	startOccupyingPlanet,
+	solarObjectChanged,
+	startOccupyingSolarObject,
 	movingShips,
 
 	readyTime,
@@ -27,7 +25,8 @@ export interface BasePlayer {
 	maxShipsCount: number,
 	currShipsCount: number
 }
-export interface BasePlanet {
+export interface BaseSolarObject {
+	type?: SolarObjectType,
 	id: number,
 	size: number,
 	position: {
@@ -46,8 +45,8 @@ export interface BasePlanet {
 }
 export interface BaseMovingShips {
 	id: number,
-	planetFromId: number,
-	planetToId: number,
+	objectFromId: number,
+	objectToId: number,
 	playerId: number,
 	count: number,
 	distance: number,
@@ -55,7 +54,7 @@ export interface BaseMovingShips {
 }
 export interface Map {
 	players: BasePlayer[],
-	planets: BasePlanet[],
+	objects: BaseSolarObject[],
 	movingShipsQueue: BaseMovingShips[]
 }
 
@@ -67,20 +66,20 @@ export class BaseProtocol {
 	type: Type;
 }
 
-export class ChangedPlanet extends BaseProtocol {
-	constructor(planet: BasePlanet, players: BasePlayer[]) {
-		super(Type.planetChanged);
-		this.planet = planet;
+export class ChangedSolarObject extends BaseProtocol {
+	constructor(object: BaseSolarObject, players: BasePlayer[]) {
+		super(Type.solarObjectChanged);
+		this.object = object;
 		this.players = players;
 	}
 
-	planet: BasePlanet;
+	object: BaseSolarObject;
 	players: BasePlayer[];
 }
-export class StartOccupyingPlanet extends ChangedPlanet {
-	constructor(planet: BasePlanet, players: BasePlayer[], interval: number) {
-		super(planet, players);
-		this.type = Type.startOccupyingPlanet;
+export class StartOccupyingSolarObject extends ChangedSolarObject {
+	constructor(object: BaseSolarObject, players: BasePlayer[], interval: number) {
+		super(object, players);
+		this.type = Type.startOccupyingSolarObject;
 		this.interval = interval;
 		this.startDateTime = new Date();
 	}
@@ -123,15 +122,15 @@ export class InitializeMap extends BaseProtocol {
 }
 
 export class RequestMovingShips extends BaseProtocol {
-	constructor(planetFromId: number, planetToId: number, countRatio: number) {
+	constructor(objectFromId: number, objectToId: number, countRatio: number) {
 		super(Type.requestMoveShips);
-		this.planetFromId = planetFromId;
-		this.planetToId = planetToId;
+		this.objectFromId = objectFromId;
+		this.objectToId = objectToId;
 		this.countRatio = countRatio;
 	}
 
-	planetFromId: number;
-	planetToId: number;
+	objectFromId: number;
+	objectToId: number;
 	countRatio: number;
 }
 

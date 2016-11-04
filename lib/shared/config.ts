@@ -1,4 +1,4 @@
-import { PlanetType } from '../shared/game_protocols';
+import { PlanetType } from '../server_core/game_models/map_loader';
 
 export default {
 	httpPort: 80,
@@ -13,7 +13,7 @@ export default {
 
 	gameAlgorithm: {
 		getOccupyingInterval: function (size: number, count: number): number {
-			let interval = (3 * Math.pow(size / count, 2) + 2) * 10;
+			let interval = (3 * (size / count) ** 2 + 2) * 10;
 			if (interval > 500)
 				interval = 500;
 			return interval;

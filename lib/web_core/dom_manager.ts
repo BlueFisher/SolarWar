@@ -52,12 +52,12 @@ export default class DomManager {
 					$('#modal-gameinit').modal('hide');
 					gameOn();
 				},
-				signin: () => {
+				signin: async () => {
 					let protocol: HttpProtocols.AccountRequest = {
 						email: vueData.vueGameInitModal.email,
 						password: vueData.vueGameInitModal.password
 					};
-					$.ajax('/signin', {
+					await $.ajax('/signin', {
 						method: 'POST',
 						contentType: "application/json",
 						data: JSON.stringify(protocol)

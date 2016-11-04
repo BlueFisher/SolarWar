@@ -1,5 +1,9 @@
-import { PlanetType } from '../../shared/game_protocols';
 import config from '../../shared/config';
+
+export enum PlanetType {
+	None = 0,
+	Occupied
+}
 
 export interface Planet {
 	type: PlanetType,

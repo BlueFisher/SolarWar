@@ -31,13 +31,13 @@ export default class GameManager {
 			case GameProtocols.Type.movingShips:
 				this._stageMediator.movingShipsQueue(<GameProtocols.MovingShips>protocol);
 				break;
-			case GameProtocols.Type.planetChanged:
-				this._stageMediator.changePlanet(<GameProtocols.ChangedPlanet>protocol);
+			case GameProtocols.Type.solarObjectChanged:
+				this._stageMediator.changeSolarObject(<GameProtocols.ChangedSolarObject>protocol);
 				break;
-			case GameProtocols.Type.startOccupyingPlanet:
-				let startOccupyingProtocol = <GameProtocols.StartOccupyingPlanet>protocol;
+			case GameProtocols.Type.startOccupyingSolarObject:
+				let startOccupyingProtocol = <GameProtocols.StartOccupyingSolarObject>protocol;
 				startOccupyingProtocol.startDateTime = new Date(startOccupyingProtocol.startDateTime.toString());
-				this._stageMediator.startOccupyingPlanet(startOccupyingProtocol);
+				this._stageMediator.startOccupyingSolarObject(startOccupyingProtocol);
 				break;
 			case GameProtocols.Type.readyTime:
 				this._domManager.readyTimeElapse(<GameProtocols.ReadyTimeElapse>protocol);

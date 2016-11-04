@@ -5,6 +5,7 @@ import * as session from 'express-session';
 import { logger } from './log';
 import GameManager from './game_models/game_manager';
 import * as GameProtocols from '../shared/game_protocols';
+import * as dao from './db_access_funcs';
 
 export default class GameServer {
 	ip: string;
@@ -31,7 +32,7 @@ export default class GameServer {
 	constructor(ip: string, port: number, sessionParser: express.RequestHandler, callback?: () => void) {
 		this.ip = ip;
 		this.port = port;
-		this._sessionParser = sessionParser; 
+		this._sessionParser = sessionParser;
 
 		let wss = new WebSocketServer.Server({
 			port: port
@@ -138,6 +139,9 @@ export default class GameServer {
 			socketPlayerMap.forEach(pair => {
 				if (pair.playerId) {
 					let historyMaxShipsCount = this._gameManager.getPlayerHistoryMaxShipsCount(pair.playerId);
+					if (pair.userId) {
+						dao.addNewScore(pair.userId, historyMaxShipsCount);
+					}
 					let json = JSON.stringify(new GameProtocols.GameOver(historyMaxShipsCount));
 					this._send(json, pair.socket);
 				}
@@ -166,9 +170,9 @@ export default class GameServer {
 
 				if (this._gameManager.isGameStarted()) {
 					let jsons = newPlanetProtocols.map(p => JSON.stringify(p));
-					this._socketPlayerMap.filter(p => p.playerId && p.socket != socket).forEach(() => {
+					this._socketPlayerMap.filter(p => p.playerId && p.socket != socket).forEach((pair) => {
 						jsons.forEach(json => {
-							this._send(json, socket);
+							this._send(json, pair.socket);
 						});
 					});
 				}

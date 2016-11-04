@@ -4,7 +4,7 @@ import * as bodyParser from 'body-parser';
 import * as log4js from 'log4js';
 import { useLogger } from './log';
 
-import * as DAO from './db_access_funcs';
+import * as dao from './db_access_funcs';
 
 import config from '../shared/config';
 import * as HttpProtocols from '../shared/http_protocols';
@@ -63,7 +63,7 @@ class Server {
 			}
 			let userId: string = req.session['userId'];
 			if (userId) {
-				DAO.findUser(userId).then(function (user) {
+				dao.findUser(userId).then(function (user) {
 					render.user = user;
 					res.render('index', render);
 				});
@@ -85,7 +85,7 @@ class Server {
 
 		app.post('/signup', async (req, res) => {
 			let body = req.body as HttpProtocols.AccountRequest;
-			let user = await DAO.signup(body.email, body.password);
+			let user = await dao.signup(body.email, body.password);
 			if (user) {
 				delete user.passwordHash;
 				req.session['userId'] = user._id;
@@ -104,7 +104,7 @@ class Server {
 
 		app.post('/signin', async (req, res) => {
 			let body = req.body as HttpProtocols.AccountRequest;
-			let user = await DAO.signin(body.email, body.password);
+			let user = await dao.signin(body.email, body.password);
 			if (user) {
 				delete user.passwordHash;
 				req.session['userId'] = user._id;

@@ -4,8 +4,8 @@ import config from '../../shared/config';
 import * as GameProtocols from '../../shared/game_protocols';
 
 import * as Map from './map_loader';
-import MovingShipsManager from './game_manager_moving_ships';
-import TimeManager from './game_manager_timer';
+import MovingShipsManager from './game_manager_tools/moving_ships_manager';
+import TimeManager from './game_manager_tools/timer_manager';
 import { SolarObject } from './solar_object';
 import Player from './player';
 import Planet from './planet';

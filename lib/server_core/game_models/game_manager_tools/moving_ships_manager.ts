@@ -1,16 +1,15 @@
-import config from '../../shared/config';
-import * as GameProtocols from '../../shared/game_protocols';
+import config from '../../../shared/config';
+import * as GameProtocols from '../../../shared/game_protocols';
 
-import GameManager from './game_manager';
+import GameManager from '../game_manager';
+import { BaseGameManagerTool, FuncEmit } from './base_game_manager_tool';
 
-import { SolarObject } from './solar_object';
-import Player from './player';
-import Portal from './portal';
-import Planet from './planet';
+import { SolarObject } from '../solar_object';
+import Player from '../player';
+import Portal from '../portal';
+import Planet from '../planet';
 
-export default class MovingShipsManager {
-	private _emit: FuncEmit;
-
+export default class MovingShipsManager extends BaseGameManagerTool {
 	private _movingShipsQueue: {
 		id: number,
 		objFrom: SolarObject,
@@ -21,8 +20,8 @@ export default class MovingShipsManager {
 		distanceLeft: number
 	}[] = [];
 
-	constructor(emit: FuncEmit) {
-		this._emit = emit;
+	dispose() {
+		this._movingShipsQueue = [];
 	}
 
 	private _getTwoSolarObjectsDistance(obj1: SolarObject, obj2: SolarObject) {
@@ -80,10 +79,6 @@ export default class MovingShipsManager {
 			this._sendStartingMovingShips();
 			this._moveShips();
 		}, config.gameAlgorithm.getMovingShipsInterval());
-	}
-
-	dispose() {
-		this._movingShipsQueue = [];
 	}
 
 	movePlayerShips(player: Player, objFrom: SolarObject, objTo: SolarObject, countRatio: number) {

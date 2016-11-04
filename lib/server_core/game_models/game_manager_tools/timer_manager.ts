@@ -1,19 +1,20 @@
-import config from '../../shared/config';
-import * as GameProtocols from '../../shared/game_protocols';
+import config from '../../../shared/config';
+import * as GameProtocols from '../../../shared/game_protocols';
 
-import GameManager from './game_manager';
+import GameManager from '../game_manager';
+import { BaseGameManagerTool, FuncEmit } from './base_game_manager_tool';
 
-export default class TimeManager {
-	private _emit: FuncEmit;
-
+export default class TimeManager extends BaseGameManagerTool {
 	private _gameReadyTime = config.gameReadyTime;
 	private _gameTime = config.gameTime;
 
 	constructor(emit: FuncEmit) {
-		this._emit = emit;
+		super(emit);
 
 		this._gameReadyTimeElapse();
 	}
+
+	dispose() { }
 
 	isGameStarted(): boolean {
 		return this._gameReadyTime == 0;

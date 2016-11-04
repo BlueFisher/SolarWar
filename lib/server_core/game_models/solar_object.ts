@@ -22,13 +22,15 @@ export abstract class SolarObject {
 
 	id: number;
 	size: number;
+	population: number;
 	position: Point;
 	allShips: ShipsOnTheObject[] = [];
 	occupiedPlayer: Player;
 	occupyingStatus: occupyingStatus;
 
-	constructor(size: number, position: Point, solarObjectChanged: FuncSolarObjectChanged) {
+	constructor(size: number, population: number, position: Point, solarObjectChanged: FuncSolarObjectChanged) {
 		this.id = SolarObject.currId++;
+		this.population = population;
 		this.size = size;
 		this.position = position;
 		this._solarObjectChanged = solarObjectChanged;
@@ -173,7 +175,7 @@ export abstract class SolarObject {
 				if (++this.occupyingStatus.percent == 100) {
 					if (this.occupiedPlayer != occupyingPlayer) {
 						this.occupiedPlayer = occupyingPlayer;
-						this.occupiedPlayer.addMaxShipsCount(this.size)
+						this.occupiedPlayer.addMaxShipsCount(this.population)
 						changedPlayer = this.occupiedPlayer;
 					}
 					this._sendstopingOccupying(changedPlayer == null ? [] : [changedPlayer]);
@@ -181,7 +183,7 @@ export abstract class SolarObject {
 			} else {
 				if (--this.occupyingStatus.percent == 0) {
 					if (this.occupiedPlayer == this.occupyingStatus.player) {
-						this.occupiedPlayer.addMaxShipsCount(-this.size);
+						this.occupiedPlayer.addMaxShipsCount(-this.population);
 						changedPlayer = this.occupiedPlayer;
 						this.occupiedPlayer = null;
 					}

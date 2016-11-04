@@ -6,7 +6,7 @@ import { SolarObject, FuncSolarObjectChanged } from './solar_object';
 export default class Portal extends SolarObject {
 	constructor(size: number, position: Point,
 		protalChanged: FuncSolarObjectChanged) {
-		super(size, position, protalChanged);
+		super(size, 0, position, protalChanged);
 	}
 
 	dispose() { }

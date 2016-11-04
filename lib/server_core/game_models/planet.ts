@@ -4,6 +4,7 @@ import * as GameProtocols from '../../shared/game_protocols'
 import { SolarObject, FuncSolarObjectChanged } from './solar_object';
 
 class Planet extends SolarObject {
+	private
 	private _buildingShipsTimer: NodeJS.Timer;
 
 	/**
@@ -18,7 +19,7 @@ class Planet extends SolarObject {
 	constructor(size: number, position: Point,
 		planetChanged: FuncSolarObjectChanged,
 		occupiedPlayer: Player = null) {
-		super(size, position, planetChanged);
+		super(size, size, position, planetChanged);
 
 		this._startbuildingShips();
 
@@ -46,7 +47,7 @@ class Planet extends SolarObject {
 		return config.gameAlgorithm.getOccupyingInterval(this.size, this.allShips[0].count);
 	}
 
-	getBaseSolarObjectProtocol(){
+	getBaseSolarObjectProtocol() {
 		let protocol = super.getBaseSolarObjectProtocol();
 		protocol.type = GameProtocols.SolarObjectType.planet;
 		return protocol;

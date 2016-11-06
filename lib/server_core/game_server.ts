@@ -57,7 +57,7 @@ export default class GameServer {
 			}
 
 			let sessionId: string = req.sessionID;
-			let pair = this._socketPlayerMap.filter(p => p.sessionId == sessionId)[0];
+			let pair = this._socketPlayerMap.find(p => p.sessionId == sessionId);
 			if (pair) {
 				// 如果已经连接，则断开原来的连接
 				if (pair.socket.readyState == WebSocketServer.OPEN) {
@@ -90,6 +90,8 @@ export default class GameServer {
 				case GameProtocols.Type.requestMoveShips:
 					this._onMovePlayerShips(<GameProtocols.RequestMovingShips>protocol, socket);
 					break;
+				case GameProtocols.Type.addPortal:
+					this._onAddPortal(<GameProtocols.RequestAddPortal>protocol, socket);
 			}
 		});
 
@@ -101,7 +103,7 @@ export default class GameServer {
 		});
 
 		let onSocketClose = (socket: WebSocketServer) => {
-			let pair = this._socketPlayerMap.filter(p => p.socket == socket)[0];
+			let pair = this._socketPlayerMap.find(p => p.socket == socket);
 			if (pair) {
 				logger.warn(`player ${pair.playerId} disconnected`);
 			}
@@ -159,7 +161,7 @@ export default class GameServer {
 	}
 
 	private _onInitializeMap(protocol: GameProtocols.RequestInitializeMap, socket: WebSocketServer) {
-		let pair = this._socketPlayerMap.filter(p => p.socket == socket)[0];
+		let pair = this._socketPlayerMap.find(p => p.socket == socket);
 		if (pair) {
 			if (pair.playerId && protocol.resumeGame && this._gameManager.isPlayerOnGame(pair.playerId)) {
 				logger.info(`player ${pair.playerId} resume game`);
@@ -186,14 +188,20 @@ export default class GameServer {
 	}
 
 	private _onMovePlayerShips(protocol: GameProtocols.RequestMovingShips, socket: WebSocketServer) {
-		let pair = this._socketPlayerMap.filter(p => p.playerId && p.socket == socket)[0];
+		let pair = this._socketPlayerMap.find(p => p.playerId && p.socket == socket);
 		if (pair) {
 			this._gameManager.movePlayerShips(pair.playerId, protocol.objectFromId, protocol.objectToId, protocol.countRatio);
 		}
 	}
+	private _onAddPortal(protocol: GameProtocols.RequestAddPortal, socket: WebSocketServer) {
+		let pair = this._socketPlayerMap.find(p => p.playerId && p.socket == socket);
+		if (pair) {
+			this._gameManager.addPortal(pair.playerId, protocol.position);
+		}
+	}
 
 	isPlayerOnGame(userId: string, sessionId: string): boolean {
-		let pair = this._socketPlayerMap.filter(p => p.sessionId == sessionId)[0];
+		let pair = this._socketPlayerMap.find(p => p.sessionId == sessionId);
 		if (pair) {
 			let isOnGame = this._gameManager.isPlayerOnGame(pair.playerId);
 			if (pair.userId) {

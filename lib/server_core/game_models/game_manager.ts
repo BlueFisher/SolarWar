@@ -13,9 +13,9 @@ import Portal from './portal';
 
 export default class GameManager extends events.EventEmitter {
 	static events = {
-		sendToAllDirectly: 'sendToAllDirectly',
-		gameStarted: 'gameStarted',
-		gameOver: 'gameOver'
+		sendToAllDirectly: Symbol(),
+		gameStarted: Symbol(),
+		gameOver: Symbol()
 	}
 
 	private _players: Player[] = [];
@@ -41,7 +41,7 @@ export default class GameManager extends events.EventEmitter {
 
 	private _solarObjectChanged(obj: SolarObject, players: Player[], interval?: number) {
 		players.forEach((basePlayer) => {
-			let player = this._players.filter(p => p.id == basePlayer.id)[0];
+			let player = this._players.find(p => p.id == basePlayer.id);
 
 			if (player.currShipsCount == 0) {
 				// 查找有没有星球上还有当前玩家的残留，如果没有则该玩家游戏结束
@@ -118,21 +118,29 @@ export default class GameManager extends events.EventEmitter {
 	 * @param countRatio 从源星球移动的飞船比例
 	 */
 	movePlayerShips(id: number, objFromId: number, objToId: number, countRatio: number) {
-		let objFrom = this._solarObjects.filter(p => p.id == objFromId)[0];
-		let objTo = this._solarObjects.filter(p => p.id == objToId)[0];
-		let player = this._players.filter(p => p.id == id)[0];
+		let objFrom = this._solarObjects.find(p => p.id == objFromId);
+		let objTo = this._solarObjects.find(p => p.id == objToId);
+		let player = this._players.find(p => p.id == id);
 		this._movingShipsManager.movePlayerShips(player, objFrom, objTo, countRatio);
+	}
+	addPortal(playerId: number, position: Point) {
+		let player = this._players.find(p => p.id == playerId);
+		if (player && player.historyMaxShipsCount >= 100) {
+			let newPortal = new Portal(50, position, this._solarObjectChanged.bind(this));
+			this._solarObjects.push(newPortal);
+			this._solarObjectChanged(newPortal, []);
+		}
 	}
 	/**
 	 * 获取玩家历史最高的人口飞船数
 	 */
 	getPlayerHistoryMaxShipsCount(id: number): number {
-		let player = this._players.filter(p => p.id == id)[0];
-		return this._players.filter(p => p.id == id)[0].historyMaxShipsCount;
+		let player = this._players.find(p => p.id == id);
+		return this._players.find(p => p.id == id).historyMaxShipsCount;
 	}
 
 	isPlayerOnGame(id: number): boolean {
-		let player = this._players.filter(p => p.id == id)[0];
+		let player = this._players.find(p => p.id == id);
 		return player && !player.isGameOver;
 	}
 }

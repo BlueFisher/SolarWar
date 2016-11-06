@@ -12,13 +12,13 @@ export default class DomManager {
 	constructor(connectWebSocket: () => void) {
 		this._connectWebSocket = connectWebSocket;
 
-		this._initializeModals();
+		this._initializeVue();
 		this._initializeCanvas();
 		this._initializeCountRatio();
 		this._initializeGame();
 	}
 
-	private _initializeModals() {
+	private _initializeVue() {
 		new vue({
 			el: '#ui',
 			data: vueData.vueIndex,

@@ -67,7 +67,7 @@ export abstract class SolarObject {
 			return;
 		}
 
-		let existedShips = this.allShips.filter(p => p.player == player)[0];
+		let existedShips = this.allShips.find(p => p.player == player);
 		if (existedShips == undefined) {
 			this.allShips.push({
 				player: player,

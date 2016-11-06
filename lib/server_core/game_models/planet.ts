@@ -71,7 +71,7 @@ class Planet extends SolarObject {
 			});
 		}
 
-		let occupiedShipsOnThePlanet = this.allShips.filter(p => p.player == this.occupiedPlayer)[0];
+		let occupiedShipsOnThePlanet = this.allShips.find(p => p.player == this.occupiedPlayer);
 		if (occupiedShipsOnThePlanet == undefined) {
 			return;
 		}

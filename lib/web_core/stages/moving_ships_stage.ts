@@ -37,7 +37,7 @@ export default class MovingShipsStage {
 			let x = objTo.position.x - movingShips.distanceLeft * (objTo.position.x - objFrom.position.x) / movingShips.distance;
 			let y = objTo.position.y - movingShips.distanceLeft * (objTo.position.y - objFrom.position.y) / movingShips.distance;
 
-			ctx.fillStyle = players.filter(player => player.id == movingShips.playerId)[0].color;
+			ctx.fillStyle = players.find(player => player.id == movingShips.playerId).color;
 
 			if (!movingShips.shipsPosition) {
 				movingShips.shipsPosition = [];
@@ -75,8 +75,8 @@ export default class MovingShipsStage {
 			for (let i = 0; i < queue.length; i++) {
 				if (!this._queue[i]) {
 					let m: MovingShips = queue[i];
-					m.objFrom = this._mediator.getSolarObjects().filter(p => p.id == m.objectFromId)[0];
-					m.objTo = this._mediator.getSolarObjects().filter(p => p.id == m.objectToId)[0];
+					m.objFrom = this._mediator.getSolarObjects().find(p => p.id == m.objectFromId);
+					m.objTo = this._mediator.getSolarObjects().find(p => p.id == m.objectToId);
 					m.lastBorder = m.objFrom.size;
 					this._queue.push(m);
 				} else if (this._queue[i].id < queue[i].id) {

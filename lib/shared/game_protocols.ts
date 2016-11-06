@@ -12,6 +12,7 @@ export enum Type {
 	solarObjectChanged,
 	startOccupyingSolarObject,
 	movingShips,
+	addPortal,
 
 	readyTime,
 	time,
@@ -132,6 +133,15 @@ export class RequestMovingShips extends BaseProtocol {
 	objectFromId: number;
 	objectToId: number;
 	countRatio: number;
+}
+
+export class RequestAddPortal extends BaseProtocol{
+	constructor(position:Point){
+		super(Type.addPortal);
+		this.position = position;
+	}
+
+	position:Point;
 }
 
 export class ReadyTimeElapse extends BaseProtocol {

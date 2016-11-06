@@ -47,7 +47,7 @@ export default class GameStage {
 
 			let color = '#ddd';
 			if (obj.occupiedPlayerId != null) {
-				color = players.filter(player => player.id == obj.occupiedPlayerId)[0].color;
+				color = players.find(player => player.id == obj.occupiedPlayerId).color;
 			}
 
 			var grd = ctx.createRadialGradient(obj.position.x - obj.size * 0.2, obj.position.y - obj.size * 0.2, obj.size / 2,
@@ -78,7 +78,7 @@ export default class GameStage {
 			ctx.font = '10px Arial,Microsoft YaHei';
 			if (obj.allShips.length == 1) {
 				ctx.textAlign = 'center';
-				let player = players.filter(player => player.id == obj.allShips[0].playerId)[0];
+				let player = players.find(player => player.id == obj.allShips[0].playerId);
 				ctx.fillStyle = player.color;
 				// setShadow(ctx, 1, 1, 15, player.color);
 				ctx.fillText(`${player.name} ${obj.allShips[0].count}`, obj.position.x, obj.position.y + obj.size / 2 + 12);
@@ -106,7 +106,7 @@ export default class GameStage {
 					let nextAngle = currAngle + Math.PI * 2 * ship.count / sum;
 					ctx.arc(obj.position.x, obj.position.y, obj.size / 2 + 5, currAngle, nextAngle);
 
-					let player = players.filter(player => player.id == ship.playerId)[0];
+					let player = players.find(player => player.id == ship.playerId);
 					ctx.strokeStyle = ctx.fillStyle = player.color;
 					let x = obj.position.x + Math.cos((currAngle + nextAngle) / 2) * (obj.size / 2 + 12);
 					let y = obj.position.y + Math.sin((currAngle + nextAngle) / 2) * (obj.size / 2 + 12);
@@ -123,7 +123,7 @@ export default class GameStage {
 			if ((obj.allShips.length == 1 || obj.allShips.length == 0)
 				&& obj.occupyingStatus != null && obj.occupyingStatus.percent < 100) {
 				ctx.save();
-				let player = players.filter(player => player.id == obj.occupyingStatus.playerId)[0];
+				let player = players.find(player => player.id == obj.occupyingStatus.playerId);
 				ctx.beginPath();
 				let angle = Math.PI * 2 * obj.occupyingStatus.percent / 100 - Math.PI / 2;
 				ctx.arc(obj.position.x, obj.position.y, obj.size / 2 + 3, -Math.PI / 2, angle);
@@ -152,7 +152,7 @@ export default class GameStage {
 		timer: NodeJS.Timer
 	}[] = [];
 	private _setOccupyingInterval(objId: number, timer: NodeJS.Timer) {
-		let occupyingTimer = this._occupyingTimers.filter(p => p.objId == objId)[0];
+		let occupyingTimer = this._occupyingTimers.find(p => p.objId == objId);
 		if (occupyingTimer == undefined) {
 			this._occupyingTimers.push({
 				objId: objId,
@@ -163,14 +163,14 @@ export default class GameStage {
 		}
 	}
 	private _clearOccupyingInterval(objId: number) {
-		let occupyingTimer = this._occupyingTimers.filter(p => p.objId == objId)[0];
+		let occupyingTimer = this._occupyingTimers.find(p => p.objId == objId);
 		if (occupyingTimer != undefined) {
 			clearInterval(occupyingTimer.timer);
 		}
 	}
 	startOccupyingSolarObject(protocol: GameProtocols.StartOccupyingSolarObject) {
 		this.changeSolarObjects([protocol.object]);
-		let obj = this._solarObjects.filter(p => p.id == protocol.object.id)[0];
+		let obj = this._solarObjects.find(p => p.id == protocol.object.id);
 		this._clearOccupyingInterval(obj.id);
 		if (protocol.interval == -1) {
 			return;
@@ -186,7 +186,7 @@ export default class GameStage {
 		}
 
 		let timer = setInterval(() => {
-			obj = this._solarObjects.filter(p => p.id == protocol.object.id)[0];
+			obj = this._solarObjects.find(p => p.id == protocol.object.id);
 			if (obj.allShips.length != 1) {
 				this._clearOccupyingInterval(obj.id);
 				return;

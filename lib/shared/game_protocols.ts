@@ -1,10 +1,10 @@
-export enum SolarObjectType{
-	planet,
+export enum SolarObjectType {
+	planet = 1,
 	portal
 }
 
 export enum Type {
-	requestInitializeMap = 0,
+	requestInitializeMap = 1,
 	initializeMap,
 
 	requestMoveShips,
@@ -12,6 +12,7 @@ export enum Type {
 	solarObjectChanged,
 	startOccupyingSolarObject,
 	movingShips,
+	canAddProp,
 	addPortal,
 
 	readyTime,
@@ -135,13 +136,21 @@ export class RequestMovingShips extends BaseProtocol {
 	countRatio: number;
 }
 
-export class RequestAddPortal extends BaseProtocol{
-	constructor(position:Point){
+export class CanAddProp extends BaseProtocol {
+	constructor(propType:SolarObjectType) {
+		super(Type.canAddProp);
+		this.propType = propType;
+	}
+
+	propType: SolarObjectType
+}
+export class RequestAddPortal extends BaseProtocol {
+	constructor(position: Point) {
 		super(Type.addPortal);
 		this.position = position;
 	}
 
-	position:Point;
+	position: Point;
 }
 
 export class ReadyTimeElapse extends BaseProtocol {

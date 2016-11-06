@@ -1,4 +1,4 @@
-export type FuncEmit = (event: string, ...args: any[]) => void;
+export type FuncEmit = (event: string | Symbol, ...args: any[]) => void;
 
 export abstract class BaseGameManagerTool {
 	protected _emit: FuncEmit;

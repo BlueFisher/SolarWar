@@ -20,15 +20,12 @@ export default class GameStage {
 		}
 	}
 
-	getPointedSolarObject(x: number, y: number): GameProtocols.BaseSolarObject {
-		if (this._solarObjects.length != 0) {
-			for (let obj of this._solarObjects) {
-				if (Math.sqrt((x - obj.position.x) ** 2 + (y - obj.position.y) ** 2) < obj.size / 2 + 20) {
-					return obj;
-				}
+	getCoveredSolarObject(point: Point, distance: number): GameProtocols.BaseSolarObject {
+		return this._solarObjects.find(obj => {
+			if (Math.sqrt((point.x - obj.position.x) ** 2 + (point.y - obj.position.y) ** 2) < obj.size / 2 + distance) {
+				return true;
 			}
-		}
-		return null;
+		})
 	}
 
 	draw() {

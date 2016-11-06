@@ -21,41 +21,55 @@ export default class DomManager {
 	private _initializeVue() {
 		new vue({
 			el: '#ui',
-			data: vueData.vueIndex,
+			data: vueData.index,
 			computed: {
 				gameTime: function (): string {
-					if (!vueData.vueIndex.gameTime || vueData.vueIndex.gameTime < 0) {
+					if (!vueData.index.gameTime || vueData.index.gameTime < 0) {
 						return '00 : 00';
 					}
-					let sec = vueData.vueIndex.gameTime;
+					let sec = vueData.index.gameTime;
 					let min = 0;
 					if (sec > 60) {
 						min = Math.floor(sec / 60);
 						sec = Math.floor(sec % 60);
 					}
 					return `${min} : ${sec}`;
+				},
+				props: function (): string[] {
+					let propStrings: string[] = [];
+					vueData.index.props.forEach(p => {
+						if (p == GameProtocols.SolarObjectType.portal)
+							propStrings.push('传送门');
+					});
+					return propStrings;
 				}
 			},
+			methods: {
+				addProp: (prop: GameProtocols.SolarObjectType) => {
+					if (!vueData.index.addingProp)
+						vueData.index.addingProp = prop;
+				}
+			}
 		});
 
 		new vue({
 			el: '#modal-gameinit',
-			data: vueData.vueGameInitModal,
+			data: vueData.gameInitModal,
 			methods: {
 				startGame: () => {
-					vueData.vueGameInitModal.resumeGame = false;
+					vueData.gameInitModal.resumeGame = false;
 					$('#modal-gameinit').modal('hide');
 					gameOn();
 				},
 				resumeGame: () => {
-					vueData.vueGameInitModal.resumeGame = true;
+					vueData.gameInitModal.resumeGame = true;
 					$('#modal-gameinit').modal('hide');
 					gameOn();
 				},
 				signin: () => {
 					let protocol: HttpProtocols.AccountRequest = {
-						email: vueData.vueGameInitModal.email,
-						password: vueData.vueGameInitModal.password
+						email: vueData.gameInitModal.email,
+						password: vueData.gameInitModal.password
 					};
 					$.ajax('/signin', {
 						method: 'POST',
@@ -69,8 +83,8 @@ export default class DomManager {
 				},
 				signup: () => {
 					let protocol: HttpProtocols.AccountRequest = {
-						email: vueData.vueGameInitModal.email,
-						password: vueData.vueGameInitModal.password
+						email: vueData.gameInitModal.email,
+						password: vueData.gameInitModal.password
 					};
 					$.ajax('/signup', {
 						method: 'POST',
@@ -87,12 +101,12 @@ export default class DomManager {
 
 		new vue({
 			el: '#modal-gameready',
-			data: vueData.vueGameReadyModal
+			data: vueData.gameReadyModal
 		});
 
 		new vue({
 			el: '#modal-gameover',
-			data: vueData.vueGameOverModal,
+			data: vueData.gameOverModal,
 			methods: {
 				startGameFromGameOver: () => {
 					$('#modal-gameover').modal('hide');
@@ -156,7 +170,7 @@ export default class DomManager {
 				return;
 			}
 
-			vueData.vueIndex.ratio = Math.round(-0.33 * angle + 109.9);
+			vueData.index.ratio = Math.round(-0.33 * angle + 109.9);
 
 			path.css('stroke-dasharray', `${565 * (1 - (angle + 30) / 360)} 565`);
 
@@ -178,8 +192,8 @@ export default class DomManager {
 
 	private _initializeGame() {
 		$.getJSON('/websockets').then((protocol: HttpProtocols.WebSocketResponse[]) => {
-			vueData.vueIndexCommon.webSockets = protocol;
-			vueData.vueIndexCommon.activeWebSocket = protocol[0];
+			vueData.indexCommon.webSockets = protocol;
+			vueData.indexCommon.activeWebSocket = protocol[0];
 
 			$('#modal-gameinit').find('.form-control').focus();
 		});
@@ -205,7 +219,7 @@ export default class DomManager {
 	}
 
 	gameOver(protocol: GameProtocols.GameOver) {
-		vueData.vueGameOverModal.historyMaxShipsCount = protocol.historyMaxShipsCount;
+		vueData.gameOverModal.historyMaxShipsCount = protocol.historyMaxShipsCount;
 
 		$('#modal-gameover').modal({
 			backdrop: 'static',
@@ -216,9 +230,9 @@ export default class DomManager {
 	}
 
 	readyTimeElapse(protocol: GameProtocols.ReadyTimeElapse) {
-		vueData.vueGameReadyModal.gameReadyTime = protocol.time;
+		vueData.gameReadyModal.gameReadyTime = protocol.time;
 	}
 	timeElapse(protocol: GameProtocols.TimeElapse) {
-		vueData.vueIndex.gameTime = protocol.time;
+		vueData.index.gameTime = protocol.time;
 	}
 }

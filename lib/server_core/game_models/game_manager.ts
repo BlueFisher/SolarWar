@@ -14,6 +14,7 @@ import Portal from './portal';
 export default class GameManager extends events.EventEmitter {
 	static events = {
 		sendToAllDirectly: Symbol(),
+		sendToOne: Symbol(),
 		gameStarted: Symbol(),
 		gameOver: Symbol()
 	}
@@ -31,8 +32,6 @@ export default class GameManager extends events.EventEmitter {
 	 */
 	constructor() {
 		super();
-
-		this._solarObjects.push(new Portal(50, { x: 0, y: 0 }, this._solarObjectChanged.bind(this)));
 
 		this._mapLoader = new Map.MapLoader();
 		this._movingShipsManager = new MovingShipsManager(this.emit.bind(this));
@@ -60,6 +59,10 @@ export default class GameManager extends events.EventEmitter {
 		} else {
 			this.emit(GameManager.events.sendToAllDirectly, new GameProtocols.ChangedSolarObject(obj.getBaseSolarObjectProtocol(), players.map(p => p.getBasePlayerProtocol())));
 		}
+	}
+
+	private _canAddProp(player: Player, type: GameProtocols.SolarObjectType) {
+		this.emit(GameManager.events.sendToOne, new GameProtocols.CanAddProp(type), player.id);
 	}
 
 	dispose() {
@@ -93,7 +96,7 @@ export default class GameManager extends events.EventEmitter {
 	 * @return [玩家id, 新增的星球]
 	 */
 	addPlayer(name: string): [number, GameProtocols.ChangedSolarObject[]] {
-		let player = new Player(name, 0);
+		let player = new Player(name, 0, this._canAddProp.bind(this));
 		this._players.push(player);
 
 		let newPlanets: Planet[] = [];
@@ -125,10 +128,14 @@ export default class GameManager extends events.EventEmitter {
 	}
 	addPortal(playerId: number, position: Point) {
 		let player = this._players.find(p => p.id == playerId);
-		if (player && player.historyMaxShipsCount >= 100) {
-			let newPortal = new Portal(50, position, this._solarObjectChanged.bind(this));
-			this._solarObjects.push(newPortal);
-			this._solarObjectChanged(newPortal, []);
+		if (player) {
+			let i = player.propReadyToAdd.findIndex(p => p == GameProtocols.SolarObjectType.portal);
+			if (i != -1) {
+				let newPortal = new Portal(50, position, this._solarObjectChanged.bind(this));
+				this._solarObjects.push(newPortal);
+				this._solarObjectChanged(newPortal, []);
+				player.propReadyToAdd.splice(i, 1);
+			}
 		}
 	}
 	/**

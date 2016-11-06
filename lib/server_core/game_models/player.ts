@@ -1,7 +1,16 @@
 import * as GameProtocols from '../../shared/game_protocols'
 
+type funcCanAddProp = (player: Player, type: GameProtocols.SolarObjectType) => void;
+
 export default class Player {
 	private static currId = 1;
+
+	private _propStages = [{
+		shipsCount: 100,
+		propType: GameProtocols.SolarObjectType.portal
+	}];
+	propReadyToAdd: GameProtocols.SolarObjectType[] = [];
+	private _canAddProp: funcCanAddProp;
 
 	id: number;
 	name: string;
@@ -12,17 +21,23 @@ export default class Player {
 
 	isGameOver = false;
 
-	constructor(name: string, maxShipsCount: number) {
+	constructor(name: string, maxShipsCount: number, canAddProp: funcCanAddProp) {
 		this.id = Player.currId++;
 		this.name = name;
 		this.color = this._getRandomColor();
 		this.historyMaxShipsCount = this.maxShipsCount = this.currShipsCount = maxShipsCount;
+		this._canAddProp = canAddProp;
 	}
 
 	addMaxShipsCount(count: number) {
 		this.maxShipsCount += count;
 		if (this.maxShipsCount > this.historyMaxShipsCount) {
 			this.historyMaxShipsCount = this.maxShipsCount;
+		}
+		if (this._propStages.length > 0 && this.historyMaxShipsCount >= this._propStages[0].shipsCount) {
+			let type = this._propStages.shift().propType;
+			this._canAddProp(this, type);
+			this.propReadyToAdd.push(type);
 		}
 	}
 

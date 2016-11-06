@@ -41,6 +41,7 @@ export default {
 	map: {
 		areaWidth: 275,
 		padding: (Math.sqrt(2) - 1) * 275 / 2,
+		portalSize: 50,
 		planetsTypeSizes: [
 			{
 				size: 25,

@@ -1,3 +1,4 @@
+import Config from '../../shared/config';
 import * as GameProtocols from '../../shared/game_protocols';
 import * as vueData from '../vueData';
 
@@ -36,11 +37,12 @@ export default class UiStage {
 				x: e.pageX - $canvas.offset().left,
 				y: e.pageY - $canvas.offset().top
 			};
+
 			let deltaScaling = e.deltaY > 0 ? 0.25 : -0.25;
 			let deltaHorizontalMoving = 0;
 			let deltaVerticalMoving = 0;
 
-			let obj = this._getPointedSolarObject(point.x, point.y);
+			let obj = this._getPointedSolarObject(point);
 			if (obj) { // 如果滚轮滑动时在星球上则缩放中心为该星球中心
 				deltaHorizontalMoving = -deltaScaling * obj.position.x;
 				deltaVerticalMoving = -deltaScaling * obj.position.y;
@@ -81,11 +83,12 @@ export default class UiStage {
 
 			ctx.restore();
 		};
+
 		let mousedownPoint: Point;
+		let mousedownNextPoint: Point;
 		let mousedownSolarObject: GameProtocols.BaseSolarObject;
 		let mouseupSolarObject: GameProtocols.BaseSolarObject;
-		let isMouseDown = false;
-		let mouseWhich = 1;
+		let mouseWhich: number = null;
 		$canvas.on('mousemove', e => {
 			e.preventDefault();
 
@@ -94,20 +97,26 @@ export default class UiStage {
 				y: e.pageY - $canvas.offset().top
 			};
 
+			ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
+
+			ctx.save();
+
+			let trans = this._mediator.getNewestTrans();
+			ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
+
 			// this._bg1.style.backgroundPosition = `${(this._uiStageCanvas.width / 2 - point.x) / 100}px ${(this._uiStageCanvas.height / 2 - point.y) / 100}px`;
 			// this._bg2.style.backgroundPosition = `${(this._uiStageCanvas.width / 2 - point.x) / 50}px ${(this._uiStageCanvas.height / 2 - point.y) / 50}px`;
+			let mouseoverObj: GameProtocols.BaseSolarObject;
+			if (mouseWhich) {
+				if (mousedownSolarObject && mouseWhich == 1 && !vueData.index.addingProp) { // 如果鼠标左键点击在星球上
 
-			if (isMouseDown) {
-				if (mousedownSolarObject && mouseWhich == 1) { // 如果鼠标左键点击在星球上
-					ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
 					// 绘制点击星球的选中效果
 					drawActiveSolarObject(mousedownSolarObject);
 
-					mouseupSolarObject = this._getPointedSolarObject(point.x, point.y);
+					mouseupSolarObject = this._getPointedSolarObject(point);
 					ctx.save();
 					ctx.beginPath();
-					let trans = this._mediator.getNewestTrans();
-					ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
+
 					// 路径线从点击的星球开始绘制
 					ctx.moveTo(mousedownSolarObject.position.x, mousedownSolarObject.position.y);
 					if (mouseupSolarObject) { // 如果鼠标移动到星球上
@@ -115,8 +124,8 @@ export default class UiStage {
 						ctx.lineTo(mouseupSolarObject.position.x, mouseupSolarObject.position.y);
 					} else {
 						// 路径线绘制到鼠标位置
-						ctx.setTransform(1, 0, 0, 1, 0, 0);
-						ctx.lineTo(point.x, point.y);
+						let pointInMap = this._getPointInMap(point);
+						ctx.lineTo(pointInMap.x, pointInMap.y);
 					}
 
 					ctx.lineCap = 'round';
@@ -133,36 +142,49 @@ export default class UiStage {
 					}
 				} else {
 					// 移动画布
-					if (mousedownSolarObject) {
-						ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
+					if (mousedownSolarObject && !vueData.index.addingProp) {
 						drawActiveSolarObject(mousedownSolarObject);
 					}
 
-					this._mediator.moveStage(point.x - mousedownPoint.x, point.y - mousedownPoint.y);
-					mousedownPoint = point;
+					this._mediator.moveStage(point.x - mousedownNextPoint.x, point.y - mousedownNextPoint.y);
+					mousedownNextPoint = point;
 				}
 			} else {
 				// 根据是否移动在星球上绘制移动特效和变换鼠标指针
-				let obj = this._getPointedSolarObject(point.x, point.y);
-				if (obj) {
+				mousedownSolarObject = this._getPointedSolarObject(point);
+				if (mousedownSolarObject && !vueData.index.addingProp) {
 					$canvas.css({ cursor: 'pointer' });
-					ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
-					drawActiveSolarObject(obj);
+					drawActiveSolarObject(mousedownSolarObject);
 				} else {
 					$canvas.css({ cursor: '-webkit-grab' });
-					ctx.clearRect(0, 0, this._uiStageCanvas.width, this._uiStageCanvas.height);
 				}
 			}
+
+			if (vueData.index.addingProp) {
+				let pointInMap = this._getPointInMap(point);
+
+				ctx.beginPath();
+				ctx.arc(pointInMap.x, pointInMap.y, Config.map.portalSize / 2, 0, 2 * Math.PI);
+
+				ctx.strokeStyle = 'white';
+
+				if (this._isPortalCovered(pointInMap)) {
+					ctx.strokeStyle = 'red';
+				}
+
+				ctx.stroke();
+			}
+
+			ctx.restore();
 		});
 		$canvas.on('mousedown', e => {
 			e.preventDefault();
 
-			mousedownPoint = {
+			mousedownNextPoint = mousedownPoint = {
 				x: e.pageX - $canvas.offset().left,
 				y: e.pageY - $canvas.offset().top
 			};
-			mousedownSolarObject = this._getPointedSolarObject(mousedownPoint.x, mousedownPoint.y);
-			isMouseDown = true;
+
 			mouseWhich = e.which;
 
 			if (!mousedownSolarObject || mouseWhich != 1) {
@@ -175,21 +197,47 @@ export default class UiStage {
 			this._mediator.moveStageDone();
 			$canvas.css({ cursor: 'default' });
 
-			if (mousedownSolarObject != null && mouseupSolarObject != null) {
-				let protocol = new GameProtocols.RequestMovingShips(mousedownSolarObject.id, mouseupSolarObject.id, vueData.vueIndex.ratio / 100);
+			if (mouseWhich == 1 && vueData.index.addingProp) {
+				let mouseupPoint = {
+					x: e.pageX - $canvas.offset().left,
+					y: e.pageY - $canvas.offset().top
+				};
+				if (mouseupPoint.x == mousedownPoint.x && mouseupPoint.y == mouseupPoint.y) {
+					let pointInMap = this._getPointInMap(mousedownPoint);
+					if (!this._isPortalCovered(pointInMap)) {
+						let i = vueData.index.props.findIndex(p => p == vueData.index.addingProp);
+						this._sendProtocol(new GameProtocols.RequestAddPortal(this._getPointInMap(mouseupPoint)));
+						vueData.index.props.splice(i, 1);
+						vueData.index.addingProp = null;
+					}
+				}
+			} else if (mouseWhich == 3 && vueData.index.addingProp) {
+				vueData.index.addingProp = null;
+			}
+
+			if (mousedownSolarObject && mouseupSolarObject) {
+				let protocol = new GameProtocols.RequestMovingShips(mousedownSolarObject.id, mouseupSolarObject.id, vueData.index.ratio / 100);
 				this._sendProtocol(protocol);
 			}
 
-			isMouseDown = false;
+			mouseWhich = null;
 			mousedownSolarObject = null;
 			mouseupSolarObject = null;
 		});
 	}
 
-	private _getPointedSolarObject(x: number, y: number): GameProtocols.BaseSolarObject {
+	private _getPointInMap(point: Point): Point {
 		let trans = this._mediator.getTrans();
-		x = (x - trans.horizontalMoving) / trans.scaling;
-		y = (y - trans.verticalMoving) / trans.scaling;
-		return this._mediator.getPointedSolarObject(x, y);
+		let x = (point.x - trans.horizontalMoving) / trans.scaling;
+		let y = (point.y - trans.verticalMoving) / trans.scaling;
+		return { x: x, y: y };
+	}
+	private _getPointedSolarObject(point: Point): GameProtocols.BaseSolarObject {
+		let pointInMap = this._getPointInMap(point);
+		return this._mediator.getCoveredSolarObject(pointInMap, 20);
+	}
+	private _isPortalCovered(pointInMap: Point): boolean {
+		let obj = this._mediator.getCoveredSolarObject(pointInMap, 80);
+		return obj ? true : false;
 	}
 }

@@ -39,6 +39,8 @@ export default class GameManager {
 				startOccupyingProtocol.startDateTime = new Date(startOccupyingProtocol.startDateTime.toString());
 				this._stageMediator.startOccupyingSolarObject(startOccupyingProtocol);
 				break;
+			case GameProtocols.Type.canAddProp:
+				this._stageMediator.canAddProp(<GameProtocols.CanAddProp>protocol)
 			case GameProtocols.Type.readyTime:
 				this._domManager.readyTimeElapse(<GameProtocols.ReadyTimeElapse>protocol);
 				break;

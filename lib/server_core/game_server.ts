@@ -125,6 +125,14 @@ export default class GameServer {
 			});
 		});
 
+		this._gameManager.on(GameManager.events.sendToOne, (protocol: any, playerId: number) => {
+			let json = JSON.stringify(protocol);
+			let pair = this._socketPlayerMap.find(p => p.playerId == playerId);
+			if (pair) {
+				this._send(json, pair.socket);
+			}
+		})
+
 		this._gameManager.on(GameManager.events.gameStarted, () => {
 			let json = new GameProtocols.InitializeMap(this._gameManager.getMap(), null);
 			this._socketPlayerMap.filter(p => p.playerId).forEach(p => {

@@ -74,8 +74,8 @@ export default class StageMediator {
 	private _updatePlayers(players: GameProtocols.BasePlayer[]) {
 		players.forEach(p => {
 			if (p.id == this.currPlayerId) {
-				vueData.vueIndex.currShipsCount = p.currShipsCount;
-				vueData.vueIndex.maxShipsCount = p.maxShipsCount;
+				vueData.index.currShipsCount = p.currShipsCount;
+				vueData.index.maxShipsCount = p.maxShipsCount;
 			}
 
 			if (!this.players[p.id - 1]) {
@@ -86,7 +86,7 @@ export default class StageMediator {
 		});
 
 		if (players.length > 0) {
-			vueData.vueIndex.ranklist = this.players.slice().sort(function (a, b) {
+			vueData.index.ranklist = this.players.slice().sort(function (a, b) {
 				return a.maxShipsCount >= b.maxShipsCount ? -1 : 1;
 			}).slice(0, 10);
 		}
@@ -119,8 +119,8 @@ export default class StageMediator {
 		return this._stageTransformation.getNewestTrans();
 	}
 
-	getPointedSolarObject(x: number, y: number): GameProtocols.BaseSolarObject {
-		return this._gameStage.getPointedSolarObject(x, y);
+	getCoveredSolarObject(point: Point, distance: number) {
+		return this._gameStage.getCoveredSolarObject(point, distance);
 	}
 	getSolarObjects(): GameProtocols.BaseSolarObject[] {
 		return this._gameStage.getSolarObjects();
@@ -130,11 +130,15 @@ export default class StageMediator {
 		this._updatePlayers(protocol.players);
 		this._gameStage.startOccupyingSolarObject(protocol);
 	}
+	canAddProp(protocol: GameProtocols.CanAddProp) {
+		vueData.index.props.push(protocol.propType);
+	}
 
 	movingShipsQueue(protocol: GameProtocols.MovingShips) {
 		this._updatePlayers(protocol.players);
 		this._movingShipsStage.movingShips(protocol.queue);
 	}
+
 
 	changeSolarObject(protocol: GameProtocols.ChangedSolarObject) {
 		this._updatePlayers(protocol.players);

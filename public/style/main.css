@@ -109,6 +109,13 @@ html, body {
 	user-select: none;
 }
 
+.props {
+	position: absolute;
+	top: 50px;
+	left: 0;
+	z-index: 3;
+}
+
 .ratio > * {
 	position: absolute;
 	bottom: 0;

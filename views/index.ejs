@@ -59,6 +59,14 @@
 				<div id="indicator" class="indicator"></div>
 			</div>
 		</div>
+
+		<div class="props">
+			<div class="btn-group-vertical">
+				<button class="btn btn-dafault" v-for="prop in props" v-on:click="addProp(prop)">
+					{{prop}}
+				</button>
+			</div>
+		</div>
 	</div>
 
 	<div class="modal fade" id="modal-gameinit">

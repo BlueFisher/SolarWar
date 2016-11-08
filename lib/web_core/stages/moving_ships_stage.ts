@@ -42,10 +42,15 @@ export default class MovingShipsStage {
 			if (!movingShips.shipsPosition) {
 				movingShips.shipsPosition = [];
 				for (let j = 0; j < Math.ceil(movingShips.count / 2); j++) {
-					movingShips.shipsPosition.push({
-						x: (Math.random() - 0.5) * (objFrom.size - 10),
-						y: (Math.random() - 0.5) * (objFrom.size - 10),
-					});
+					let newShip: Point;
+					do {
+						newShip = {
+							x: (Math.random() - 0.5) * (objFrom.size),
+							y: (Math.random() - 0.5) * (objFrom.size),
+						}
+					} while (Math.sqrt(newShip.x ** 2 + newShip.y ** 2) >= objFrom.size / 2);
+
+					movingShips.shipsPosition.push(newShip);
 				}
 			} else {
 				let currBorder = movingShips.distanceLeft / movingShips.distance * (objFrom.size - objTo.size) + objTo.size;

@@ -15,7 +15,7 @@ export default class GameManager {
 	constructor(webSocketConnect: () => void, webSocketSend: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._domManager = new DomManager(webSocketConnect);
 
-		this._stageMediator = new StageMediator(this._domManager.getCanvases(), this._domManager.getBackgrounds(), webSocketSend);
+		this._stageMediator = new StageMediator(this._domManager.getCanvases(), webSocketSend);
 	}
 
 	protocolReceived(protocol: GameProtocols.BaseProtocol) {

@@ -20,26 +20,20 @@ html, body {
 	left: 0;
 }
 
-#game-moving-ships-stage {
+#bg-stage {
 	z-index: 1;
 }
 
-#game-stage {
+#game-moving-ships-stage {
 	z-index: 2;
 }
 
-#ui-stage {
+#game-stage {
 	z-index: 3;
 }
 
-#star-bg {
-	background-image: url('../images/star1.png');
-	background-repeat: repeat;
-}
-
-#star-bg2 {
-	background-image: url('../images/star2.png');
-	background-repeat: repeat;
+#ui-stage {
+	z-index: 4;
 }
 
 .player {

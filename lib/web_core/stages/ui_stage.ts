@@ -8,15 +8,10 @@ export default class UiStage {
 	private _mediator: StageMediator;
 	private _uiStageCanvas: HTMLCanvasElement;
 
-	private _bg1: HTMLElement;
-	private _bg2: HTMLElement;
-
 	private _sendProtocol: (protocol: GameProtocols.BaseProtocol) => void;
 
-	constructor(uiStageCanvas: HTMLCanvasElement, backgrounds: HTMLElement[], gameStageMediator: StageMediator, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
+	constructor(uiStageCanvas: HTMLCanvasElement, gameStageMediator: StageMediator, sendProtocol: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._uiStageCanvas = uiStageCanvas;
-
-		[this._bg1, this._bg2] = backgrounds;
 
 		this._mediator = gameStageMediator;
 		this._sendProtocol = sendProtocol;

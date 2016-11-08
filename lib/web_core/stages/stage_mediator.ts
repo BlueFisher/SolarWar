@@ -3,8 +3,9 @@ import * as GameProtocols from '../../shared/game_protocols';
 import * as vueData from '../vueData';
 
 import StageTransformation from './stage_transformation';
-import GameStage from './game_stage';
+import BgStage from './bg_stage';
 import MovingShipsStage from './moving_ships_stage';
+import GameStage from './game_stage';
 import UiStage from './ui_stage';
 
 interface Transformation {
@@ -14,25 +15,31 @@ interface Transformation {
 }
 
 export default class StageMediator {
-	private _gameStageCanvas: HTMLCanvasElement;
-	private _movingShipsStageCanvas: HTMLCanvasElement;
-	private _uiStageCanvas: HTMLCanvasElement;
+	private _canvasWidth: number;
+	private _canvasHeight: number;
 
 	private _stageTransformation: StageTransformation;
-	private _gameStage: GameStage;
+
+	private _bgStage: BgStage;
 	private _movingShipsStage: MovingShipsStage;
+	private _gameStage: GameStage;
 	private _uiStage: UiStage;
 
 	players: GameProtocols.BasePlayer[] = [];
 	currPlayerId: number;
 
-	constructor(canvases: HTMLCanvasElement[], backgrounds: HTMLElement[], webSocketSend: (protocol: GameProtocols.BaseProtocol) => void) {
-		[this._gameStageCanvas, this._movingShipsStageCanvas, this._uiStageCanvas] = canvases;
+	constructor(canvases: HTMLCanvasElement[], webSocketSend: (protocol: GameProtocols.BaseProtocol) => void) {
+		let [bgStageCanvas, movingShipsStageCanvas, gameStageCanvas, uiStageCanvas] = canvases;
 
-		this._stageTransformation = new StageTransformation(this._gameStageCanvas, this._movingShipsStageCanvas, this);
-		this._gameStage = new GameStage(this._gameStageCanvas, this);
-		this._movingShipsStage = new MovingShipsStage(this._movingShipsStageCanvas, this);
-		this._uiStage = new UiStage(this._uiStageCanvas, backgrounds, this, (p) => {
+		this._canvasWidth = bgStageCanvas.width;
+		this._canvasHeight = bgStageCanvas.height;
+
+		this._stageTransformation = new StageTransformation(bgStageCanvas, gameStageCanvas, movingShipsStageCanvas, this);
+
+		this._bgStage = new BgStage(bgStageCanvas, this);
+		this._movingShipsStage = new MovingShipsStage(movingShipsStageCanvas, this);
+		this._gameStage = new GameStage(gameStageCanvas, this);
+		this._uiStage = new UiStage(uiStageCanvas, this, (p) => {
 			webSocketSend(p);
 		});
 
@@ -46,7 +53,8 @@ export default class StageMediator {
 		let minPosition: Point = { x: Infinity, y: Infinity };
 		let maxPosition: Point = { x: -Infinity, y: -Infinity };
 		if (objs.length == 0 || this.currPlayerId == null) {
-			return [{ x: 10, y: 10 }, { x: 800, y: 800 }];
+			return [{ x: -this._canvasWidth / 2, y: -this._canvasHeight / 2 },
+			{ x: this._canvasWidth / 2, y: this._canvasHeight / 2 }];
 		}
 
 		objs.forEach(p => {
@@ -101,6 +109,8 @@ export default class StageMediator {
 		this._updatePlayers(map.players);
 		this._gameStage.changeSolarObjects(map.objects);
 		this._movingShipsStage.movingShips(map.movingShipsQueue);
+
+		this._bgStage.draw();
 	}
 
 	zoomStage(deltaScaling: number, deltaHorizontalMoving: number, deltaVerticalMoving: number) {
@@ -130,6 +140,7 @@ export default class StageMediator {
 		this._updatePlayers(protocol.players);
 		this._gameStage.startOccupyingSolarObject(protocol);
 	}
+
 	canAddProp(protocol: GameProtocols.CanAddProp) {
 		vueData.index.props.push(protocol.propType);
 	}
@@ -139,7 +150,6 @@ export default class StageMediator {
 		this._movingShipsStage.movingShips(protocol.queue);
 	}
 
-
 	changeSolarObject(protocol: GameProtocols.ChangedSolarObject) {
 		this._updatePlayers(protocol.players);
 		this._gameStage.changeSolarObjects([protocol.object]);
@@ -148,5 +158,6 @@ export default class StageMediator {
 	redrawStage() {
 		this._gameStage.draw();
 		this._movingShipsStage.draw();
+		this._bgStage.draw();
 	}
 }

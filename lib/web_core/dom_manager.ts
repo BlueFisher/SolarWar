@@ -143,50 +143,16 @@ export default class DomManager {
 	}
 
 	private _initializeCountRatio() {
-		let div = $('.ratio #indicator');
-		let path = $('.ratio #path');
-		let [x, y] = [div.width() / 2 + div.offset().left, div.height() / 2 + div.offset().top];
-
-		$(window).on('resize', function () {
-			[x, y] = [div.width() / 2 + div.offset().left, div.height() / 2 + div.offset().top];
+		let $countRatio = $('#ratio input[type="range"]');
+		$countRatio.rangeslider({
+			polyfill: false
 		});
 
-		let setAngle = (pageX, pageY) => {
-			let width = pageX - x;
-			let height = y - pageY;
-
-			let angle = Math.atan(width / height);
-			if (isNaN(angle)) {
-				angle = 0;
-			} else if (height < 0) {
-				angle += Math.PI;
-			} else if (width < 0) {
-				angle += Math.PI * 2;
-			}
-
-			angle = angle * 180 / Math.PI;
-
-			if (angle < 30 || angle > 330) {
-				return;
-			}
-
-			vueData.index.ratio = Math.round(-0.33 * angle + 109.9);
-
-			path.css('stroke-dasharray', `${565 * (1 - (angle + 30) / 360)} 565`);
-
-			div.css('transform', `rotate(${angle}deg)`);
-		}
-		$('.ratio').on('mousedown', function () {
-			$(document).one('mousedown', function (e) {
-				setAngle(e.pageX, e.pageY)
-			});
-			$(document).on('mousemove', function (e) {
-				setAngle(e.pageX, e.pageY)
-			});
-		});
-
-		$(document).on('mouseup', function () {
-			$(document).off('mousemove')
+		let $rangesliderHandle = $('.rangeslider__handle');
+		$rangesliderHandle.text(`${$countRatio.val()}%`);
+		$(document).on('input', $countRatio, () => {
+			$rangesliderHandle.text(`${$countRatio.val()}%`);
+			vueData.index.ratio = $countRatio.val();
 		});
 	}
 
@@ -204,7 +170,7 @@ export default class DomManager {
 		});
 	}
 
-	getCanvases(): [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement,HTMLCanvasElement] {
+	getCanvases(): [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement] {
 		return [<HTMLCanvasElement>document.querySelector('#bg-stage'),
 		<HTMLCanvasElement>document.querySelector('#game-moving-ships-stage'),
 		<HTMLCanvasElement>document.querySelector('#game-stage'),

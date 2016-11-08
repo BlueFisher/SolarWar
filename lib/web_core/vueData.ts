@@ -2,7 +2,7 @@ import * as HttpProtocols from '../shared/http_protocols';
 import * as GameProtocols from '../shared/game_protocols';
 
 
-let availableProps: GameProtocols.SolarObjectType[] = [GameProtocols.SolarObjectType.portal,GameProtocols.SolarObjectType.portal,GameProtocols.SolarObjectType.portal];
+let availableProps: GameProtocols.SolarObjectType[] = [];
 let addingProp: GameProtocols.SolarObjectType = null;
 
 export let index = {

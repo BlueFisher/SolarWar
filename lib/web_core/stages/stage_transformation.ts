@@ -63,7 +63,6 @@ export default class StageTransformation {
 			horizontalMoving: horizontalMoving,
 			verticalMoving: verticalMoving
 		};
-		console.log(scaling);
 	}
 
 	getTrans() {

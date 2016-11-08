@@ -23,6 +23,10 @@ export default class DomManager {
 			el: '#ui',
 			data: vueData.index,
 			computed: {
+				ranklist: function () {
+					vueData.index.ranklist.sort((a, b) => b - a).filter(p => p.currShipsCount > 0).slice(0, 10);
+					return vueData.index.ranklist;
+				},
 				gameTime: function (): string {
 					if (!vueData.index.gameTime || vueData.index.gameTime < 0) {
 						return '00 : 00';

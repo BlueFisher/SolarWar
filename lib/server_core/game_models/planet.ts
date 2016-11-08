@@ -32,7 +32,7 @@ class Planet extends SolarObject {
 				player: occupiedPlayer,
 				percent: 100
 			};
-			occupiedPlayer.currShipsCount += this.size;
+			occupiedPlayer.addCurrShipsCount(this.population);
 			occupiedPlayer.addMaxShipsCount(this.size);
 
 			this.occupiedPlayer = occupiedPlayer;
@@ -76,7 +76,7 @@ class Planet extends SolarObject {
 			return;
 		}
 		if (this.occupiedPlayer.currShipsCount < this.occupiedPlayer.maxShipsCount) {
-			this.occupiedPlayer.currShipsCount++;
+			this.occupiedPlayer.addCurrShipsCount(1);
 			occupiedShipsOnThePlanet.count++;
 
 			this._changeSolarObject([this.occupiedPlayer]);

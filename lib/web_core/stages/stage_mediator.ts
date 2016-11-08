@@ -94,9 +94,8 @@ export default class StageMediator {
 		});
 
 		if (players.length > 0) {
-			vueData.index.ranklist = this.players.slice().sort(function (a, b) {
-				return a.maxShipsCount >= b.maxShipsCount ? -1 : 1;
-			}).slice(0, 10);
+			vueData.index.ranklist = this.players.slice();
+			
 		}
 	}
 

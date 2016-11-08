@@ -15,6 +15,7 @@ export default class Player {
 	id: number;
 	name: string;
 	color: string;
+	/** 历史最高飞船数量*/
 	historyMaxShipsCount: number;
 	maxShipsCount: number;
 	currShipsCount: number;
@@ -29,16 +30,21 @@ export default class Player {
 		this._canAddProp = canAddProp;
 	}
 
-	addMaxShipsCount(count: number) {
-		this.maxShipsCount += count;
-		if (this.maxShipsCount > this.historyMaxShipsCount) {
-			this.historyMaxShipsCount = this.maxShipsCount;
+	addCurrShipsCount(count: number) {
+		this.currShipsCount += count;
+
+		if (this.currShipsCount > this.historyMaxShipsCount) {
+			this.historyMaxShipsCount = this.currShipsCount;
 		}
-		if (this._propStages.length > 0 && this.historyMaxShipsCount >= this._propStages[0].shipsCount) {
+		if (this._propStages.length > 0 && this.currShipsCount >= this._propStages[0].shipsCount) {
 			let type = this._propStages.shift().propType;
 			this._canAddProp(this, type);
 			this.propReadyToAdd.push(type);
 		}
+	}
+
+	addMaxShipsCount(count: number) {
+		this.maxShipsCount += count;
 	}
 
 	private _getRandomColor(): string {

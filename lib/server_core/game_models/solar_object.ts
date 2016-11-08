@@ -230,7 +230,7 @@ export abstract class SolarObject {
 
 			for (let i = this.allShips.length - 1; i >= 0; i--) {
 				let ships = this.allShips[i];
-				ships.player.currShipsCount--;
+				ships.player.addCurrShipsCount(-1);
 				ships.count--;
 				if (ships.count <= 0) {
 					this.allShips.splice(i, 1);

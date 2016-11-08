@@ -99,11 +99,25 @@ export default class GameManager extends events.EventEmitter {
 		let player = new Player(name, 0, this._canAddProp.bind(this));
 		this._players.push(player);
 
-		let newPlanets: Planet[] = [];
-		let mapPlanets = this._mapLoader.getNextPlanets();
+		let isPlanetsAvailable = (mapPlanets: Map.Planet[]) => {
+			let portals = this._solarObjects.filter(p => p instanceof Portal);
+			for (let portal of portals) {
+				for (let p of mapPlanets) {
+					let distance = Math.sqrt((portal.position.x - p.position.x) ** 2 + (portal.position.y - p.position.y) ** 2);
+					if (distance < config.map.portalMinDistanceToObject + p.size / 2)
+						return false;
+				}
+			}
+			return true;
+		}
 
-		mapPlanets.forEach(p => {
-			newPlanets.push(new Planet(p.size, p.position, this._solarObjectChanged.bind(this), p.type == Map.PlanetType.Occupied ? player : null));
+		let mapPlanets: Map.Planet[];
+		do {
+			mapPlanets = this._mapLoader.getNextPlanets();
+		} while (!isPlanetsAvailable(mapPlanets))
+
+		let newPlanets = mapPlanets.map(p => {
+			return new Planet(p.size, p.position, this._solarObjectChanged.bind(this), p.type == Map.PlanetType.Occupied ? player : null);
 		});
 
 		let newPlanetProtocols: GameProtocols.ChangedSolarObject[] = newPlanets.map(p => {

@@ -1,4 +1,4 @@
-import Config from '../../shared/config';
+import config from '../../shared/config';
 import * as GameProtocols from '../../shared/game_protocols';
 import * as vueData from '../vueData';
 
@@ -98,9 +98,7 @@ export default class UiStage {
 
 			let trans = this._mediator.getNewestTrans();
 			ctx.setTransform(trans.scaling, 0, 0, trans.scaling, trans.horizontalMoving, trans.verticalMoving);
-
-			// this._bg1.style.backgroundPosition = `${(this._uiStageCanvas.width / 2 - point.x) / 100}px ${(this._uiStageCanvas.height / 2 - point.y) / 100}px`;
-			// this._bg2.style.backgroundPosition = `${(this._uiStageCanvas.width / 2 - point.x) / 50}px ${(this._uiStageCanvas.height / 2 - point.y) / 50}px`;
+			
 			let mouseoverObj: GameProtocols.BaseSolarObject;
 			if (mouseWhich) {
 				if (mousedownSolarObject && mouseWhich == 1 && !vueData.index.addingProp) { // 如果鼠标左键点击在星球上
@@ -159,7 +157,7 @@ export default class UiStage {
 				let pointInMap = this._getPointInMap(point);
 
 				ctx.beginPath();
-				ctx.arc(pointInMap.x, pointInMap.y, Config.map.portalSize / 2, 0, 2 * Math.PI);
+				ctx.arc(pointInMap.x, pointInMap.y, config.map.portalSize / 2, 0, 2 * Math.PI);
 
 				ctx.strokeStyle = 'white';
 
@@ -232,7 +230,7 @@ export default class UiStage {
 		return this._mediator.getCoveredSolarObject(pointInMap, 20);
 	}
 	private _isPortalCovered(pointInMap: Point): boolean {
-		let obj = this._mediator.getCoveredSolarObject(pointInMap, 80);
+		let obj = this._mediator.getCoveredSolarObject(pointInMap, config.map.portalMinDistanceToObject);
 		return obj ? true : false;
 	}
 }

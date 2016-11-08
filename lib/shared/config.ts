@@ -42,6 +42,7 @@ export default {
 		areaWidth: 275,
 		padding: (Math.sqrt(2) - 1) * 275 / 2,
 		portalSize: 50,
+		portalMinDistanceToObject: 80,
 		planetsTypeSizes: [
 			{
 				size: 25,

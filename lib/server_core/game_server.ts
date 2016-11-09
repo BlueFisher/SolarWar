@@ -18,7 +18,7 @@ export default class GameServer {
 		userId?: string,
 		sessionId: string,
 		socket: WebSocketServer,
-		playerId: number
+		playerId?: number
 	}[] = [];
 
 	/**
@@ -50,34 +50,55 @@ export default class GameServer {
 		let req = socket.upgradeReq as express.Request;
 		this._sessionParser(req, <express.Response>{}, () => {
 			let userId = req.session['userId'];
-			if (userId) {
-				logger.info(`user ${userId} connected`);
-			} else {
-				logger.info(`anonymous user connected`);
-			}
-
 			let sessionId: string = req.sessionID;
-			let pair = this._socketPlayerMap.find(p => p.sessionId == sessionId);
-			if (pair) {
-				// 如果已经连接，则断开原来的连接
-				if (pair.socket.readyState == WebSocketServer.OPEN) {
-					pair.socket.close();
-					logger.warn(`player ${pair.playerId} origin disconnected`);
+
+			if (userId) {
+				let pairUser = this._socketPlayerMap.find(p => p.userId == userId);
+				if (pairUser) {
+					console.log(`user ${userId} reconnected`);
+					this._closeSocket(pairUser.socket);
+					pairUser.sessionId = sessionId;
+					pairUser.socket = socket;
+				} else {
+					let pairSession = this._socketPlayerMap.find(p => p.sessionId == sessionId);
+					if (pairSession) {
+						console.log(`user ${userId} connected in existed session ${sessionId}`);
+						this._closeSocket(pairSession.socket);
+						if (pairSession.userId != userId) {
+							pairSession.userId = null;
+						}
+						pairSession.userId = userId;
+						pairSession.socket = socket;
+					} else {
+						console.log(`user ${userId} connected`);
+						this._socketPlayerMap.push({
+							userId: userId,
+							sessionId: sessionId,
+							socket: socket
+						});
+					}
 				}
-				// 如果已经有用户登陆过且现在登录的不是原用户，则删除原来的用户绑定的玩家
-				if (pair.userId && pair.userId != userId) {
-					pair.playerId = null;
-				}
-				pair.userId = userId;
-				pair.socket = socket;
 			} else {
-				// 添加新的连接
-				this._socketPlayerMap.push({
-					userId: userId,
-					sessionId: sessionId,
-					socket: socket,
-					playerId: null
-				});
+				let pair = this._socketPlayerMap.find(p => p.sessionId == sessionId);
+				if (pair) {
+					if (pair.userId) {
+						console.log(`anonymouse user reconnected in existed user ${pair.userId}`);
+						this._closeSocket(pair.socket);
+						pair.userId = null;
+						pair.socket = socket;
+						pair.playerId = null;
+					} else {
+						console.log(`anonymouse user reconnected`);
+						this._closeSocket(pair.socket);
+						pair.socket = socket;
+					}
+				} else {
+					console.log(`anonymouse user connected`);
+					this._socketPlayerMap.push({
+						sessionId: sessionId,
+						socket: socket
+					});
+				}
 			}
 		});
 
@@ -115,6 +136,11 @@ export default class GameServer {
 			socket.send(msg);
 		}
 	}
+	private _closeSocket(socket: WebSocketServer) {
+		if (socket.readyState == WebSocketServer.OPEN) {
+			socket.close();
+		}
+	}
 
 	private _initializeGameManager() {
 		this._gameManager = new GameManager();
@@ -138,7 +164,7 @@ export default class GameServer {
 			this._socketPlayerMap.filter(p => p.playerId).forEach(p => {
 				json.playerId = p.playerId;
 				this._send(JSON.stringify(json), p.socket);
-			})
+			});
 		});
 
 		this._gameManager.on(GameManager.events.gameOver, (playerId: number) => {
@@ -209,16 +235,32 @@ export default class GameServer {
 	}
 
 	isPlayerOnGame(userId: string, sessionId: string): boolean {
-		let pair = this._socketPlayerMap.find(p => p.sessionId == sessionId);
-		if (pair) {
-			let isOnGame = this._gameManager.isPlayerOnGame(pair.playerId);
-			if (pair.userId) {
-				return pair.userId == userId && isOnGame;
+		if (userId) {
+			let pairUser = this._socketPlayerMap.find(p => p.userId == userId);
+			if (pairUser) {
+				return this._gameManager.isPlayerOnGame(pairUser.playerId);
 			} else {
-				return isOnGame;
+				let pairSession = this._socketPlayerMap.find(p => p.sessionId == sessionId);
+				if (pairSession) {
+					if (pairSession.userId != userId) {
+						return false;
+					}
+					return this._gameManager.isPlayerOnGame(pairSession.playerId);
+				} else {
+					return false;
+				}
 			}
 		} else {
-			return false;
+			let pair = this._socketPlayerMap.find(p => p.sessionId == sessionId);
+			if (pair) {
+				if (pair.userId) {
+					return false;
+				} else {
+					return this._gameManager.isPlayerOnGame(pair.playerId);
+				}
+			} else {
+				return false;
+			}
 		}
 	}
 }

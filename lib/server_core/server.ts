@@ -27,7 +27,7 @@ class Server {
 	/**
 	 * 主后台服务，管理HTTP服务与游戏服务
 	 *
-	 * @param callback 监听成功回调函数 isHttp: 是否为HTTP服务器, port: 端口号
+	 * @param callback 监听成功回调函数 (isHttp: 是否为HTTP服务器, port: 端口号)
 	 */
 	constructor(callback: (isHttp: boolean, port: number) => void) {
 		let app = express();
@@ -61,7 +61,6 @@ class Server {
 		app.use('/public', express.static('public'));
 
 		app.get('/', (req, res) => {
-			console.log(req.session.cookie.expires, req.session.cookie.maxAge)
 			let render = {
 				useCDN: config.useCDN,
 				user: null

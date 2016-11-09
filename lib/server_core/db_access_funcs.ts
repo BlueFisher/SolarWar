@@ -1,7 +1,13 @@
+import * as crypto from 'crypto';
 import * as mongodb from 'mongodb';
 import config from '../shared/config';
 import { user } from './db_models';
 
+
+
+function _getHashedPassword(password:string){
+	return crypto.createHash("md5").update(password).digest('hex');
+}
 function _connect(): Promise<mongodb.Db> {
 	return mongodb.MongoClient.connect(config.mongodbServer);
 }
@@ -23,7 +29,7 @@ export async function signup(email: string, password: string): Promise<user> {
 	} else {
 		user = {
 			email: email,
-			passwordHash: password,
+			passwordHash:  _getHashedPassword(password),
 			scores: []
 		}
 		let result = await usersColl.insertOne(user);
@@ -36,7 +42,7 @@ export async function signin(email: string, password: string): Promise<user> {
 	let usersColl = db.collection('users');
 	let user = {
 		email: email,
-		passwordHash: password
+		passwordHash: _getHashedPassword(password)
 	}
 	return await usersColl.findOne(user);
 }

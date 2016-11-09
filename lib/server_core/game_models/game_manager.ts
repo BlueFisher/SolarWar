@@ -28,7 +28,7 @@ export default class GameManager extends events.EventEmitter {
 	private _mapLoader: Map.MapLoader;
 
 	/**
-	 * 游戏逻辑管理
+	 * 游戏逻辑管理器
 	 */
 	constructor() {
 		super();

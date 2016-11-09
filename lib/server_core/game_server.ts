@@ -25,7 +25,7 @@ export default class GameServer {
 	 * 发送和接收WebSocket信息，提交和处理后台游戏逻辑
 	 * 
 	 * @param ip WebSocket IP地址
-	 * @param webSocketPort WebSocket端口号
+	 * @param port WebSocket端口号
 	 * @param sessionParser Session处理器
 	 * @param callback 监听成功回调函数
 	 */
@@ -55,14 +55,14 @@ export default class GameServer {
 			if (userId) {
 				let pairUser = this._socketPlayerMap.find(p => p.userId == userId);
 				if (pairUser) {
-					console.log(`user ${userId} reconnected`);
+					logger.info(`user ${userId} reconnected`);
 					this._closeSocket(pairUser.socket);
 					pairUser.sessionId = sessionId;
 					pairUser.socket = socket;
 				} else {
 					let pairSession = this._socketPlayerMap.find(p => p.sessionId == sessionId);
 					if (pairSession) {
-						console.log(`user ${userId} connected in existed session ${sessionId}`);
+						logger.info(`user ${userId} connected in existed session ${sessionId}`);
 						this._closeSocket(pairSession.socket);
 						if (pairSession.userId != userId) {
 							pairSession.userId = null;
@@ -70,7 +70,7 @@ export default class GameServer {
 						pairSession.userId = userId;
 						pairSession.socket = socket;
 					} else {
-						console.log(`user ${userId} connected`);
+						logger.info(`user ${userId} connected`);
 						this._socketPlayerMap.push({
 							userId: userId,
 							sessionId: sessionId,
@@ -82,18 +82,18 @@ export default class GameServer {
 				let pair = this._socketPlayerMap.find(p => p.sessionId == sessionId);
 				if (pair) {
 					if (pair.userId) {
-						console.log(`anonymouse user reconnected in existed user ${pair.userId}`);
+						logger.info(`anonymouse user reconnected in existed user ${pair.userId}`);
 						this._closeSocket(pair.socket);
 						pair.userId = null;
 						pair.socket = socket;
 						pair.playerId = null;
 					} else {
-						console.log(`anonymouse user reconnected`);
+						logger.info(`anonymouse user reconnected`);
 						this._closeSocket(pair.socket);
 						pair.socket = socket;
 					}
 				} else {
-					console.log(`anonymouse user connected`);
+					logger.info(`anonymouse user connected`);
 					this._socketPlayerMap.push({
 						sessionId: sessionId,
 						socket: socket

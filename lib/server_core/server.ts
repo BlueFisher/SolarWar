@@ -18,6 +18,10 @@ class Server {
 		name: 'sid',
 		resave: false,
 		saveUninitialized: true,
+		cookie: {
+			expires: new Date(Date.now() + config.sessionAge),
+			maxAge: config.sessionAge
+		}
 	});
 
 	/**
@@ -57,6 +61,7 @@ class Server {
 		app.use('/public', express.static('public'));
 
 		app.get('/', (req, res) => {
+			console.log(req.session.cookie.expires, req.session.cookie.maxAge)
 			let render = {
 				useCDN: config.useCDN,
 				user: null

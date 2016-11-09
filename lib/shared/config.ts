@@ -8,6 +8,8 @@ export default {
 	mongodbServer: 'mongodb://localhost:27017/solarwar',
 	useCDN: true,
 
+	sessionAge: 7 * 24 * 60 * 60 * 1000,
+
 	gameReadyTime: 10,
 	gameTime: -1,
 

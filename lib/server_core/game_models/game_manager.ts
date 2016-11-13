@@ -11,8 +11,11 @@ import Player from './player';
 import Planet from './planet';
 import Portal from './portal';
 
+import { AI } from './ai';
+
 export default class GameManager extends events.EventEmitter {
 	static events = {
+		playerAdded: Symbol(),
 		sendToAllDirectly: Symbol(),
 		sendToOne: Symbol(),
 		gameStarted: Symbol(),
@@ -27,6 +30,8 @@ export default class GameManager extends events.EventEmitter {
 
 	private _mapLoader: Map.MapLoader;
 
+	private _ais: AI[] = [];
+
 	/**
 	 * 游戏逻辑管理器
 	 */
@@ -36,6 +41,11 @@ export default class GameManager extends events.EventEmitter {
 		this._mapLoader = new Map.MapLoader();
 		this._movingShipsManager = new MovingShipsManager(this.emit.bind(this));
 		this._timeManager = new TimeManager(this.emit.bind(this));
+
+		this._ais.push(new AI(this, this._players, this._solarObjects));
+		this._ais.push(new AI(this, this._players, this._solarObjects));
+		this._ais.push(new AI(this, this._players, this._solarObjects));
+		this._ais.push(new AI(this, this._players, this._solarObjects));
 	}
 
 	private _solarObjectChanged(obj: SolarObject, players: Player[], interval?: number) {
@@ -93,9 +103,9 @@ export default class GameManager extends events.EventEmitter {
 
 	/**增加玩家
 	 * @param name 玩家昵称
-	 * @return [玩家id, 新增的星球]
+	 * @return 玩家id
 	 */
-	addPlayer(name: string): [number, GameProtocols.ChangedSolarObject[]] {
+	addPlayer(name: string): number {
 		let player = new Player(name, 0, this._canAddProp.bind(this));
 		this._players.push(player);
 
@@ -125,7 +135,10 @@ export default class GameManager extends events.EventEmitter {
 			return new GameProtocols.ChangedSolarObject(p.getBaseSolarObjectProtocol(), [player.getBasePlayerProtocol()]);
 		});
 
-		return [player.id, newPlanetProtocols];
+		if (this.isGameStarted()) {
+			this.emit(GameManager.events.playerAdded, newPlanetProtocols);
+		}
+		return player.id;
 	}
 	/**
 	 * 移动玩家飞船

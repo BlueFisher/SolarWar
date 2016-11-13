@@ -221,11 +221,12 @@ export default class GameStage {
 	}
 
 	changeSolarObjects(objs: GameProtocols.BaseSolarObject[]) {
-		objs.forEach(p => {
-			if (!this._solarObjects[p.id - 1]) {
-				this._solarObjects.push(p);
-			} else {
-				this._solarObjects[p.id - 1] = p;
+		objs.forEach(o => {
+			let i = this._solarObjects.findIndex(to=>to.id == o.id);
+			if(i!=-1){
+				this._solarObjects[i] = o;
+			}else{
+				this._solarObjects.push(o);
 			}
 		});
 		this.draw();

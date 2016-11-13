@@ -144,6 +144,15 @@ export default class GameServer {
 
 	private _initializeGameManager() {
 		this._gameManager = new GameManager();
+
+		this._gameManager.on(GameManager.events.playerAdded, (protocols: GameProtocols.ChangedSolarObject[]) => {
+			this._socketPlayerMap.filter(p => p.playerId).forEach(p => {
+				protocols.forEach(protocol => {
+					this._send(JSON.stringify(protocol), p.socket);
+				})
+			});
+		});
+
 		this._gameManager.on(GameManager.events.sendToAllDirectly, (protocol: any) => {
 			let json = JSON.stringify(protocol);
 			this._socketPlayerMap.filter(p => p.playerId).forEach(p => {
@@ -200,18 +209,18 @@ export default class GameServer {
 			if (pair.playerId && protocol.resumeGame && this._gameManager.isPlayerOnGame(pair.playerId)) {
 				logger.info(`player ${pair.playerId} resume game`);
 			} else {
-				let [id, newPlanetProtocols] = this._gameManager.addPlayer(protocol.name);
+				let id = this._gameManager.addPlayer(protocol.name);
 				pair.playerId = id;
 				logger.info(`player ${pair.playerId} added in game`);
 
-				if (this._gameManager.isGameStarted()) {
-					let jsons = newPlanetProtocols.map(p => JSON.stringify(p));
-					this._socketPlayerMap.filter(p => p.playerId && p.socket != socket).forEach((pair) => {
-						jsons.forEach(json => {
-							this._send(json, pair.socket);
-						});
-					});
-				}
+				// if (this._gameManager.isGameStarted()) {
+				// 	let jsons = newPlanetProtocols.map(p => JSON.stringify(p));
+				// 	this._socketPlayerMap.filter(p => p.playerId && p.socket != socket).forEach((pair) => {
+				// 		jsons.forEach(json => {
+				// 			this._send(json, pair.socket);
+				// 		});
+				// 	});
+				// }
 			}
 
 			if (this._gameManager.isGameStarted()) {

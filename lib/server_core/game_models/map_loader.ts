@@ -48,7 +48,11 @@ export class MapLoader {
 		}
 		return planets;
 	}
-
+	/**
+	 * 获取区域中心点坐标
+	 * @param circleIndex 区域所在层数
+	 * @param index 区域所在层的序号
+	 */
 	private _getAreaCenterPosition(circleIndex: number, index: number): Point {
 		let quadrant = Math.ceil((index / (circleIndex * 2 - 1)));
 		let n = index - (quadrant - 1) * (circleIndex * 2 - 1);

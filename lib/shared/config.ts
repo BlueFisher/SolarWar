@@ -3,7 +3,8 @@ import { PlanetType } from '../server_core/game_models/map_loader';
 export default {
 	httpPort: 80,
 	webSocketServers: [
-		{ ip: 'localhost', port: 8080 }
+		{ ip: 'localhost', port: 8080 },
+		{ ip: 'localhost', port: 8888 }
 	],
 	mongodbServer: 'mongodb://localhost:27017/solarwar',
 	useCDN: true,
@@ -11,7 +12,7 @@ export default {
 	sessionAge: 7 * 24 * 60 * 60 * 1000,
 
 	gameReadyTime: 10,
-	gameTime: -1,
+	gameTime: 60 * 15,
 
 	gameAlgorithm: {
 		getOccupyingInterval: function (size: number, count: number): number {
@@ -24,19 +25,21 @@ export default {
 			return 50;
 		},
 		getBuildingShipsInterval: function (size: number): number {
-			return 963.2 * Math.exp(-0.01 * size) + 130 * Math.exp(0.003 * size);
+			if (size <= 25)
+				return 800;
+			if (size <= 75)
+				return 750;
+			if (size <= 125)
+				return 525;
+			if (size <= 175)
+				return 425;
+			return 400;
 		},
 		getMovingShipsInterval: function (): number {
 			return 16;
 		},
 		getMovingShipsDeltaDistance: function (count: number, distance: number, distanceLeft: number): number {
-			if (count < 9) {
-				return 2.5;
-			} else if (count > 9) {
-				return 1.25;
-			} else {
-				return -75 / 14 / Math.sqrt(count) + 85 / 28;
-			}
+			return -Math.atan((count - 30) / 20) / 2.5 + 1.875;
 		}
 	},
 

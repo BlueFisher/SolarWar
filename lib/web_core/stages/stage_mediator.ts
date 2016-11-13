@@ -86,16 +86,16 @@ export default class StageMediator {
 				vueData.index.maxShipsCount = p.maxShipsCount;
 			}
 
-			if (!this.players[p.id - 1]) {
-				this.players.push(p);
+			let i = this.players.findIndex(tp => tp.id == p.id);
+			if (i != -1) {
+				this.players[i] = p;
 			} else {
-				this.players[p.id - 1] = p;
+				this.players.push(p);
 			}
 		});
 
 		if (players.length > 0) {
 			vueData.index.ranklist = this.players.slice();
-			
 		}
 	}
 

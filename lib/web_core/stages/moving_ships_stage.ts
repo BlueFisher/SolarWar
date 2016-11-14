@@ -23,6 +23,7 @@ export default class MovingShipsStage {
 		let objects = this._mediator.getSolarObjects();
 		let players = this._mediator.players;
 		let transformation = this._mediator.getTrans();
+		let [minVisablePoint, maxVisablePoint] = this._mediator.getVisableRange();
 
 		let ctx = this._canvas.getContext('2d');
 		ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
@@ -31,11 +32,18 @@ export default class MovingShipsStage {
 		ctx.setTransform(transformation.scaling, 0, 0, transformation.scaling, transformation.horizontalMoving, transformation.verticalMoving);
 
 		// 绘制飞船移动
-		this._queue.forEach(movingShips => {
+		for (let movingShips of this._queue) {
 			let objFrom = movingShips.objFrom;
 			let objTo = movingShips.objTo;
 			let x = objTo.position.x - movingShips.distanceLeft * (objTo.position.x - objFrom.position.x) / movingShips.distance;
 			let y = objTo.position.y - movingShips.distanceLeft * (objTo.position.y - objFrom.position.y) / movingShips.distance;
+
+			if (x < minVisablePoint.x
+				|| x > maxVisablePoint.x
+				|| y < minVisablePoint.y
+				|| y > maxVisablePoint.y) {
+				continue;
+			}
 
 			ctx.fillStyle = players.find(player => player.id == movingShips.playerId).color;
 
@@ -68,7 +76,7 @@ export default class MovingShipsStage {
 				ctx.arc(x + shipPostion.x, y + shipPostion.y, 1, 0, 2 * Math.PI);
 				ctx.fill();
 			}
-		});
+		};
 		ctx.restore();
 	}
 

@@ -3,8 +3,7 @@ import { PlanetType } from '../server_core/game_models/map_loader';
 export default {
 	httpPort: 80,
 	webSocketServers: [
-		{ ip: 'localhost', port: 8080 },
-		{ ip: 'localhost', port: 8888 }
+		{ ip: 'localhost', port: 8080 }
 	],
 	mongodbServer: 'mongodb://localhost:27017/solarwar',
 	useCDN: true,

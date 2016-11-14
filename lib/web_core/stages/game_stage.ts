@@ -31,6 +31,7 @@ export default class GameStage {
 	draw() {
 		let players = this._mediator.players;
 		let transformation = this._mediator.getTrans();
+		let [minVisablePoint, maxVisablePoint] = this._mediator.getVisableRange();
 
 		let ctx = this._canvas.getContext('2d');
 		ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
@@ -38,7 +39,13 @@ export default class GameStage {
 		ctx.save();
 		ctx.setTransform(transformation.scaling, 0, 0, transformation.scaling, transformation.horizontalMoving, transformation.verticalMoving);
 
-		this._solarObjects.forEach(obj => {
+		for (let obj of this._solarObjects) {
+			if (obj.position.x + obj.size / 2 < minVisablePoint.x
+				|| obj.position.x - obj.size / 2 > maxVisablePoint.x
+				|| obj.position.y + obj.size / 2 < minVisablePoint.y
+				|| obj.position.y - obj.size / 2 > maxVisablePoint.y) {
+				continue;
+			}
 			// 绘制星球
 			ctx.save();
 
@@ -132,7 +139,7 @@ export default class GameStage {
 				ctx.stroke();
 				ctx.restore();
 			}
-		});
+		};
 
 		ctx.restore();
 
@@ -222,10 +229,10 @@ export default class GameStage {
 
 	changeSolarObjects(objs: GameProtocols.BaseSolarObject[]) {
 		objs.forEach(o => {
-			let i = this._solarObjects.findIndex(to=>to.id == o.id);
-			if(i!=-1){
+			let i = this._solarObjects.findIndex(to => to.id == o.id);
+			if (i != -1) {
 				this._solarObjects[i] = o;
-			}else{
+			} else {
 				this._solarObjects.push(o);
 			}
 		});

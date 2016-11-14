@@ -15,8 +15,7 @@ interface Transformation {
 }
 
 export default class StageMediator {
-	private _canvasWidth: number;
-	private _canvasHeight: number;
+	private _canvas: HTMLCanvasElement;
 
 	private _stageTransformation: StageTransformation;
 
@@ -31,8 +30,7 @@ export default class StageMediator {
 	constructor(canvases: HTMLCanvasElement[], webSocketSend: (protocol: GameProtocols.BaseProtocol) => void) {
 		let [bgStageCanvas, movingShipsStageCanvas, gameStageCanvas, uiStageCanvas] = canvases;
 
-		this._canvasWidth = bgStageCanvas.width;
-		this._canvasHeight = bgStageCanvas.height;
+		this._canvas = bgStageCanvas
 
 		this._stageTransformation = new StageTransformation(bgStageCanvas, gameStageCanvas, movingShipsStageCanvas, this);
 
@@ -53,8 +51,8 @@ export default class StageMediator {
 		let minPosition: Point = { x: Infinity, y: Infinity };
 		let maxPosition: Point = { x: -Infinity, y: -Infinity };
 		if (objs.length == 0 || this.currPlayerId == null) {
-			return [{ x: -this._canvasWidth / 2, y: -this._canvasHeight / 2 },
-			{ x: this._canvasWidth / 2, y: this._canvasHeight / 2 }];
+			return [{ x: -this._canvas.width / 2, y: -this._canvas.height / 2 },
+			{ x: this._canvas.width / 2, y: this._canvas.height / 2 }];
 		}
 
 		objs.forEach(p => {
@@ -133,6 +131,19 @@ export default class StageMediator {
 	}
 	getSolarObjects(): GameProtocols.BaseSolarObject[] {
 		return this._gameStage.getSolarObjects();
+	}
+
+	getVisableRange(): [Point, Point] {
+		let trans = this._stageTransformation.getTrans();
+		let minPosition: Point = {
+			x: -trans.horizontalMoving / trans.scaling,
+			y: -trans.verticalMoving / trans.scaling,
+		}
+		let maxPosition: Point = {
+			x: (this._canvas.width - trans.horizontalMoving) / trans.scaling,
+			y: (this._canvas.height - trans.verticalMoving) / trans.scaling,
+		}
+		return [minPosition, maxPosition];
 	}
 
 	startOccupyingSolarObject(protocol: GameProtocols.StartOccupyingSolarObject) {

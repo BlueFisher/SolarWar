@@ -174,6 +174,10 @@ export default class DomManager {
 		});
 	}
 
+	getMovingStageContainer() {
+		return document.querySelector('#moving-stage-container') as HTMLElement;
+	}
+
 	getCanvases(): [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement] {
 		return [<HTMLCanvasElement>document.querySelector('#bg-stage'),
 		<HTMLCanvasElement>document.querySelector('#game-moving-ships-stage'),

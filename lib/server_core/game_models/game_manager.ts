@@ -54,10 +54,8 @@ export default class GameManager extends events.EventEmitter {
 
 			if (player.currShipsCount == 0) {
 				// 查找有没有星球上还有当前玩家的残留，如果没有则该玩家游戏结束
-				if (this._solarObjects.find(p => p.occupyingStatus &&
+				if (!this._solarObjects.find(p => p.occupyingStatus &&
 					(p.occupiedPlayer && p.occupiedPlayer.id == player.id || p.occupyingStatus.player.id == player.id))) {
-					player.isGameOver = false;
-				} else {
 					player.isGameOver = true;
 					this.emit(GameManager.events.gameOver, player.id);
 				}

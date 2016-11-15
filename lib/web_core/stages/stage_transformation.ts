@@ -19,6 +19,8 @@ export default class StageTransformation {
 	private _gameStageCanvas: HTMLCanvasElement;
 	private _mediator: StageMediator;
 
+	private _stageContainer:HTMLElement;
+
 	private _transformation: Transformation = {
 		scaling: 1,
 		horizontalMoving: 0,
@@ -31,7 +33,9 @@ export default class StageTransformation {
 		deltaVerticalMoving: number
 	} = null;
 
-	constructor(bgStageCanvas: HTMLCanvasElement, movingShipsStageCanvas: HTMLCanvasElement, gameStageCanvas: HTMLCanvasElement, mediator: StageMediator) {
+	constructor(movingStageContainer: HTMLElement, bgStageCanvas: HTMLCanvasElement, movingShipsStageCanvas: HTMLCanvasElement, gameStageCanvas: HTMLCanvasElement, mediator: StageMediator) {
+		this._stageContainer = movingStageContainer;
+		
 		this._bgStageCanvas = bgStageCanvas;
 		this._movingShipsStageCanvas = movingShipsStageCanvas;
 		this._gameStageCanvas = gameStageCanvas;
@@ -129,17 +133,15 @@ export default class StageTransformation {
 		}
 		this._tempMovingX += x;
 		this._tempMovingY += y;
-		[this._bgStageCanvas, this._movingShipsStageCanvas, this._gameStageCanvas].forEach(c => {
-			c.style.transform = `matrix(1,0,0,1,${this._tempMovingX},${this._tempMovingY})`;
-		});
+
+		this._stageContainer.style.transform = `matrix(1,0,0,1,${this._tempMovingX},${this._tempMovingY})`;
 	}
 	moveStageDone() {
 		this._transformation.horizontalMoving += this._tempMovingX;
 		this._transformation.verticalMoving += this._tempMovingY;
 		this._tempMovingX = this._tempMovingY = 0;
-		[this._bgStageCanvas, this._movingShipsStageCanvas, this._gameStageCanvas].forEach(c => {
-			c.style.transform = `matrix(1,0,0,1,0,0)`;
-		});
+		this._stageContainer.style.transform = `matrix(1,0,0,1,0,0)`;
+		
 		this._mediator.redrawStage();
 	}
 }

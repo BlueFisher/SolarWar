@@ -110,6 +110,11 @@ export default class StageMediator {
 		this._bgStage.draw();
 	}
 
+	gameOver() {
+		this.players = [];
+		this._gameStage.dispose();
+	}
+
 	zoomStage(deltaScaling: number, deltaHorizontalMoving: number, deltaVerticalMoving: number) {
 		this._stageTransformation.zoomStage(deltaScaling, deltaHorizontalMoving, deltaVerticalMoving);
 	}

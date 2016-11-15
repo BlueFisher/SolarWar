@@ -11,7 +11,7 @@ export default {
 	sessionAge: 7 * 24 * 60 * 60 * 1000,
 
 	gameReadyTime: 10,
-	gameTime: 60 * 15,
+	gameTime: 20,
 
 	gameAlgorithm: {
 		getOccupyingInterval: function (size: number, count: number): number {

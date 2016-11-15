@@ -49,6 +49,10 @@ export default class GameManager extends events.EventEmitter {
 	}
 
 	private _solarObjectChanged(obj: SolarObject, players: Player[], interval?: number) {
+		if (!this.isGameStarted()) {
+			return;
+		}
+
 		players.forEach((basePlayer) => {
 			let player = this._players.find(p => p.id == basePlayer.id);
 

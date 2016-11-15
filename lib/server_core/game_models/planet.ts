@@ -4,7 +4,6 @@ import * as GameProtocols from '../../shared/game_protocols'
 import { SolarObject, FuncSolarObjectChanged } from './solar_object';
 
 class Planet extends SolarObject {
-	private
 	private _buildingShipsTimer: NodeJS.Timer;
 
 	/**

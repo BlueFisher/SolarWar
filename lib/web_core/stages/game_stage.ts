@@ -20,6 +20,13 @@ export default class GameStage {
 		}
 	}
 
+	dispose() {
+		this._solarObjects = [];
+		this._occupyingTimers.forEach(p => {
+			clearInterval(p.timer);
+		});
+	}
+
 	getCoveredSolarObject(point: Point, distance: number): GameProtocols.BaseSolarObject {
 		return this._solarObjects.find(obj => {
 			if (Math.sqrt((point.x - obj.position.x) ** 2 + (point.y - obj.position.y) ** 2) < obj.size / 2 + distance) {

@@ -17,7 +17,7 @@ export default class TimeManager extends BaseGameManagerTool {
 	dispose() { }
 
 	isGameStarted(): boolean {
-		return this._gameReadyTime == 0;
+		return this._gameReadyTime == 0 && this._gameTime != 0;
 	}
 	private _gameReadyTimeElapse() {
 

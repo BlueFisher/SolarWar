@@ -24,7 +24,7 @@ export default class DomManager {
 			data: vueData.index,
 			computed: {
 				ranklist: function () {
-					vueData.index.ranklist.sort((a, b) => b - a).filter(p => p.currShipsCount > 0).slice(0, 10);
+					vueData.index.ranklist.sort((a, b) => b.currShipsCount - a.currShipsCount).filter(p => p.currShipsCount > 0).slice(0, 10);
 					return vueData.index.ranklist;
 				},
 				gameTime: function (): string {

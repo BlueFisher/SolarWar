@@ -212,15 +212,6 @@ export default class GameServer {
 				let id = this._gameManager.addPlayer(protocol.name);
 				pair.playerId = id;
 				logger.info(`player ${pair.playerId} added in game`);
-
-				// if (this._gameManager.isGameStarted()) {
-				// 	let jsons = newPlanetProtocols.map(p => JSON.stringify(p));
-				// 	this._socketPlayerMap.filter(p => p.playerId && p.socket != socket).forEach((pair) => {
-				// 		jsons.forEach(json => {
-				// 			this._send(json, pair.socket);
-				// 		});
-				// 	});
-				// }
 			}
 
 			if (this._gameManager.isGameStarted()) {

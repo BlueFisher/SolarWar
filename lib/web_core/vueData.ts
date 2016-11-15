@@ -4,6 +4,7 @@ import * as GameProtocols from '../shared/game_protocols';
 
 let availableProps: GameProtocols.SolarObjectType[] = [];
 let addingProp: GameProtocols.SolarObjectType = null;
+let ranklist: GameProtocols.BasePlayer[] = [];
 
 export let index = {
 	ratio: 100,
@@ -14,7 +15,7 @@ export let index = {
 	currShipsCount: 0,
 	maxShipsCount: 0,
 
-	ranklist: [],
+	ranklist: ranklist,
 }
 
 let user: {

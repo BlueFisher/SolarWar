@@ -26,6 +26,7 @@ export default class GameManager {
 				break;
 			case GameProtocols.Type.gameOver:
 				this._domManager.gameOver(<GameProtocols.GameOver>protocol);
+				this._stageMediator.gameOver();
 				break;
 
 			case GameProtocols.Type.movingShips:

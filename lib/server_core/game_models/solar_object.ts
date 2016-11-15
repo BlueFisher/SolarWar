@@ -85,14 +85,7 @@ export abstract class SolarObject {
 
 	/**飞船离开 */
 	shipsLeft(player: Player, countRatio: number): number {
-		let existedShipsIndex = -1;
-		for (let i in this.allShips) {
-			if (this.allShips[i].player == player) {
-				existedShipsIndex = parseInt(i);
-				break;
-			}
-		}
-
+		let existedShipsIndex = this.allShips.findIndex(p => p.player == player);
 		if (existedShipsIndex == -1) {
 			return -1;
 		}
@@ -100,9 +93,9 @@ export abstract class SolarObject {
 		let count = parseInt((this.allShips[existedShipsIndex].count * countRatio).toFixed());
 		this.allShips[existedShipsIndex].count -= count;
 		if (this.allShips[existedShipsIndex].count == 0) {
-			if (this.allShips[existedShipsIndex].player != this.occupiedPlayer) {
-				this.allShips.splice(existedShipsIndex, 1);
-			}
+			// if (this.allShips[existedShipsIndex].player != this.occupiedPlayer) {
+			this.allShips.splice(existedShipsIndex, 1);
+			// }
 		}
 
 		this._changeSolarObject([]);
@@ -215,7 +208,7 @@ export abstract class SolarObject {
 
 	private _startCombat() {
 		if (!this._isCombatting)
-			this._combat(); 4
+			this._combat();
 	}
 
 	private _combat() {
@@ -230,9 +223,14 @@ export abstract class SolarObject {
 
 			for (let i = this.allShips.length - 1; i >= 0; i--) {
 				let ships = this.allShips[i];
-				ships.player.addCurrShipsCount(-1);
-				ships.count--;
-				if (ships.count <= 0) {
+
+				if (ships.count > 0) {
+					ships.player.addCurrShipsCount(-1);
+					ships.count--;
+				}
+				
+				if (ships.count == 0) {
+					console.log(this.id, ships.player.name);
 					this.allShips.splice(i, 1);
 				}
 			}

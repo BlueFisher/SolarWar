@@ -236,6 +236,6 @@ export abstract class SolarObject {
 
 			this._changeSolarObject(changedPlayers);
 			this._combat();
-		}, config.gameAlgorithm.getCombatInterval());
+		}, config.algorithm.getCombatInterval());
 	}
 }

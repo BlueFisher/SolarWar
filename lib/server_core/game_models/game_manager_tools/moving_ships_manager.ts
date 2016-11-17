@@ -69,7 +69,7 @@ export default class MovingShipsManager extends BaseGameManagerTool {
 		setTimeout(() => {
 			for (let i = this._movingShipsQueue.length - 1; i >= 0; i--) {
 				let movingShip = this._movingShipsQueue[i];
-				let deltaDistance = config.gameAlgorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
+				let deltaDistance = config.algorithm.getMovingShipsDeltaDistance(movingShip.count, movingShip.distance, movingShip.distanceLeft);
 				// 如果已到目的星球，则调用shipsArrived，并从飞行队列中移除
 				if ((movingShip.distanceLeft -= deltaDistance) <= 0) {
 					movingShip.objTo.shipsArrived(movingShip.player, movingShip.count);
@@ -78,7 +78,7 @@ export default class MovingShipsManager extends BaseGameManagerTool {
 			}
 			this._sendStartingMovingShips();
 			this._moveShips();
-		}, config.gameAlgorithm.getMovingShipsInterval());
+		}, config.algorithm.getMovingShipsInterval());
 	}
 
 	movePlayerShips(player: Player, objFrom: SolarObject, objTo: SolarObject, countRatio: number) {

@@ -4,12 +4,9 @@
   "description": "A Multiplayer RTS Game",
   "main": "app.js",
   "scripts": {
-    "watch-ts": "tsc -p . --sourcemap -w",
-    "watch-webpack": "webpack -d -w",
+    "buildTypings": "typings install",
     "build": "tsc -p . && webpack -p",
-    "build-d": "tsc -p . --sourcemap && webpack -d",
-    "start": "npm run build node app",
-    "test": "npm run build-d && node app"
+    "start": "npm run build && node app"
   },
   "author": "Fisher",
   "license": "MIT",
@@ -18,17 +15,18 @@
     "cookie-parser": "^1.4.3",
     "ejs": "^2.5.2",
     "express": "^4.14.0",
-    "express-session": "^1.14.1",
-    "log4js": "^0.6.38",
+    "express-session": "^1.14.2",
+    "log4js": "^1.0.1",
     "mongodb": "^2.2.11",
     "ws": "^1.1.1"
   },
   "devDependencies": {
-    "babel-core": "^6.18.0",
+    "babel-core": "^6.18.2",
     "babel-loader": "^6.2.7",
     "babel-preset-es2015": "^6.18.0",
     "source-map-loader": "^0.1.5",
-    "typescript": "^2.0.7",
-    "webpack": "^1.13.2"
+    "typescript": "^2.0.10",
+    "typings": "^2.0.0",
+    "webpack": "^1.13.3"
   }
 }

@@ -1,19 +1,12 @@
 import { PlanetType } from '../server_core/game_models/map_loader';
 
 export default {
-	httpPort: 80,
-	webSocketServers: [
-		{ ip: 'localhost', port: 8080 }
-	],
-	mongodbServer: 'mongodb://localhost:27017/solarwar',
-	useCDN: true,
-
 	sessionAge: 7 * 24 * 60 * 60 * 1000,
 
 	gameReadyTime: 10,
-	gameTime: 10,
+	gameTime: 60 * 15,
 
-	gameAlgorithm: {
+	algorithm: {
 		getOccupyingInterval: function (size: number, count: number): number {
 			let interval = (3 * (size / count) ** 2 + 2) * 10;
 			if (interval > 500)

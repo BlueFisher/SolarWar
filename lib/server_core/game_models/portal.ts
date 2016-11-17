@@ -12,7 +12,7 @@ export default class Portal extends SolarObject {
 	dispose() { }
 
 	protected _getOccupyingInterval() {
-		return config.gameAlgorithm.getOccupyingInterval(this.size, this.allShips[0].count);
+		return config.algorithm.getOccupyingInterval(this.size, this.allShips[0].count);
 	}
 
 	getBaseSolarObjectProtocol() {

@@ -1,15 +1,13 @@
 import * as crypto from 'crypto';
 import * as mongodb from 'mongodb';
-import config from '../shared/config';
+import serverConfig from '../../config';
 import { user } from './db_models';
-
-
 
 function _getHashedPassword(password:string){
 	return crypto.createHash("md5").update(password).digest('hex');
 }
 function _connect(): Promise<mongodb.Db> {
-	return mongodb.MongoClient.connect(config.mongodbServer);
+	return mongodb.MongoClient.connect(serverConfig.mongodbServer);
 }
 export function findUser(id: string): Promise<user> {
 	return _connect().then(function (db) {

@@ -43,7 +43,7 @@ class Planet extends SolarObject {
 	}
 
 	protected _getOccupyingInterval() {
-		return config.gameAlgorithm.getOccupyingInterval(this.size, this.allShips[0].count);
+		return config.algorithm.getOccupyingInterval(this.size, this.allShips[0].count);
 	}
 
 	getBaseSolarObjectProtocol() {
@@ -56,7 +56,7 @@ class Planet extends SolarObject {
 	private _startbuildingShips() {
 		this._buildingShipsTimer = setInterval(() => {
 			this._buildShips();
-		}, config.gameAlgorithm.getBuildingShipsInterval(this.size));
+		}, config.algorithm.getBuildingShipsInterval(this.size));
 	}
 
 	private _buildShips() {

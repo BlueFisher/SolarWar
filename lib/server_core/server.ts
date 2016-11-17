@@ -6,6 +6,7 @@ import { useLogger } from './log';
 
 import * as dao from './db_access_funcs';
 
+import serverConfig from '../../config';
 import config from '../shared/config';
 import * as HttpProtocols from '../shared/http_protocols';
 import GameServer from './game_server';
@@ -34,11 +35,11 @@ class Server {
 
 		this._configExpress(app);
 
-		app.listen(config.httpPort, () => {
-			callback(true, config.httpPort);
+		app.listen(serverConfig.httpPort, () => {
+			callback(true, serverConfig.httpPort);
 		});
 
-		config.webSocketServers.forEach(s => {
+		serverConfig.webSocketServers.forEach(s => {
 			this._gameServers.push(new GameServer(s.ip, s.port, this._sessionParser, () => {
 				callback(false, s.port);
 			}));
@@ -62,7 +63,7 @@ class Server {
 
 		app.get('/', (req, res) => {
 			let render = {
-				useCDN: config.useCDN,
+				useCDN: serverConfig.useCDN,
 				user: null
 			}
 			let userId: string = req.session['userId'];

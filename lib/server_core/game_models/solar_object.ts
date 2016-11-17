@@ -93,9 +93,9 @@ export abstract class SolarObject {
 		let count = parseInt((this.allShips[existedShipsIndex].count * countRatio).toFixed());
 		this.allShips[existedShipsIndex].count -= count;
 		if (this.allShips[existedShipsIndex].count == 0) {
-			// if (this.allShips[existedShipsIndex].player != this.occupiedPlayer) {
-			this.allShips.splice(existedShipsIndex, 1);
-			// }
+			if (this.allShips[existedShipsIndex].player != this.occupiedPlayer) {
+				this.allShips.splice(existedShipsIndex, 1);
+			}
 		}
 
 		this._changeSolarObject([]);
@@ -228,9 +228,8 @@ export abstract class SolarObject {
 					ships.player.addCurrShipsCount(-1);
 					ships.count--;
 				}
-				
+
 				if (ships.count == 0) {
-					console.log(this.id, ships.player.name);
 					this.allShips.splice(i, 1);
 				}
 			}

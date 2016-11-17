@@ -24,6 +24,7 @@ export default class StageMediator {
 	private _gameStage: GameStage;
 	private _uiStage: UiStage;
 
+	isGameOn = false;
 	players: GameProtocols.BasePlayer[] = [];
 	currPlayerId: number;
 
@@ -98,6 +99,7 @@ export default class StageMediator {
 	}
 
 	initializeMap(protocol: GameProtocols.InitializeMap) {
+		this.isGameOn = true;
 		this.currPlayerId = protocol.playerId;
 		let map: GameProtocols.Map = protocol.map;
 		let [minPosition, maxPosition] = this._getMapMainRange(map.objects);
@@ -111,8 +113,10 @@ export default class StageMediator {
 	}
 
 	gameOver() {
+		this.isGameOn = false;
 		this.players = [];
 		this._gameStage.dispose();
+		this._movingShipsStage.dispose();
 	}
 
 	zoomStage(deltaScaling: number, deltaHorizontalMoving: number, deltaVerticalMoving: number) {

@@ -14,7 +14,6 @@ export default class GameManager {
 	/**游戏舞台 */
 	constructor(webSocketConnect: () => void, webSocketSend: (protocol: GameProtocols.BaseProtocol) => void) {
 		this._domManager = new DomManager(webSocketConnect);
-
 		this._stageMediator = new StageMediator(this._domManager.getMovingStageContainer(), this._domManager.getCanvases(), webSocketSend);
 	}
 
@@ -24,11 +23,19 @@ export default class GameManager {
 				this._stageMediator.initializeMap(<GameProtocols.InitializeMap>protocol);
 				this._domManager.gameOn();
 				break;
-			case GameProtocols.Type.gameOver:
-				this._domManager.gameOver(<GameProtocols.GameOver>protocol);
-				this._stageMediator.gameOver();
+			case GameProtocols.Type.readyTime:
+				this._domManager.readyTimeElapse(<GameProtocols.ReadyTimeElapse>protocol);
 				break;
-
+		}
+		// 如果未开始比赛则忽略所有其他信息
+		if (!this._stageMediator.isGameOn) {
+			return;
+		}
+		switch (protocol.type) {
+			case GameProtocols.Type.gameOver:
+				this._stageMediator.gameOver();
+				this._domManager.gameOver(<GameProtocols.GameOver>protocol);
+				break;
 			case GameProtocols.Type.movingShips:
 				this._stageMediator.movingShipsQueue(<GameProtocols.MovingShips>protocol);
 				break;
@@ -42,9 +49,6 @@ export default class GameManager {
 				break;
 			case GameProtocols.Type.canAddProp:
 				this._stageMediator.canAddProp(<GameProtocols.CanAddProp>protocol)
-			case GameProtocols.Type.readyTime:
-				this._domManager.readyTimeElapse(<GameProtocols.ReadyTimeElapse>protocol);
-				break;
 			case GameProtocols.Type.time:
 				this._domManager.timeElapse(<GameProtocols.TimeElapse>protocol);
 				break;

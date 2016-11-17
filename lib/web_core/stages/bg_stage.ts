@@ -28,7 +28,7 @@ export default class BgStage {
 		let height = this._canvas.height / transformation.scaling;
 
 		ctx.beginPath();
-		ctx.fillStyle = 'rgba(255,255,255,.1)';
+		ctx.fillStyle = 'rgba(255,255,255,.5)';
 
 		for (let i = horizonStart; i < width; i += padding) {
 			let coordX = (i - transformation.horizontalMoving / transformation.scaling) / padding;

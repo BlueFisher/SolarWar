@@ -2,8 +2,15 @@ import * as GameProtocols from '../../shared/game_protocols'
 
 type funcCanAddProp = (player: Player, type: GameProtocols.SolarObjectType) => void;
 
-export default class Player {
-	private static currId = 1;
+let currId = 1;
+let colors: number[] = [];
+
+class Player {
+	static resetColors() {
+		for (let i = 0; i <= 360; i += 20) {
+			colors.push(i);
+		}
+	}
 
 	private _propStages = [{
 		shipsCount: 100,
@@ -23,7 +30,7 @@ export default class Player {
 	isGameOver = false;
 
 	constructor(name: string, maxShipsCount: number, canAddProp: funcCanAddProp) {
-		this.id = Player.currId++;
+		this.id = currId++;
 		this.name = name;
 		this.color = this._getRandomColor();
 		this.historyMaxShipsCount = this.maxShipsCount = this.currShipsCount = maxShipsCount;
@@ -48,8 +55,11 @@ export default class Player {
 	}
 
 	private _getRandomColor(): string {
-		let ss = [0.4, 0.7, 1];
-		let [h, s, v] = [Math.random() * 360, ss[Math.round(Math.random() * ss.length)], 1];
+		if (!colors.length) {
+			Player.resetColors();
+		}
+		let color = colors.splice(Math.floor(Math.random() * colors.length), 1)[0];
+		let [h, s, v] = [color, 1, 1];
 		let [r, g, b] = this._hslToRgb(h, s, v);
 		return `#${this._toHexString(r, g, b)}`;
 	}
@@ -112,3 +122,7 @@ export default class Player {
 		}
 	}
 }
+
+Player.resetColors();
+
+export default Player;

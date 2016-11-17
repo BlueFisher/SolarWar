@@ -19,6 +19,10 @@ export default class MovingShipsStage {
 		this._mediator = gameStageMediator;
 	}
 
+	dispose() {
+		this._queue = [];
+	}
+
 	draw() {
 		let objects = this._mediator.getSolarObjects();
 		let players = this._mediator.players;

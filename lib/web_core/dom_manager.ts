@@ -174,8 +174,8 @@ export default class DomManager {
 		});
 	}
 
-	getMovingStageContainer() {
-		return document.querySelector('#moving-stage-container') as HTMLElement;
+	gettransStageContainer() {
+		return document.querySelector('#trans-stage-container') as HTMLElement;
 	}
 
 	getCanvases(): [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement] {

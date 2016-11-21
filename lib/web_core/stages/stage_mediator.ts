@@ -28,12 +28,12 @@ export default class StageMediator {
 	players: GameProtocols.BasePlayer[] = [];
 	currPlayerId: number;
 
-	constructor(movingStageContainer: HTMLElement, canvases: HTMLCanvasElement[], webSocketSend: (protocol: GameProtocols.BaseProtocol) => void) {
+	constructor(transStageContainer: HTMLElement, canvases: HTMLCanvasElement[], webSocketSend: (protocol: GameProtocols.BaseProtocol) => void) {
 		let [bgStageCanvas, movingShipsStageCanvas, gameStageCanvas, uiStageCanvas] = canvases;
 
 		this._canvas = bgStageCanvas
 
-		this._stageTransformation = new StageTransformation(movingStageContainer, bgStageCanvas, gameStageCanvas, movingShipsStageCanvas, this);
+		this._stageTransformation = new StageTransformation(transStageContainer, bgStageCanvas, gameStageCanvas, movingShipsStageCanvas, this);
 
 		this._bgStage = new BgStage(bgStageCanvas, this);
 		this._movingShipsStage = new MovingShipsStage(movingShipsStageCanvas, this);

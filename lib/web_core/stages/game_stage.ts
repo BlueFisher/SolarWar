@@ -43,6 +43,8 @@ export default class GameStage {
 		let ctx = this._canvas.getContext('2d');
 		ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
+		let invisibleCombattingObjects: Point[] = [];
+
 		ctx.save();
 		ctx.setTransform(transformation.scaling, 0, 0, transformation.scaling, transformation.horizontalMoving, transformation.verticalMoving);
 
@@ -51,6 +53,10 @@ export default class GameStage {
 				|| obj.position.x - obj.size / 2 > maxVisablePoint.x
 				|| obj.position.y + obj.size / 2 < minVisablePoint.y
 				|| obj.position.y - obj.size / 2 > maxVisablePoint.y) {
+
+				if (obj.allShips.length > 1 && obj.allShips.find(p => p.playerId == this._mediator.currPlayerId)) {
+					invisibleCombattingObjects.push(obj.position);
+				}
 				continue;
 			}
 			// 绘制星球
@@ -149,6 +155,42 @@ export default class GameStage {
 		};
 
 		ctx.restore();
+
+		ctx.save();
+
+		ctx.fillStyle = 'red';
+
+		invisibleCombattingObjects.forEach(p => {
+			ctx.beginPath();
+			if (p.x < minVisablePoint.x && p.y < minVisablePoint.y) {
+				ctx.arc(0, 0, 10, 0, 2 * Math.PI);
+			} else if (p.x > minVisablePoint.x && p.x < maxVisablePoint.x && p.y < minVisablePoint.y) {
+				ctx.arc(mapToAbsoluteX(p.x), 0, 10, 0, 2 * Math.PI);
+			} else if (p.x > maxVisablePoint.x && p.y < minVisablePoint.y) {
+				ctx.arc(this._canvas.width, 0, 10, 0, 2 * Math.PI);
+			} else if (p.x > maxVisablePoint.x && p.y > minVisablePoint.y && p.y < maxVisablePoint.y) {
+				ctx.arc(this._canvas.width, mapToAbsoluteY(p.y), 10, 0, 2 * Math.PI);
+			} else if (p.x > maxVisablePoint.x && p.y > maxVisablePoint.y) {
+				ctx.arc(this._canvas.width, this._canvas.height, 10, 0, 2 * Math.PI);
+			} else if (p.x > minVisablePoint.x && p.x < maxVisablePoint.x && p.y > maxVisablePoint.y) {
+				ctx.arc(mapToAbsoluteX(p.x), this._canvas.height, 10, 0, 2 * Math.PI);
+			} else if (p.x < minVisablePoint.x && p.y > maxVisablePoint.y) {
+				ctx.arc(0, this._canvas.height, 10, 0, 2 * Math.PI);
+			} else if (p.x < minVisablePoint.x && p.y > minVisablePoint.y && p.y < maxVisablePoint.y) {
+				ctx.arc(0, mapToAbsoluteY(p.y), 10, 0, 2 * Math.PI);
+			}
+
+			ctx.fill();
+		});
+
+		ctx.restore();
+
+		function mapToAbsoluteX(x: number) {
+			return transformation.scaling * x + transformation.horizontalMoving;
+		}
+		function mapToAbsoluteY(y: number) {
+			return transformation.scaling * y + transformation.verticalMoving;
+		}
 
 		function setShadow(ctx: CanvasRenderingContext2D, x: number, y: number, blur: number, color: string) {
 			ctx.shadowOffsetX = x; // 阴影Y轴偏移

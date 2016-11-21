@@ -6,7 +6,7 @@ log4js.configure({
 			type: 'console',
 			layout: {
 				type: 'pattern',
-				pattern: '%[[%r] [%p]%] [%c] - %m'
+				pattern: '%[[%d] [%p]%] [%c] - %m'
 			}
 		}
 	],

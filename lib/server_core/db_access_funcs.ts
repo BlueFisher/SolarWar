@@ -3,17 +3,17 @@ import * as mongodb from 'mongodb';
 import serverConfig from '../../config';
 import { user } from './db_models';
 
-function _getHashedPassword(password:string){
+function _getHashedPassword(password: string) {
 	return crypto.createHash("md5").update(password).digest('hex');
 }
 function _connect(): Promise<mongodb.Db> {
 	return mongodb.MongoClient.connect(serverConfig.mongodbServer);
 }
-export function findUser(id: string): Promise<user> {
+function findUser(id: string): Promise<user> {
 	return _connect().then(function (db) {
 		let usersColl = db.collection('users');
 
-		return usersColl.findOne({ _id: new mongodb.ObjectID(id) });
+		return usersColl.findOne({}) as Promise<user>;
 	});
 }
 export async function signup(email: string, password: string): Promise<user> {
@@ -27,7 +27,7 @@ export async function signup(email: string, password: string): Promise<user> {
 	} else {
 		user = {
 			email: email,
-			passwordHash:  _getHashedPassword(password),
+			passwordHash: _getHashedPassword(password),
 			scores: []
 		}
 		let result = await usersColl.insertOne(user);

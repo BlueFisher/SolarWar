@@ -8,5 +8,5 @@ export default {
 	/**MongoDB地址 */
 	mongodbServer: 'mongodb://localhost:27017/solarwar',
 	/**是否使用CDN */
-	useCDN: true
+	useCDN: false
 }

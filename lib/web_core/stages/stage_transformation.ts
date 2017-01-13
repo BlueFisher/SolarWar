@@ -14,8 +14,6 @@ interface Transformation {
 }
 
 export default class StageTransformation {
-	private _bgStageCanvas: HTMLCanvasElement;
-	private _movingShipsStageCanvas: HTMLCanvasElement;
 	private _gameStageCanvas: HTMLCanvasElement;
 	private _mediator: StageMediator;
 
@@ -33,11 +31,8 @@ export default class StageTransformation {
 		deltaVerticalMoving: number
 	} = null;
 
-	constructor(transStageContainer: HTMLElement, bgStageCanvas: HTMLCanvasElement, movingShipsStageCanvas: HTMLCanvasElement, gameStageCanvas: HTMLCanvasElement, mediator: StageMediator) {
+	constructor(transStageContainer: HTMLElement, gameStageCanvas: HTMLCanvasElement, mediator: StageMediator) {
 		this._stageContainer = transStageContainer;
-
-		this._bgStageCanvas = bgStageCanvas;
-		this._movingShipsStageCanvas = movingShipsStageCanvas;
 		this._gameStageCanvas = gameStageCanvas;
 		this._mediator = mediator;
 

@@ -33,7 +33,7 @@ export default class StageMediator {
 
 		this._canvas = bgStageCanvas
 
-		this._stageTransformation = new StageTransformation(transStageContainer, bgStageCanvas, gameStageCanvas, movingShipsStageCanvas, this);
+		this._stageTransformation = new StageTransformation(transStageContainer, gameStageCanvas, this);
 
 		this._bgStage = new BgStage(bgStageCanvas, this);
 		this._movingShipsStage = new MovingShipsStage(movingShipsStageCanvas, this);
